@@ -451,36 +451,45 @@
     }
     
     // Update the Stock Report table
-    async function updateStockReportTable() {
-      try {
-        const filter = document.getElementById("stockSearchInput").value.toUpperCase();
-        const querySnapshot = await getDocs(collection(db, "items"));
-        const tbody = document.getElementById("stockTableBody");
-        tbody.innerHTML = "";
-        let totalValue = 0;
-        querySnapshot.forEach((docSnap) => {
-          const item = docSnap.data();
-          if (item.code.toUpperCase().indexOf(filter) > -1 ||
-              item.description.toUpperCase().indexOf(filter) > -1 ||
-              item.ctnSize.toUpperCase().indexOf(filter) > -1) {
-            let total = item.boxesPerCtn * item.ctnPrice;
-            totalValue += total;
-            let row = `<tr>
-                <td>${item.code}</td>
-                <td>${item.description}</td>
-                <td>${item.ctnSize}</td>
-                <td>${item.boxesPerCtn}</td>
-                <td>Rs. ${parseFloat(item.ctnPrice).toFixed(2)}</td>
-                <td>Rs. ${total.toFixed(2)}</td>
-            </tr>`;
-            tbody.innerHTML += row;
-          }
-        });
-        document.getElementById("netStockValue").textContent = "Rs. " + totalValue.toFixed(2);
-      } catch (error) {
-        console.error("Error fetching stock items:", error);
+   async function updateStockReportTable() {
+  try {
+    const searchInput = document.getElementById("stockSearchInput");
+    const filter = searchInput ? searchInput.value.toUpperCase() : "";
+    const querySnapshot = await getDocs(collection(db, "items"));
+    const tbody = document.getElementById("stockTableBody");
+    tbody.innerHTML = "";
+    let totalValue = 0;
+    querySnapshot.forEach((docSnap) => {
+      const item = docSnap.data();
+      // Use default empty strings if any of the fields are undefined
+      const code = item.code ? item.code.toUpperCase() : "";
+      const description = item.description ? item.description.toUpperCase() : "";
+      const ctnSize = item.ctnSize ? item.ctnSize.toUpperCase() : "";
+      
+      if (code.indexOf(filter) > -1 ||
+          description.indexOf(filter) > -1 ||
+          ctnSize.indexOf(filter) > -1) {
+        const boxes = parseFloat(item.boxesPerCtn || 0);
+        const price = parseFloat(item.ctnPrice || 0);
+        let total = boxes * price;
+        totalValue += total;
+        let row = `<tr>
+            <td>${item.code || ""}</td>
+            <td>${item.description || ""}</td>
+            <td>${item.ctnSize || ""}</td>
+            <td>${item.boxesPerCtn || 0}</td>
+            <td>Rs. ${price.toFixed(2)}</td>
+            <td>Rs. ${total.toFixed(2)}</td>
+        </tr>`;
+        tbody.innerHTML += row;
       }
-    }
+    });
+    document.getElementById("netStockValue").textContent = "Rs. " + totalValue.toFixed(2);
+  } catch (error) {
+    console.error("Error fetching stock items:", error);
+  }
+}
+
     
     // Delete item from Firestore
     async function deleteItem(itemId) {
