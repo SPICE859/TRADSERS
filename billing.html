@@ -552,33 +552,34 @@
   const storage = getStorage(app);
 
   /**
-   * Uploads billing data to Firebase Storage.
-   *
-   * @param {Object} billData - The bill data to store (e.g., as a JSON object).
-   * @param {string} billId - A unique identifier for the bill (used as the filename).
-   */
-  function storeBillingData(billData, billId) {
-    // Convert bill data to a JSON string and then to a Blob.
-    const dataStr = JSON.stringify(billData, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    // Define the storage path (folder "billing data" and file name using billId)
-    const storagePath = `billing data/${billId}.json`;
-    const fileRef = storageRef(storage, storagePath);
-    
-    // Upload the Blob to Firebase Storage.
-    uploadBytes(fileRef, blob)
-      .then((snapshot) => {
-        console.log("Billing data stored successfully at:", snapshot.metadata.fullPath);
-        // Optionally, get the download URL if needed.
-        return getDownloadURL(snapshot.ref);
-      })
-      .then((downloadURL) => {
-        console.log("Download URL for billing data:", downloadURL);
-      })
-      .catch((error) => {
-        console.error("Error storing billing data:", error);
-      });
-  }
+ * Uploads billing data to Firebase Storage.
+ *
+ * @param {Object} billData - The bill data to store (e.g., as a JSON object).
+ * @param {string} billId - A unique identifier for the bill (used as the filename).
+ */
+function storeBillingData(billData, billId) {
+  // Convert bill data to a JSON string and then to a Blob.
+  const dataStr = JSON.stringify(billData, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  
+  // Use "billing_data" (with underscore) to avoid issues with spaces.
+  const storagePath = `billing_data/${billId}.json`;
+  const fileRef = storageRef(storage, storagePath);
+  
+  // Upload the Blob to Firebase Storage.
+  uploadBytes(fileRef, blob)
+    .then((snapshot) => {
+      console.log("Billing data stored successfully at:", snapshot.metadata.fullPath);
+      // Optionally, get the download URL if needed.
+      return getDownloadURL(snapshot.ref);
+    })
+    .then((downloadURL) => {
+      console.log("Download URL for billing data:", downloadURL);
+    })
+    .catch((error) => {
+      console.error("Error storing billing data:", error);
+    });
+}
 
   // Expose the function globally so your billing system code can call it.
   window.storeBillingData = storeBillingData;
