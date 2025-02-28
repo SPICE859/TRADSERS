@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AHYAN TRADERS Dashboard</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ---------- CSS Variables & Global Styles ---------- */
+    :root {
+      --primary: #34495e;
+      --secondary: #2c3e50;
+      --accent: #007bff;
+      --light: #f4f4f4;
+      --white: #ffffff;
+      --error: #e74c3c;
+      --transition: 0.3s;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body, html {
+      font-family: 'Roboto', sans-serif;
+      background: var(--light);
+      color: var(--primary);
+      min-height: 100vh;
+    }
+    
+    /* ---------- Sidebar ---------- */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 250px;
+      height: 100%;
+      background: var(--secondary);
+      color: var(--white);
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .sidebar h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+    .sidebar button {
+      width: 100%;
+      padding: 12px 15px;
+      margin-bottom: 10px;
+      border: none;
+      background: var(--primary);
+      color: var(--white);
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background var(--transition);
+    }
+    .sidebar button:hover {
+      background: var(--accent);
+    }
+    
+    /* ---------- Main Content ---------- */
+    .main-content {
+      margin-left: 270px;
+      padding: 20px;
+    }
+    .section {
+      display: none;
+      background: var(--white);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .header-large {
+      text-align: center;
+      padding: 15px;
+      background: var(--primary);
+      color: var(--white);
+      border-radius: 4px;
+      margin-bottom: 20px;
+      font-size: 28px;
+      font-weight: 500;
+    }
+    .home-header {
+      margin-bottom: 0;
+    }
+    
+    /* ---------- Gallery Styles ---------- */
+    .gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .gallery img {
+      width: 300px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+    
+    /* ---------- Form & Table Styles ---------- */
+    .filter-container, .search-container {
+      text-align: center;
+      margin: 20px 0;
+    }
+    .filter-container label, .search-container label {
+      font-size: 16px;
+      margin-right: 5px;
+    }
+    .filter-container input[type="date"],
+    .search-container input[type="text"] {
+      padding: 8px;
+      font-size: 16px;
+      margin-right: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .filter-container button, button.form-btn {
+      padding: 8px 16px;
+      font-size: 16px;
+      border: none;
+      border-radius: 4px;
+      background: var(--primary);
+      color: var(--white);
+      cursor: pointer;
+      transition: background var(--transition);
+    }
+    .filter-container button:hover, button.form-btn:hover {
+      background: var(--accent);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0 auto 20px auto;
+      background: var(--white);
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+    th { background: var(--primary); color: var(--white); }
+    tr:nth-child(even) { background: #f9f9f9; }
+    tr:hover { background: #f1f1f1; }
+    tfoot td {
+      font-weight: 600;
+      background: #f0f0f0;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: var(--white);
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      text-align: center;
+    }
+    
+    /* ---------- Modal Styles ---------- */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--white);
+      padding: 20px;
+      border: 1px solid #888;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+      width: 300px;
+      text-align: left;
+    }
+    .modal h3 { margin-top: 0; }
+    .modal input {
+      width: 100%;
+      padding: 5px;
+      margin: 5px 0 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .modal button {
+      margin-top: 10px;
+      cursor: pointer;
+      padding: 8px 12px;
+      background: var(--primary);
+      color: var(--white);
+      border: none;
+      border-radius: 4px;
+      transition: background var(--transition);
+    }
+    .modal button:hover { background: var(--accent); }
+    
+    /* ---------- Print Styles ---------- */
+    @media print {
+      body { color: black; background: white; }
+      .no-print { display: none; }
+      table, th, td { border: 1px solid black; }
+      td:empty::after { content: "0.00"; }
+    }
+  </style>
+</head>
+<body>
+  <!-- ---------- Sidebar ---------- -->
+  <div class="sidebar">
+    <h2>AHYAN TRADERS</h2>
+    <button onclick="showSection('home')">Home</button>
+    <button onclick="showSection('saleSummary')">Sale Summary</button>
+    <button onclick="showSection('stockReport')">Stock Report</button>
+    <button onclick="openAddItemModal()">Add New Item</button>
+    <button onclick="showSection('viewSavedItemsSection')">View Saved Items</button>
+    <button onclick="window.location.href='billing.html'">Billing System</button>
+  </div>
+  
+  <!-- ---------- Main Content ---------- -->
+  <div class="main-content">
+    <!-- Home Section with Gallery -->
+    <div id="home" class="section">
+      <div class="header-large home-header">AHYAN TRADERS</div>
+      <div class="gallery">
+        <img src="file:///System/1.png" alt="Image 1">
+        <img src="file:///C:/Users/samad/Desktop/System/2.png" alt="Image 2">
+        <img src="file:///C:/Users/samad/Desktop/System/3.png" alt="Image 3">
+        <img src="file:///C:/Users/samad/Desktop/System/4.png" alt="Image 4">
+        <img src="file:///C:/Users/samad/Desktop/System/5.png" alt="Image 5">
+        <img src="file:///C:/Users/samad/Desktop/System/6.png" alt="Image 6">
+        <img src="file:///C:/Users/samad/Desktop/System/7.png" alt="Image 7">
+        <img src="file:///C:/Users/samad/Desktop/System/8.png" alt="Image 8">
+        <img src="file:///C:/Users/samad/Desktop/System/9.png" alt="Image 9">
+        <img src="file:///C:/Users/samad/Desktop/System/10.png" alt="Image 10">
+        <img src="file:///C:/Users/samad/Desktop/System/12.png" alt="Image 12">
+        <img src="file:///C:/Users/samad/Desktop/System/13.png" alt="Image 13">
+      </div>
+    </div>
+    
+    <!-- Sale Summary Section -->
+    <div id="saleSummary" class="section">
+      <div class="header-large">Sale Summary</div>
+      <div class="filter-container">
+        <label for="startDate">Initial Date:</label>
+        <input type="date" id="startDate">
+        <label for="endDate">Current Date:</label>
+        <input type="date" id="endDate">
+        <button onclick="filterSales()">Filter</button>
+      </div>
+      <table id="salesTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Invoice No</th>
+            <th>Customer</th>
+            <th>Net Amount (Rs.)</th>
+          </tr>
+        </thead>
+        <tbody id="salesTableBody">
+          <!-- Billing data from Firestore will be inserted here -->
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" style="text-align: right;">Net Total Sale (Rs.):</td>
+            <td id="netTotal">Rs. 0.00</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    
+    <!-- Stock Report Section -->
+    <div id="stockReport" class="section">
+      <div class="header-large">Stock Report</div>
+      <div class="search-container">
+        <input type="text" id="stockSearchInput" placeholder="Search by Product ID, Name, or CTN Size...">
+      </div>
+      <table id="stockTable">
+        <thead>
+          <tr>
+            <th>Product ID</th>
+            <th>Product Name</th>
+            <th>CTN Size</th>
+            <th>Available Boxes</th>
+            <th>Unit Price (Rs.)</th>
+            <th>Total Value (Rs.)</th>
+          </tr>
+        </thead>
+        <tbody id="stockTableBody">
+          <!-- Dynamically generated rows -->
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5" style="text-align: right;">Net Total Stock Value (Rs.):</td>
+            <td id="netStockValue">Rs. 0.00</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    
+    <!-- View Saved Items Section -->
+    <div id="viewSavedItemsSection" class="section">
+      <div class="header-large">View Saved Items</div>
+      <div class="container">
+        <div class="search-container">
+          <input type="text" id="viewSavedSearch" placeholder="Search items..." oninput="filterViewSavedItems()">
+        </div>
+        <table id="savedItemsTable">
+          <thead>
+            <tr>
+              <th>Product Code</th>
+              <th>Description</th>
+              <th>CTN Size</th>
+              <th>Boxes per CTN</th>
+              <th>CTN Price</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="savedItemsTableBody">
+            <!-- Dynamically generated rows -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <!-- ---------- Modals ---------- -->
+  <div id="addItemModal" class="modal no-print">
+    <h3>Add New Item</h3>
+    <label for="newItemCodeModal">Product Code:</label>
+    <input type="text" id="newItemCodeModal" required>
+    <label for="newItemDescModal">Description:</label>
+    <input type="text" id="newItemDescModal" required>
+    <label for="newItemCtnSizeModal">CTN Size:</label>
+    <input type="text" id="newItemCtnSizeModal" required>
+    <label for="newItemBoxesModal">Boxes per CTN:</label>
+    <input type="number" id="newItemBoxesModal" required>
+    <label for="newItemCtnPriceModal">CTN Price:</label>
+    <input type="number" id="newItemCtnPriceModal" step="0.01" required>
+    <button onclick="saveNewItemFromModal()">Save Item</button>
+    <button onclick="closeModal('addItemModal')">Close</button>
+  </div>
+  
+  <div id="editItemModal" class="modal no-print">
+    <h3>Edit Item</h3>
+    <input type="hidden" id="editItemId">
+    <label for="editDescription">Description:</label>
+    <input type="text" id="editDescription">
+    <label for="editCtnSize">CTN Size:</label>
+    <input type="text" id="editCtnSize">
+    <label for="editCtnPrice">CTN Price:</label>
+    <input type="number" id="editCtnPrice">
+    <label for="editBoxesPerCtn">Boxes per CTN:</label>
+    <input type="number" id="editBoxesPerCtn">
+    <button onclick="saveEditedItem()">Save Changes</button>
+    <button onclick="closeModal('editItemModal')">Close</button>
+  </div>
+  
+  <!-- ---------- Firebase & Firestore Integration Script ---------- -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-analytics.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      getDocs,
+      deleteDoc,
+      doc,
+      updateDoc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+    
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyD_ojS20opjpxmwHxIHATC52ncABe_fkuk",
+      authDomain: "ahyan-traders.firebaseapp.com",
+      projectId: "ahyan-traders",
+      storageBucket: "ahyan-traders.firebasestorage.app",
+      messagingSenderId: "1024047266496",
+      appId: "1:1024047266496:web:349c052d55564a96bfcb25",
+      measurementId: "G-11ZNXV1ZZL"
+    };
+    
+    // Initialize Firebase and Firestore
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
+    
+    // Modal Functions
+    function openAddItemModal() {
+      document.getElementById("addItemModal").style.display = "block";
+    }
+    function closeModal(id) {
+      document.getElementById(id).style.display = "none";
+    }
+    
+    // Save new item to Firestore
+    async function saveNewItemFromModal() {
+      const code = document.getElementById("newItemCodeModal").value.trim();
+      const desc = document.getElementById("newItemDescModal").value.trim();
+      const size = document.getElementById("newItemCtnSizeModal").value.trim();
+      const boxes = parseFloat(document.getElementById("newItemBoxesModal").value);
+      const price = parseFloat(document.getElementById("newItemCtnPriceModal").value);
+      if (code && desc && size && !isNaN(boxes) && !isNaN(price)) {
+        try {
+          await addDoc(collection(db, "items"), { code, description: desc, ctnSize: size, boxesPerCtn: boxes, ctnPrice: price });
+          alert("Item added successfully!");
+          document.getElementById("newItemCodeModal").value = "";
+          document.getElementById("newItemDescModal").value = "";
+          document.getElementById("newItemCtnSizeModal").value = "";
+          document.getElementById("newItemBoxesModal").value = "";
+          document.getElementById("newItemCtnPriceModal").value = "";
+          closeModal("addItemModal");
+          updateSavedItemsTable();
+          updateStockReportTable();
+        } catch (error) {
+          console.error("Error adding item:", error);
+          alert("Error adding item.");
+        }
+      } else {
+        alert("Please fill in all fields correctly.");
+      }
+    }
+    
+    // Update the View Saved Items table
+    async function updateSavedItemsTable() {
+      try {
+        const querySnapshot = await getDocs(collection(db, "items"));
+        const tbody = document.getElementById("savedItemsTableBody");
+        tbody.innerHTML = "";
+        querySnapshot.forEach((docSnap) => {
+          const item = docSnap.data();
+          let row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${item.code}</td>
+            <td>${item.description}</td>
+            <td>${item.ctnSize}</td>
+            <td>${item.boxesPerCtn}</td>
+            <td>${parseFloat(item.ctnPrice).toFixed(2)}</td>
+            <td>
+              <button onclick="openEditModal('${docSnap.id}')">Edit</button>
+              <button onclick="deleteItem('${docSnap.id}')">Delete</button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (error) {
+        console.error("Error fetching saved items:", error);
+      }
+    }
+    
+    // Update the Stock Report table
+    async function updateStockReportTable() {
+      try {
+        const filter = document.getElementById("stockSearchInput").value.toUpperCase();
+        const querySnapshot = await getDocs(collection(db, "items"));
+        const tbody = document.getElementById("stockTableBody");
+        tbody.innerHTML = "";
+        let totalValue = 0;
+        querySnapshot.forEach((docSnap) => {
+          const item = docSnap.data();
+          if (item.code.toUpperCase().indexOf(filter) > -1 ||
+              item.description.toUpperCase().indexOf(filter) > -1 ||
+              item.ctnSize.toUpperCase().indexOf(filter) > -1) {
+            let total = item.boxesPerCtn * item.ctnPrice;
+            totalValue += total;
+            let row = `<tr>
+                <td>${item.code}</td>
+                <td>${item.description}</td>
+                <td>${item.ctnSize}</td>
+                <td>${item.boxesPerCtn}</td>
+                <td>Rs. ${parseFloat(item.ctnPrice).toFixed(2)}</td>
+                <td>Rs. ${total.toFixed(2)}</td>
+            </tr>`;
+            tbody.innerHTML += row;
+          }
+        });
+        document.getElementById("netStockValue").textContent = "Rs. " + totalValue.toFixed(2);
+      } catch (error) {
+        console.error("Error fetching stock items:", error);
+      }
+    }
+    
+    // Delete item from Firestore
+    async function deleteItem(itemId) {
+      try {
+        await deleteDoc(doc(db, "items", itemId));
+        alert("Item deleted successfully");
+        updateSavedItemsTable();
+        updateStockReportTable();
+      } catch (error) {
+        console.error("Error deleting item:", error);
+        alert("Error deleting item.");
+      }
+    }
+    
+    // Open edit modal and pre-fill data from Firestore
+    async function openEditModal(itemId) {
+      try {
+        const docRef = doc(db, "items", itemId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const item = docSnap.data();
+          document.getElementById("editItemId").value = itemId;
+          document.getElementById("editDescription").value = item.description;
+          document.getElementById("editCtnSize").value = item.ctnSize;
+          document.getElementById("editCtnPrice").value = item.ctnPrice;
+          document.getElementById("editBoxesPerCtn").value = item.boxesPerCtn;
+          document.getElementById("editItemModal").style.display = "block";
+        }
+      } catch (error) {
+        console.error("Error opening edit modal:", error);
+      }
+    }
+    
+    // Save edited item data to Firestore
+    async function saveEditedItem() {
+      const itemId = document.getElementById("editItemId").value;
+      const desc = document.getElementById("editDescription").value.trim();
+      const size = document.getElementById("editCtnSize").value.trim();
+      const price = parseFloat(document.getElementById("editCtnPrice").value);
+      const boxes = parseFloat(document.getElementById("editBoxesPerCtn").value);
+      if (desc && size && !isNaN(price) && !isNaN(boxes)) {
+        try {
+          const itemRef = doc(db, "items", itemId);
+          await updateDoc(itemRef, { description: desc, ctnSize: size, ctnPrice: price, boxesPerCtn: boxes });
+          alert("Item updated successfully!");
+          closeModal("editItemModal");
+          updateSavedItemsTable();
+          updateStockReportTable();
+        } catch (error) {
+          console.error("Error updating item:", error);
+          alert("Error updating item.");
+        }
+      } else {
+        alert("Please fill in all fields correctly.");
+      }
+    }
+    
+    // Sales filtering (unchanged)
+    function filterSales() {
+      var startDate = document.getElementById("startDate").value;
+      var endDate = document.getElementById("endDate").value;
+      var tbody = document.getElementById("salesTableBody");
+      var rows = tbody.getElementsByTagName("tr");
+      var total = 0;
+      for (var i = 0; i < rows.length; i++) {
+        var dateText = rows[i].getElementsByTagName("td")[0].textContent;
+        var showRow = true;
+        if (startDate && dateText < startDate) { showRow = false; }
+        if (endDate && dateText > endDate) { showRow = false; }
+        if (showRow) {
+          rows[i].style.display = "";
+          var amountText = rows[i].getElementsByTagName("td")[3].textContent.trim();
+          var netAmount = parseFloat(amountText.replace("Rs.", "").trim());
+          if (!isNaN(netAmount)) { total += netAmount; }
+        } else {
+          rows[i].style.display = "none";
+        }
+      }
+      document.getElementById("netTotal").textContent = "Rs. " + total.toFixed(2);
+    }
+    
+    // Filter for View Saved Items
+    function filterViewSavedItems() {
+      let filter = document.getElementById("viewSavedSearch").value.toUpperCase();
+      let table = document.getElementById("savedItemsTable");
+      let trs = table.getElementsByTagName("tr");
+      for (let i = 1; i < trs.length; i++) {
+        let tds = trs[i].getElementsByTagName("td");
+        let show = false;
+        for (let j = 0; j < tds.length - 1; j++) {
+          if (tds[j].textContent.toUpperCase().indexOf(filter) > -1) {
+            show = true;
+            break;
+          }
+        }
+        trs[i].style.display = show ? "" : "none";
+      }
+    }
+    
+    // Fetch and display billing data from the "billing data" collection
+    async function updateSaleSummaryTable() {
+      try {
+        const querySnapshot = await getDocs(collection(db, "billing data"));
+        const tbody = document.getElementById("salesTableBody");
+        tbody.innerHTML = "";
+        let total = 0;
+        querySnapshot.forEach((docSnap) => {
+          const bill = docSnap.data();
+          // Assuming your bill document has fields: date, invoiceNo, customer, netAmount
+          let netAmount = parseFloat(bill.netAmount);
+          total += netAmount;
+          let row = `<tr>
+            <td>${bill.date}</td>
+            <td>${bill.invoiceNo}</td>
+            <td>${bill.customer}</td>
+            <td>Rs. ${netAmount.toFixed(2)}</td>
+          </tr>`;
+          tbody.innerHTML += row;
+        });
+        document.getElementById("netTotal").textContent = "Rs. " + total.toFixed(2);
+      } catch (error) {
+        console.error("Error fetching billing data:", error);
+      }
+    }
+    
+    // Section navigation
+    function showSection(sectionId) {
+      var sections = document.getElementsByClassName("section");
+      for (var i = 0; i < sections.length; i++) {
+        sections[i].style.display = "none";
+      }
+      document.getElementById(sectionId).style.display = "block";
+      if (sectionId === "saleSummary") {
+        updateSaleSummaryTable(); // Fetch billing data when Sale Summary is shown
+      }
+      if (sectionId === "stockReport") {
+        updateStockReportTable();
+      }
+      if (sectionId === "viewSavedItemsSection") {
+        updateSavedItemsTable();
+      }
+    }
+    
+    // Show Home by default on page load
+    showSection('home');
+    
+    // Update stock report when search input changes
+    document.getElementById('stockSearchInput').addEventListener('input', updateStockReportTable);
+    
+    // Expose functions to global scope for inline event handlers
+    window.openAddItemModal = openAddItemModal;
+    window.closeModal = closeModal;
+    window.saveNewItemFromModal = saveNewItemFromModal;
+    window.updateSavedItemsTable = updateSavedItemsTable;
+    window.updateStockReportTable = updateStockReportTable;
+    window.deleteItem = deleteItem;
+    window.openEditModal = openEditModal;
+    window.saveEditedItem = saveEditedItem;
+    window.filterSales = filterSales;
+    window.filterViewSavedItems = filterViewSavedItems;
+    window.showSection = showSection;
+  </script>
+</body>
+</html>

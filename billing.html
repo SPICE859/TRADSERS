@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Billing System</title>
+  <!-- XLSX library for Excel export and import -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.2/xlsx.full.min.js"></script>
+  <!-- html2canvas for image export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    /* Basic styles for Login */
+    .login-container {
+      width: 300px;
+      margin: 150px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .login-container h2 {
+      color: #007bff;
+      margin-bottom: 20px;
+    }
+    .login-container input[type="text"],
+    .login-container input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 1em;
+    }
+    .login-container button {
+      width: 100%;
+      padding: 10px;
+      background: #007bff;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    .login-container button:hover {
+      background: #0056b3;
+    }
+    .error {
+      color: red;
+      margin-bottom: 10px;
+      font-size: 0.9em;
+    }
+   
+    /* Billing System Styles */
+    .billing-system { display: none; }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      text-align: center;
+    }
+    h1 {
+      background: #007bff;
+      color: white;
+      padding: 10px;
+      border-radius: 10px;
+    }
+    .header-details {
+      display: flex;
+      flex-direction: column; /* stack items vertically */
+      align-items: flex-start; /* align items to the left */
+      margin-top: 10px;
+    }
+    .header-details div { margin-bottom: 10px; }
+    .header-details label { margin-right: 5px; font-weight: bold; }
+    .header-details input { padding: 5px; }
+    .item-entry { margin-top: 20px; }
+    .item-entry label { margin-right: 5px; }
+    #item { padding: 5px; width: 250px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background-color: #007bff; color: white; }
+    /* Two-row header for Sale Qty with line under group header */
+    thead tr:first-child th[colspan] { border-bottom: 2px solid #000; }
+    .total-container {
+      text-align: right;
+      margin-top: 10px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+      border-radius: 5px;
+      margin: 5px;
+    }
+    button:hover { background: #0056b3; }
+   
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border: 1px solid #888;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.25);
+      width: 300px;
+      text-align: left;
+    }
+    /* Give the Edit modal a higher z-index */
+    #editItemModal { z-index: 1100; }
+    .modal h3 { margin-top: 0; }
+    .modal input { width: 100%; padding: 5px; margin: 5px 0 10px 0; }
+    .modal button { margin-top: 10px; }
+   
+    /* Print styles: force black and white, but show all table columns */
+    @media print {
+      body { color: black; background: white; }
+      .no-print:not(#billTable .no-print) { display: none; }
+      #billTable .no-print { display: table-cell !important; }
+      table, th, td { border: 1px solid black; }
+      td:empty::after { content: "0.00"; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Login Screen -->
+  <div class="login-container" id="loginContainer">
+    <h2>Login</h2>
+    <div class="error" id="errorMsg"></div>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="login()">Login</button>
+  </div>
+
+  <!-- Billing System (initially hidden) -->
+  <div class="billing-system" id="billingSystem">
+    <div class="container">
+      <h1>AHYAN TRADERS</h1>
+      <!-- Customer details -->
+      <div class="header-details">
+        <div>
+          <label for="customerName">Customer:</label>
+          <input type="text" id="customerName" value="John Doe" />
+        </div>
+        <div>
+          <label for="route">Route:</label>
+          <input type="text" id="route" value="Default Route" />
+        </div>
+      </div>
+     
+      <!-- Item Entry Section -->
+      <div class="item-entry no-print">
+        <label for="item">Product Code:</label>
+        <input type="text" id="item" list="productList" placeholder="Search product code..." />
+        <datalist id="productList"></datalist>
+        <button onclick="addItem()">Add to Bill</button>
+        <button onclick="showNewItemModal()">Add New Item</button>
+      </div>
+     
+      <!-- Bill Table -->
+      <table id="billTable">
+        <thead>
+          <tr>
+            <th rowspan="2">Product Code</th>
+            <th rowspan="2">Description</th>
+            <th rowspan="2">CTN Size</th>
+            <th rowspan="2">Trade Price</th>
+            <th colspan="3">Sale Qty</th>
+            <th rowspan="2">Gross Amount</th>
+            <th rowspan="2" class="no-print">Trade Offer</th>
+            <th rowspan="2" class="no-print">Sales Tax (%)</th>
+            <th rowspan="2">Net Amount</th>
+            <th rowspan="2" class="no-print">Action</th>
+          </tr>
+          <tr>
+            <th class="no-print">Ctns</th>
+            <th class="no-print">Boxes</th>
+            <th class="no-print">Pcs</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Rows added dynamically -->
+        </tbody>
+      </table>
+     
+      <div class="total-container">Grand Total: <span id="grandTotal">Rs 0.00</span></div>
+     
+      <!-- Action Buttons -->
+      <div class="no-print">
+        <button onclick="generateExcel()">Generate Excel</button>
+        <button onclick="window.print()">Print</button>
+        <button onclick="showSavedItemsModal()">View Saved Items</button>
+        <button onclick="nextBill()">Next Bill</button>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- Modal for Adding New Item -->
+  <div id="newItemModal" class="modal no-print">
+    <h3>Add New Item</h3>
+    <label for="newProductCode">Product Code:</label>
+    <input type="text" id="newProductCode" placeholder="e.g., P004" />
+    <label for="newDescription">Description:</label>
+    <input type="text" id="newDescription" placeholder="Product description" />
+    <label for="newCtnSize">CTN Size:</label>
+    <input type="text" id="newCtnSize" placeholder="e.g., Small/Medium/Large" />
+    <label for="newCtnPrice">CTN Price:</label>
+    <input type="number" id="newCtnPrice" placeholder="Price per CTN" />
+    <label for="newBoxesPerCtn">Boxes per CTN:</label>
+    <input type="number" id="newBoxesPerCtn" placeholder="Number of boxes in one CTN" />
+    <button onclick="saveNewItem()">Save Item</button>
+    <button onclick="closeModal('newItemModal')">Close</button>
+  </div>
+ 
+  <!-- Modal for Editing Saved Item -->
+  <div id="editItemModal" class="modal no-print">
+    <h3>Edit Item</h3>
+    <input type="hidden" id="editProductCode" />
+    <label for="editDescription">Description:</label>
+    <input type="text" id="editDescription" />
+    <label for="editCtnSize">CTN Size:</label>
+    <input type="text" id="editCtnSize" />
+    <label for="editCtnPrice">CTN Price:</label>
+    <input type="number" id="editCtnPrice" />
+    <label for="editBoxesPerCtn">Boxes per CTN:</label>
+    <input type="number" id="editBoxesPerCtn" />
+    <button onclick="saveEditedItem()">Save Changes</button>
+    <button onclick="closeModal('editItemModal')">Close</button>
+  </div>
+ 
+  <!-- Modal for Viewing Saved Items -->
+  <div id="savedItemsModal" class="modal no-print">
+    <h3>Saved Items</h3>
+    <div class="search-container">
+      <label for="savedSearch">Search from Description:</label>
+      <input type="text" id="savedSearch" placeholder="Type to search..." oninput="filterSavedItems()" />
+    </div>
+    <div id="savedItemsList"></div>
+    <button onclick="document.getElementById('excelInput').click()">Load from Excel</button>
+    <input type="file" id="excelInput" accept=".xlsx, .xls" style="display:none" onchange="loadItemsFromExcel(this)" />
+    <button onclick="deleteItem()">Delete Item</button>
+    <button onclick="closeModal('savedItemsModal')">Close</button>
+  </div>
+ 
+  <script>
+    /* Login Functionality */
+    function login() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const errorMsg = document.getElementById("errorMsg");
+      if (username === "admin" && password === "admin") {
+        document.getElementById("loginContainer").style.display = "none";
+        document.getElementById("billingSystem").style.display = "block";
+        loadItemsFromStorage();
+        populateItems();
+      } else {
+        errorMsg.textContent = "Invalid username or password!";
+      }
+    }
+   
+    /* Billing System Functions using localStorage */
+    let items = {
+      "P001": { description: "Item A", ctnSize: "Small", ctnPrice: 1000, boxesPerCtn: 10 },
+      "P002": { description: "Item B", ctnSize: "Medium", ctnPrice: 2000, boxesPerCtn: 20 },
+      "P003": { description: "Item C", ctnSize: "Large", ctnPrice: 3000, boxesPerCtn: 30 }
+    };
+   
+    function loadItemsFromStorage() {
+      const stored = localStorage.getItem("savedItems");
+      if (stored) {
+        try { items = JSON.parse(stored); }
+        catch(e) { console.error("Error parsing savedItems:", e); }
+      }
+    }
+   
+    function saveItemsToStorage() {
+      localStorage.setItem("savedItems", JSON.stringify(items));
+    }
+   
+    function populateItems() {
+      let dataList = document.getElementById("productList");
+      dataList.innerHTML = "";
+      for (let code in items) {
+        let option = document.createElement("option");
+        option.value = code + " - " + items[code].description;
+        dataList.appendChild(option);
+      }
+    }
+   
+    function addItem() {
+      let inputVal = document.getElementById("item").value;
+      if (!inputVal) return;
+      let productCode = inputVal.split(" - ")[0];
+      if (!items[productCode]) { alert("Invalid product code."); return; }
+      let product = items[productCode];
+      let tableBody = document.getElementById("billTable").querySelector("tbody");
+      let row = tableBody.insertRow();
+      row.setAttribute("data-product", JSON.stringify(product));
+      let cellCode = row.insertCell(); cellCode.textContent = productCode;
+      let cellDesc = row.insertCell(); cellDesc.textContent = product.description;
+      let cellCtnSize = row.insertCell(); cellCtnSize.textContent = product.ctnSize;
+      let cellRate = row.insertCell(); cellRate.textContent = product.ctnPrice.toFixed(2);
+      let cellCtns = row.insertCell(); cellCtns.innerHTML = '<input type="number" class="ctns" value="1" style="width:50px;" />';
+      let cellBoxes = row.insertCell(); cellBoxes.innerHTML = '<input type="number" class="boxes" value="0" style="width:50px;" />';
+      let cellPcs = row.insertCell(); cellPcs.innerHTML = '<input type="number" class="pcs" value="0" style="width:50px;" />';
+      let cellGross = row.insertCell(); cellGross.className = "gross"; cellGross.textContent = "0.00";
+      let cellTrade = row.insertCell(); cellTrade.className = "no-print"; cellTrade.innerHTML = '<input type="number" class="tradeOffer" value="0" style="width:70px;" />';
+      let cellTax = row.insertCell(); cellTax.className = "no-print"; cellTax.innerHTML = '<input type="number" class="salesTax" value="0" style="width:70px;" />';
+      let cellNet = row.insertCell(); cellNet.className = "net"; cellNet.textContent = "0.00";
+      let cellAction = row.insertCell(); cellAction.className = "no-print"; cellAction.innerHTML = '<button onclick="removeRow(this)">Remove</button>';
+      let inputs = row.querySelectorAll("input");
+      inputs.forEach(input => input.addEventListener("input", () => updateRow(row)));
+      updateRow(row);
+    }
+   
+    function updateRow(row) {
+      let product = JSON.parse(row.getAttribute("data-product"));
+      let ctns = parseFloat(row.querySelector(".ctns").value) || 0;
+      let boxes = parseFloat(row.querySelector(".boxes").value) || 0;
+      let pcs = parseFloat(row.querySelector(".pcs").value) || 0;
+      let tradeOffer = parseFloat(row.querySelector(".tradeOffer").value) || 0;
+      let salesTaxPercent = parseFloat(row.querySelector(".salesTax").value) || 0;
+      let gross = (ctns * product.ctnPrice) + (boxes * (product.ctnPrice / product.boxesPerCtn)) + (pcs * (product.ctnPrice / (product.boxesPerCtn * 10)));
+      row.querySelector(".gross").textContent = gross.toFixed(2);
+      // Sales tax is now percentage-based:
+      let salesTaxValue = (salesTaxPercent / 100) * gross;
+      let net = gross - tradeOffer + salesTaxValue;
+      row.querySelector(".net").textContent = net.toFixed(2);
+      recalcGrandTotal();
+    }
+   
+    function recalcGrandTotal() {
+      let rows = document.getElementById("billTable").querySelector("tbody").rows;
+      let grandTotal = 0;
+      for (let row of rows) {
+        let net = parseFloat(row.querySelector(".net").textContent) || 0;
+        grandTotal += net;
+      }
+      document.getElementById("grandTotal").textContent = "Rs " + grandTotal.toFixed(2);
+    }
+   
+    function removeRow(btn) {
+      let row = btn.parentNode.parentNode;
+      row.parentNode.removeChild(row);
+      recalcGrandTotal();
+    }
+   
+    /* New Item Modal */
+    function showNewItemModal() {
+      document.getElementById("newItemModal").style.display = "block";
+    }
+    function closeModal(id) {
+      document.getElementById(id).style.display = "none";
+    }
+    function saveNewItem() {
+      let code = document.getElementById("newProductCode").value.trim();
+      let desc = document.getElementById("newDescription").value.trim();
+      let size = document.getElementById("newCtnSize").value.trim();
+      let price = parseFloat(document.getElementById("newCtnPrice").value);
+      let boxes = parseFloat(document.getElementById("newBoxesPerCtn").value);
+      if(code && desc && size && price && boxes) {
+        items[code] = { description: desc, ctnSize: size, ctnPrice: price, boxesPerCtn: boxes };
+        populateItems();
+        alert("New item added successfully!");
+        saveItemsToStorage();
+        document.getElementById("newProductCode").value = "";
+        document.getElementById("newDescription").value = "";
+        document.getElementById("newCtnSize").value = "";
+        document.getElementById("newCtnPrice").value = "";
+        document.getElementById("newBoxesPerCtn").value = "";
+        closeModal("newItemModal");
+      } else {
+        alert("Please fill in all fields correctly.");
+      }
+    }
+   
+    /* Edit Item Modal */
+    function openEditModal(code) {
+      closeModal('savedItemsModal');
+      let item = items[code];
+      if (!item) return;
+      document.getElementById("editProductCode").value = code;
+      document.getElementById("editDescription").value = item.description;
+      document.getElementById("editCtnSize").value = item.ctnSize;
+      document.getElementById("editCtnPrice").value = item.ctnPrice;
+      document.getElementById("editBoxesPerCtn").value = item.boxesPerCtn;
+      document.getElementById("editItemModal").style.display = "block";
+    }
+    function saveEditedItem() {
+      let code = document.getElementById("editProductCode").value;
+      items[code] = {
+        description: document.getElementById("editDescription").value,
+        ctnSize: document.getElementById("editCtnSize").value,
+        ctnPrice: parseFloat(document.getElementById("editCtnPrice").value),
+        boxesPerCtn: parseFloat(document.getElementById("editBoxesPerCtn").value)
+      };
+      saveItemsToStorage();
+      populateItems();
+      closeModal("editItemModal");
+      showSavedItemsModal();
+    }
+   
+    /* Saved Items Modal */
+    function showSavedItemsModal() {
+      let listDiv = document.getElementById("savedItemsList");
+      listDiv.innerHTML = "";
+      for (let code in items) {
+        let item = items[code];
+        let para = document.createElement("p");
+        para.style.cursor = "pointer";
+        para.textContent = code + " - " + item.description + ", CTN Size: " + item.ctnSize + ", Price: " + item.ctnPrice + ", Boxes/CTN: " + item.boxesPerCtn;
+        para.onclick = () => openEditModal(code);
+        listDiv.appendChild(para);
+      }
+      document.getElementById("savedItemsModal").style.display = "block";
+    }
+    function filterSavedItems() {
+      let searchVal = document.getElementById("savedSearch").value.toLowerCase();
+      let listDiv = document.getElementById("savedItemsList");
+      listDiv.innerHTML = "";
+      for (let code in items) {
+        let item = items[code];
+        if (code.toLowerCase().includes(searchVal) || item.description.toLowerCase().includes(searchVal)) {
+          let para = document.createElement("p");
+          para.style.cursor = "pointer";
+          para.textContent = code + " - " + item.description + ", CTN Size: " + item.ctnSize + ", Price: " + item.ctnPrice + ", Boxes/CTN: " + item.boxesPerCtn;
+          para.onclick = () => openEditModal(code);
+          listDiv.appendChild(para);
+        }
+      }
+    }
+   
+    /* Delete Item Functionality */
+    function deleteItem() {
+      let code = prompt("Enter the product code to delete:");
+      if (!code || !items[code]) { alert("Product code not found!"); return; }
+      let pass = prompt("Enter deletion password:");
+      if (pass === "delete123") {
+        delete items[code];
+        alert("Item " + code + " deleted successfully!");
+        saveItemsToStorage();
+        populateItems();
+        showSavedItemsModal();
+      } else {
+        alert("Incorrect password!");
+      }
+    }
+   
+    /* Load Items from Excel */
+    function loadItemsFromExcel(inputElem) {
+      let file = inputElem.files[0];
+      if (!file) return;
+      let reader = new FileReader();
+      reader.onload = function(e) {
+        let data = e.target.result;
+        let workbook = XLSX.read(data, { type: 'binary' });
+        let firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        let excelItems = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+        for (let i = 1; i < excelItems.length; i++) {
+          let row = excelItems[i];
+          if (row && row[0]) {
+            let code = row[0].toString();
+            items[code] = {
+              description: row[1] ? row[1].toString() : "",
+              ctnSize: row[2] ? row[2].toString() : "",
+              ctnPrice: row[3] ? parseFloat(row[3]) : 0,
+              boxesPerCtn: row[4] ? parseFloat(row[4]) : 0
+            };
+          }
+        }
+        saveItemsToStorage();
+        populateItems();
+        alert("Items loaded from Excel successfully!");
+      };
+      reader.readAsBinaryString(file);
+    }
+   
+    /* Generate Excel Export */
+    function generateExcel() {
+      let origTable = document.getElementById("billTable");
+      let clone = origTable.cloneNode(true);
+      let headerRows = clone.tHead.rows;
+      for (let i = 0; i < headerRows.length; i++) {
+        headerRows[i].deleteCell(-1);
+      }
+      let bodyRows = clone.tBodies[0].rows;
+      for (let i = 0; i < bodyRows.length; i++) {
+        bodyRows[i].deleteCell(-1);
+      }
+      let inputs = clone.querySelectorAll("input");
+      inputs.forEach(input => { input.parentNode.textContent = input.value; });
+      let wb = XLSX.utils.book_new();
+      let ws = XLSX.utils.table_to_sheet(clone);
+      XLSX.utils.book_append_sheet(wb, ws, "Bill");
+      XLSX.writeFile(wb, "bill.xlsx");
+    }
+   
+    /* Next Bill: Capture an image then clear invoice */
+    function nextBill() {
+      let container = document.querySelector('.container');
+      let clone = container.cloneNode(true);
+      let npElements = clone.querySelectorAll('.no-print');
+      npElements.forEach(el => el.parentNode.removeChild(el));
+      clone.style.position = 'absolute';
+      clone.style.top = '-9999px';
+      document.body.appendChild(clone);
+      html2canvas(clone).then(function(canvas) {
+        let link = document.createElement('a');
+        link.download = 'bill.png';
+        link.href = canvas.toDataURL();
+        link.click();
+        document.body.removeChild(clone);
+        document.getElementById("billTable").querySelector("tbody").innerHTML = "";
+        document.getElementById("grandTotal").textContent = "Rs 0.00";
+      });
+    }
+   
+    document.addEventListener("DOMContentLoaded", populateItems);
+  </script>
+<!-- Firebase Storage Integration for Billing Data -->
+<script type="module">
+  // Import the necessary Firebase modules
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+  import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-storage.js";
+
+  // Your Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyD_ojS20opjpxmwHxIHATC52ncABe_fkuk",
+    authDomain: "ahyan-traders.firebaseapp.com",
+    projectId: "ahyan-traders",
+    storageBucket: "ahyan-traders.firebasestorage.app",
+    messagingSenderId: "1024047266496",
+    appId: "1:1024047266496:web:349c052d55564a96bfcb25",
+    measurementId: "G-11ZNXV1ZZL"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  // Initialize Firebase Storage
+  const storage = getStorage(app);
+
+  /**
+   * Uploads billing data to Firebase Storage.
+   *
+   * @param {Object} billData - The bill data to store (e.g., as a JSON object).
+   * @param {string} billId - A unique identifier for the bill (used as the filename).
+   */
+  function storeBillingData(billData, billId) {
+    // Convert bill data to a JSON string and then to a Blob.
+    const dataStr = JSON.stringify(billData, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    // Define the storage path (folder "billing data" and file name using billId)
+    const storagePath = `billing data/${billId}.json`;
+    const fileRef = storageRef(storage, storagePath);
+    
+    // Upload the Blob to Firebase Storage.
+    uploadBytes(fileRef, blob)
+      .then((snapshot) => {
+        console.log("Billing data stored successfully at:", snapshot.metadata.fullPath);
+        // Optionally, get the download URL if needed.
+        return getDownloadURL(snapshot.ref);
+      })
+      .then((downloadURL) => {
+        console.log("Download URL for billing data:", downloadURL);
+      })
+      .catch((error) => {
+        console.error("Error storing billing data:", error);
+      });
+  }
+
+  // Expose the function globally so your billing system code can call it.
+  window.storeBillingData = storeBillingData;
+</script>
+
+</body>
+</html>
