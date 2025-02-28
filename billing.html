@@ -527,7 +527,6 @@
         date: new Date().toISOString()
       };
       const billId = "bill_" + Date.now();
-      // Store the bill data in Firebase Storage
       if (window.storeBillingData) {
         window.storeBillingData(billData, billId);
       }
@@ -556,15 +555,17 @@
  
   <!-- Firebase Storage Integration for Bill Storage -->
   <script type="module">
+    // Import Firebase modules for app, analytics, and storage
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-analytics.js";
     import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, listAll } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-storage.js";
     
+    // Updated Firebase configuration with correct storageBucket
     const firebaseConfig = {
       apiKey: "AIzaSyD_ojS20opjpxmwHxIHATC52ncABe_fkuk",
       authDomain: "ahyan-traders.firebaseapp.com",
       projectId: "ahyan-traders",
-      storageBucket: "ahyan-traders.firebasestorage.app",
+      storageBucket: "ahyan-traders.appspot.com", // Updated storageBucket
       messagingSenderId: "1024047266496",
       appId: "1:1024047266496:web:349c052d55564a96bfcb25",
       measurementId: "G-11ZNXV1ZZL"
@@ -587,9 +588,9 @@
      * @param {string} billId - Unique identifier for the bill.
      */
     function storeBillingData(billData, billId) {
+      console.log("storeBillingData called", billData, billId); // Debug log
       const dataStr = JSON.stringify(billData, null, 2);
       const blob = new Blob([dataStr], { type: 'application/json' });
-      // Save in the root of the bucket.
       const storagePath = `${billId}.json`;
       const fileRef = storageRef(storage, storagePath);
       
