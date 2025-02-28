@@ -70,8 +70,8 @@
     }
     .header-details {
       display: flex;
-      flex-direction: column; /* stack items vertically */
-      align-items: flex-start; /* align items to the left */
+      flex-direction: column;
+      align-items: flex-start;
       margin-top: 10px;
     }
     .header-details div { margin-bottom: 10px; }
@@ -83,7 +83,6 @@
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
     th { background-color: #007bff; color: white; }
-    /* Two-row header for Sale Qty with line under group header */
     thead tr:first-child th[colspan] { border-bottom: 2px solid #000; }
     .total-container {
       text-align: right;
@@ -118,13 +117,12 @@
       width: 300px;
       text-align: left;
     }
-    /* Give the Edit modal a higher z-index */
     #editItemModal { z-index: 1100; }
     .modal h3 { margin-top: 0; }
     .modal input { width: 100%; padding: 5px; margin: 5px 0 10px 0; }
     .modal button { margin-top: 10px; }
    
-    /* Print styles: force black and white, but show all table columns */
+    /* Print styles */
     @media print {
       body { color: black; background: white; }
       .no-print:not(#billTable .no-print) { display: none; }
@@ -240,17 +238,16 @@
     <button onclick="closeModal('editItemModal')">Close</button>
   </div>
  
-  <!-- Modal for Viewing Saved Items -->
+  <!-- Modal for Viewing Saved Items from Dashboard Database -->
   <div id="savedItemsModal" class="modal no-print">
     <h3>Saved Items</h3>
     <div class="search-container">
       <label for="savedSearch">Search from Description:</label>
-      <input type="text" id="savedSearch" placeholder="Type to search..." oninput="filterSavedItems()" />
+      <input type="text" id="savedSearch" placeholder="Type to search..." oninput="filterDashboardSavedItems()" />
     </div>
-    <div id="savedItemsList"></div>
-    <button onclick="document.getElementById('excelInput').click()">Load from Excel</button>
-    <input type="file" id="excelInput" accept=".xlsx, .xls" style="display:none" onchange="loadItemsFromExcel(this)" />
-    <button onclick="deleteItem()">Delete Item</button>
+    <div id="savedItemsList">
+      <!-- Dashboard saved items will be populated here -->
+    </div>
     <button onclick="closeModal('savedItemsModal')">Close</button>
   </div>
  
@@ -270,7 +267,7 @@
       }
     }
    
-    /* Billing System Functions using localStorage */
+    /* Billing System Functions using localStorage for product items */
     let items = {
       "P001": { description: "Item A", ctnSize: "Small", ctnPrice: 1000, boxesPerCtn: 10 },
       "P002": { description: "Item B", ctnSize: "Medium", ctnPrice: 2000, boxesPerCtn: 20 },
@@ -334,7 +331,6 @@
       let salesTaxPercent = parseFloat(row.querySelector(".salesTax").value) || 0;
       let gross = (ctns * product.ctnPrice) + (boxes * (product.ctnPrice / product.boxesPerCtn)) + (pcs * (product.ctnPrice / (product.boxesPerCtn * 10)));
       row.querySelector(".gross").textContent = gross.toFixed(2);
-      // Sales tax is now percentage-based:
       let salesTaxValue = (salesTaxPercent / 100) * gross;
       let net = gross - tradeOffer + salesTaxValue;
       row.querySelector(".net").textContent = net.toFixed(2);
@@ -360,9 +356,6 @@
     /* New Item Modal */
     function showNewItemModal() {
       document.getElementById("newItemModal").style.display = "block";
-    }
-    function closeModal(id) {
-      document.getElementById(id).style.display = "none";
     }
     function saveNewItem() {
       let code = document.getElementById("newProductCode").value.trim();
@@ -412,34 +405,40 @@
       showSavedItemsModal();
     }
    
-    /* Saved Items Modal */
+    /* Saved Items Modal: Fetch saved items from the dashboard database */
+    function fetchDashboardSavedItems() {
+      // Replace the URL below with the endpoint that returns saved items from your database.
+      fetch('http://localhost:3000/savedItems')
+        .then(response => response.json())
+        .then(data => {
+          const listDiv = document.getElementById("savedItemsList");
+          listDiv.innerHTML = "";
+          data.forEach(item => {
+            let para = document.createElement("p");
+            para.style.cursor = "pointer";
+            para.textContent = item.code + " - " + item.description;
+            para.onclick = () => openEditModal(item.code);
+            listDiv.appendChild(para);
+          });
+        })
+        .catch(error => console.error("Error fetching dashboard saved items:", error));
+    }
+   
     function showSavedItemsModal() {
-      let listDiv = document.getElementById("savedItemsList");
-      listDiv.innerHTML = "";
-      for (let code in items) {
-        let item = items[code];
-        let para = document.createElement("p");
-        para.style.cursor = "pointer";
-        para.textContent = code + " - " + item.description + ", CTN Size: " + item.ctnSize + ", Price: " + item.ctnPrice + ", Boxes/CTN: " + item.boxesPerCtn;
-        para.onclick = () => openEditModal(code);
-        listDiv.appendChild(para);
-      }
+      fetchDashboardSavedItems();
       document.getElementById("savedItemsModal").style.display = "block";
     }
-    function filterSavedItems() {
+   
+    function filterDashboardSavedItems() {
       let searchVal = document.getElementById("savedSearch").value.toLowerCase();
       let listDiv = document.getElementById("savedItemsList");
-      listDiv.innerHTML = "";
-      for (let code in items) {
-        let item = items[code];
-        if (code.toLowerCase().includes(searchVal) || item.description.toLowerCase().includes(searchVal)) {
-          let para = document.createElement("p");
-          para.style.cursor = "pointer";
-          para.textContent = code + " - " + item.description + ", CTN Size: " + item.ctnSize + ", Price: " + item.ctnPrice + ", Boxes/CTN: " + item.boxesPerCtn;
-          para.onclick = () => openEditModal(code);
-          listDiv.appendChild(para);
+      Array.from(listDiv.getElementsByTagName("p")).forEach(para => {
+        if (para.textContent.toLowerCase().includes(searchVal)) {
+          para.style.display = "block";
+        } else {
+          para.style.display = "none";
         }
-      }
+      });
     }
    
     /* Delete Item Functionality */
@@ -507,8 +506,33 @@
       XLSX.writeFile(wb, "bill.xlsx");
     }
    
-    /* Next Bill: Capture an image then clear invoice */
+    /* Next Bill: Capture the bill, store bill data in Firebase Storage, then clear invoice */
     function nextBill() {
+      // Gather bill data from the bill table.
+      let tbody = document.getElementById("billTable").querySelector("tbody");
+      let rows = Array.from(tbody.rows).map(row => {
+        let cells = row.cells;
+        return {
+          productCode: cells[0].textContent,
+          description: cells[1].textContent,
+          ctnSize: cells[2].textContent,
+          tradePrice: cells[3].textContent,
+          gross: cells[7].textContent,
+          net: cells[10].textContent
+        };
+      });
+      let billData = {
+        rows: rows,
+        grandTotal: document.getElementById("grandTotal").textContent,
+        date: new Date().toISOString()
+      };
+      const billId = "bill_" + Date.now();
+      // Store the bill data in Firebase Storage
+      if (window.storeBillingData) {
+        window.storeBillingData(billData, billId);
+      }
+      
+      // Print the bill as an image using html2canvas.
       let container = document.querySelector('.container');
       let clone = container.cloneNode(true);
       let npElements = clone.querySelectorAll('.no-print');
@@ -522,68 +546,67 @@
         link.href = canvas.toDataURL();
         link.click();
         document.body.removeChild(clone);
-        document.getElementById("billTable").querySelector("tbody").innerHTML = "";
+        tbody.innerHTML = "";
         document.getElementById("grandTotal").textContent = "Rs 0.00";
       });
     }
    
     document.addEventListener("DOMContentLoaded", populateItems);
   </script>
-<!-- Firebase Storage Integration for Billing Data -->
-<script type="module">
-  // Import the necessary Firebase modules
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-  import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-storage.js";
-
-  // Your Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyD_ojS20opjpxmwHxIHATC52ncABe_fkuk",
-    authDomain: "ahyan-traders.firebaseapp.com",
-    projectId: "ahyan-traders",
-    storageBucket: "ahyan-traders.firebasestorage.app",
-    messagingSenderId: "1024047266496",
-    appId: "1:1024047266496:web:349c052d55564a96bfcb25",
-    measurementId: "G-11ZNXV1ZZL"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  // Initialize Firebase Storage
-  const storage = getStorage(app);
-
-  /**
- * Uploads billing data to Firebase Storage.
- *
- * @param {Object} billData - The bill data to store (e.g., as a JSON object).
- * @param {string} billId - A unique identifier for the bill (used as the filename).
- */
-function storeBillingData(billData, billId) {
-  // Convert bill data to a JSON string and then to a Blob.
-  const dataStr = JSON.stringify(billData, null, 2);
-  const blob = new Blob([dataStr], { type: 'application/json' });
-  
-  // Use "billing_data" (with underscore) to avoid issues with spaces.
-  const storagePath = `billing_data/${billId}.json`;
-  const fileRef = storageRef(storage, storagePath);
-  
-  // Upload the Blob to Firebase Storage.
-  uploadBytes(fileRef, blob)
-    .then((snapshot) => {
-      console.log("Billing data stored successfully at:", snapshot.metadata.fullPath);
-      // Optionally, get the download URL if needed.
-      return getDownloadURL(snapshot.ref);
-    })
-    .then((downloadURL) => {
-      console.log("Download URL for billing data:", downloadURL);
-    })
-    .catch((error) => {
-      console.error("Error storing billing data:", error);
-    });
-}
-
-  // Expose the function globally so your billing system code can call it.
-  window.storeBillingData = storeBillingData;
-</script>
-
+ 
+  <!-- Firebase Storage Integration for Bill Storage -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-analytics.js";
+    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, listAll } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-storage.js";
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyD_ojS20opjpxmwHxIHATC52ncABe_fkuk",
+      authDomain: "ahyan-traders.firebaseapp.com",
+      projectId: "ahyan-traders",
+      storageBucket: "ahyan-traders.firebasestorage.app",
+      messagingSenderId: "1024047266496",
+      appId: "1:1024047266496:web:349c052d55564a96bfcb25",
+      measurementId: "G-11ZNXV1ZZL"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const storage = getStorage(app);
+    
+    // Expose helper functions globally for use in billing system functions.
+    window.firebaseStorageRef = (path) => storageRef(storage, path);
+    window.uploadBytes = uploadBytes;
+    window.getDownloadURL = getDownloadURL;
+    window.listAllFiles = listAll;
+    
+    /**
+     * Uploads billing data to Firebase Storage.
+     * Bill data will be stored at the root using the billId as the filename.
+     * @param {Object} billData - The bill data to store.
+     * @param {string} billId - Unique identifier for the bill.
+     */
+    function storeBillingData(billData, billId) {
+      const dataStr = JSON.stringify(billData, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      // Save in the root of the bucket.
+      const storagePath = `${billId}.json`;
+      const fileRef = storageRef(storage, storagePath);
+      
+      uploadBytes(fileRef, blob)
+        .then((snapshot) => {
+          console.log("Billing data stored at:", snapshot.metadata.fullPath);
+          return getDownloadURL(snapshot.ref);
+        })
+        .then((downloadURL) => {
+          console.log("Download URL for billing data:", downloadURL);
+        })
+        .catch((error) => {
+          console.error("Error storing billing data:", error);
+        });
+    }
+    
+    window.storeBillingData = storeBillingData;
+  </script>
 </body>
 </html>
