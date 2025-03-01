@@ -530,7 +530,6 @@
   // Save the simplified bill data to Firestore
       await saveBillDataToFirestore();
 
-
   // Then proceed with printing the bill as an image using html2canvas.
   let container = document.querySelector('.container');
   let clone = container.cloneNode(true);
@@ -548,7 +547,6 @@
     let tbody = document.getElementById("billTable").querySelector("tbody");
     tbody.innerHTML = "";
     document.getElementById("grandTotal").textContent = "Rs 0.00";
-     
   });
 }
 
