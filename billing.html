@@ -19,10 +19,7 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       text-align: center;
     }
-    .login-container h2 {
-      color: #007bff;
-      margin-bottom: 20px;
-    }
+    .login-container h2 { color: #007bff; margin-bottom: 20px; }
     .login-container input[type="text"],
     .login-container input[type="password"] {
       width: 100%;
@@ -42,18 +39,11 @@
       font-size: 1em;
       cursor: pointer;
     }
-    .login-container button:hover {
-      background: #0056b3;
-    }
-    .error {
-      color: red;
-      margin-bottom: 10px;
-      font-size: 0.9em;
-    }
+    .login-container button:hover { background: #0056b3; }
+    .error { color: red; margin-bottom: 10px; font-size: 0.9em; }
+    
     /* Billing System Styles */
-    .billing-system {
-      display: none;
-    }
+    .billing-system { display: none; }
     .container {
       max-width: 1000px;
       margin: auto;
@@ -63,60 +53,31 @@
       border-radius: 10px;
       text-align: center;
     }
-    h1 {
-      background: #007bff;
-      color: white;
-      padding: 10px;
-      border-radius: 10px;
-    }
+    h1 { background: #007bff; color: white; padding: 10px; border-radius: 10px; }
     .header-details {
       display: flex;
       flex-direction: column;
       align-items: flex-start;
       margin-top: 10px;
     }
-    .header-details div {
-      margin-bottom: 10px;
-    }
-    .header-details label {
-      margin-right: 5px;
-      font-weight: bold;
-    }
-    .header-details input {
-      padding: 5px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: center;
-    }
-    th {
-      background-color: #007bff;
-      color: white;
-    }
-    .total-container {
-      text-align: right;
-      margin-top: 10px;
-      font-size: 20px;
-      font-weight: bold;
-    }
+    .header-details div { margin-bottom: 10px; }
+    .header-details label { margin-right: 5px; font-weight: bold; }
+    .header-details input { padding: 5px; }
+    /* Product entry and bill table */
+    .item-entry { margin-top: 20px; }
+    .item-entry label { margin-right: 5px; }
+    #item { padding: 5px; width: 250px; }
+    datalist { font-size: 0.9em; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background-color: #007bff; color: white; }
+    .total-container { text-align: right; margin-top: 10px; font-size: 20px; font-weight: bold; }
     button {
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      cursor: pointer;
-      border-radius: 5px;
-      margin: 5px;
+      background: #007bff; color: white; border: none; padding: 10px 15px;
+      cursor: pointer; border-radius: 5px; margin: 5px;
     }
-    button:hover {
-      background: #0056b3;
-    }
+    button:hover { background: #0056b3; }
+    
     /* Modal styles */
     .modal {
       display: none;
@@ -133,24 +94,14 @@
       width: 300px;
       text-align: left;
     }
-    .modal button {
-      margin-top: 10px;
-    }
+    .modal button { margin-top: 10px; }
+    
     /* Print styles */
     @media print {
-      body {
-        color: black;
-        background: white;
-      }
-      .no-print {
-        display: none;
-      }
-      table, th, td {
-        border: 1px solid black;
-      }
-      td:empty::after {
-        content: "0.00";
-      }
+      body { color: black; background: white; }
+      .no-print { display: none; }
+      table, th, td { border: 1px solid black; }
+      td:empty::after { content: "0.00"; }
     }
   </style>
 </head>
@@ -168,53 +119,104 @@
   <div class="billing-system" id="billingSystem">
     <div class="container">
       <h1>AHYAN TRADERS</h1>
-      <!-- Customer details -->
+      <!-- Customer Details -->
       <div class="header-details">
         <div>
           <label for="customerName">Customer:</label>
           <input type="text" id="customerName" value="John Doe">
         </div>
+        <div>
+          <label for="route">Route:</label>
+          <input type="text" id="route" value="Default Route">
+        </div>
       </div>
-      <!-- Bill Table (for demonstration, a static table row) -->
+      <!-- Product Entry Section -->
+      <div class="item-entry no-print">
+        <label for="item">Product Code:</label>
+        <input type="text" id="item" list="productList" placeholder="Search product code...">
+        <datalist id="productList"></datalist>
+        <button onclick="addItem()">Add to Bill</button>
+        <button onclick="showNewItemModal()">Add New Item</button>
+      </div>
+      <!-- Bill Table (Dynamic) -->
       <table id="billTable">
         <thead>
           <tr>
             <th>Product Code</th>
             <th>Description</th>
+            <th>CTN Size</th>
+            <th>Trade Price</th>
+            <th>Sale Qty</th>
+            <th>Gross Amount</th>
+            <th class="no-print">Trade Offer</th>
+            <th class="no-print">Sales Tax (%)</th>
             <th>Net Amount</th>
+            <th class="no-print">Action</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>P001</td>
-            <td>Item A</td>
-            <td>Rs 1000.00</td>
-          </tr>
+          <!-- Rows are added dynamically via addItem() -->
         </tbody>
       </table>
-      <div class="total-container">Grand Total: <span id="grandTotal">Rs 1000.00</span></div>
+      <div class="total-container">Grand Total: <span id="grandTotal">Rs 0.00</span></div>
+      <!-- Action Buttons -->
       <div class="no-print">
+        <button onclick="generateExcel()">Generate Excel</button>
         <button onclick="window.print()">Print</button>
-        <button onclick="nextBill()">Next Bill</button>
         <button onclick="showSavedItemsModal()">View Saved Items</button>
+        <button onclick="nextBill()">Next Bill</button>
       </div>
     </div>
   </div>
   
-  <!-- Modal for Viewing Saved Items -->
+  <!-- Modal for Adding New Item (Product) -->
+  <div id="newItemModal" class="modal no-print">
+    <h3>Add New Item</h3>
+    <label for="newProductCode">Product Code:</label>
+    <input type="text" id="newProductCode" placeholder="e.g., P004">
+    <label for="newDescription">Description:</label>
+    <input type="text" id="newDescription" placeholder="Product description">
+    <label for="newCtnSize">CTN Size:</label>
+    <input type="text" id="newCtnSize" placeholder="e.g., Small/Medium/Large">
+    <label for="newCtnPrice">CTN Price:</label>
+    <input type="number" id="newCtnPrice" placeholder="Price per CTN">
+    <label for="newBoxesPerCtn">Boxes per CTN:</label>
+    <input type="number" id="newBoxesPerCtn" placeholder="Number of boxes in one CTN">
+    <button onclick="saveNewItem()">Save Item</button>
+    <button onclick="closeModal('newItemModal')">Close</button>
+  </div>
+  
+  <!-- Modal for Editing Product Item -->
+  <div id="editItemModal" class="modal no-print">
+    <h3>Edit Item</h3>
+    <input type="hidden" id="editProductCode">
+    <label for="editDescription">Description:</label>
+    <input type="text" id="editDescription">
+    <label for="editCtnSize">CTN Size:</label>
+    <input type="text" id="editCtnSize">
+    <label for="editCtnPrice">CTN Price:</label>
+    <input type="number" id="editCtnPrice">
+    <label for="editBoxesPerCtn">Boxes per CTN:</label>
+    <input type="number" id="editBoxesPerCtn">
+    <button onclick="saveEditedItem()">Save Changes</button>
+    <button onclick="closeModal('editItemModal')">Close</button>
+  </div>
+  
+  <!-- Modal for Viewing Saved Billing Items from Firestore -->
   <div id="savedItemsModal" class="modal no-print">
-    <h3>Saved Items</h3>
+    <h3>Saved Billing Items</h3>
     <div class="search-container">
       <label for="savedSearch">Search:</label>
       <input type="text" id="savedSearch" placeholder="Type to search..." oninput="filterDashboardSavedItems()">
     </div>
     <div id="savedItemsList">
-      <!-- Firestore saved bills will be listed here -->
+      <!-- Saved bills from Firestore will be listed here -->
     </div>
     <button onclick="closeModal('savedItemsModal')">Close</button>
   </div>
   
   <script>
+    /* ------------------ Local Functions ------------------ */
     // Function to close modals
     function closeModal(id) {
       const modal = document.getElementById(id);
@@ -238,26 +240,221 @@
       }
     }
     
-    // Filter function for saved items modal
-    function filterDashboardSavedItems() {
-      const searchVal = document.getElementById("savedSearch").value.toLowerCase();
-      const listDiv = document.getElementById("savedItemsList");
-      Array.from(listDiv.getElementsByTagName("p")).forEach(para => {
-        para.style.display = para.textContent.toLowerCase().includes(searchVal) ? "block" : "none";
-      });
+    /* ------------------ Product Items Functions ------------------ */
+    // Products are stored in localStorage (for product catalog)
+    let items = {
+      "P001": { description: "Item A", ctnSize: "Small", ctnPrice: 1000, boxesPerCtn: 10 },
+      "P002": { description: "Item B", ctnSize: "Medium", ctnPrice: 2000, boxesPerCtn: 20 },
+      "P003": { description: "Item C", ctnSize: "Large", ctnPrice: 3000, boxesPerCtn: 30 }
+    };
+    
+    function loadItemsFromStorage() {
+      const stored = localStorage.getItem("savedItems");
+      if (stored) {
+        try {
+          items = JSON.parse(stored);
+        } catch (e) {
+          console.error("Error parsing savedItems:", e);
+        }
+      }
     }
     
-    // nextBill function: Gather bill data, store it in Firestore, then print the bill.
+    function saveItemsToStorage() {
+      localStorage.setItem("savedItems", JSON.stringify(items));
+    }
+    
+    function populateItems() {
+      const dataList = document.getElementById("productList");
+      dataList.innerHTML = "";
+      for (let code in items) {
+        const option = document.createElement("option");
+        option.value = code + " - " + items[code].description;
+        dataList.appendChild(option);
+      }
+    }
+    
+    // Add product to bill (dynamically creates a row in the bill table)
+    function addItem() {
+      const inputVal = document.getElementById("item").value;
+      if (!inputVal) return;
+      const productCode = inputVal.split(" - ")[0];
+      if (!items[productCode]) {
+        alert("Invalid product code.");
+        return;
+      }
+      const product = items[productCode];
+      const tableBody = document.getElementById("billTable").querySelector("tbody");
+      const row = tableBody.insertRow();
+      row.setAttribute("data-product", JSON.stringify(product));
+      
+      const cellCode = row.insertCell(); cellCode.textContent = productCode;
+      const cellDesc = row.insertCell(); cellDesc.textContent = product.description;
+      const cellCtnSize = row.insertCell(); cellCtnSize.textContent = product.ctnSize;
+      const cellRate = row.insertCell(); cellRate.textContent = product.ctnPrice.toFixed(2);
+      // For dynamic billing, you may add input fields as needed.
+      // Here we simulate a sale quantity input
+      const cellQty = row.insertCell();
+      cellQty.innerHTML = '<input type="number" class="qty" value="1" style="width:50px;">';
+      const cellNet = row.insertCell();
+      cellNet.className = "net"; 
+      cellNet.textContent = product.ctnPrice.toFixed(2);
+      const cellAction = row.insertCell();
+      cellAction.className = "no-print";
+      cellAction.innerHTML = '<button onclick="removeRow(this)">Remove</button>';
+      
+      const inputs = row.querySelectorAll("input");
+      inputs.forEach(input => input.addEventListener("input", () => updateRow(row)));
+      updateRow(row);
+    }
+    
+    function updateRow(row) {
+      const product = JSON.parse(row.getAttribute("data-product"));
+      const qty = parseFloat(row.querySelector(".qty").value) || 0;
+      // Assume net amount for the row is simply trade price * quantity.
+      const netAmount = qty * product.ctnPrice;
+      row.querySelector(".net").textContent = netAmount.toFixed(2);
+      recalcGrandTotal();
+    }
+    
+    function recalcGrandTotal() {
+      const rows = document.getElementById("billTable").querySelector("tbody").rows;
+      let grandTotal = 0;
+      for (let row of rows) {
+        const net = parseFloat(row.querySelector(".net").textContent) || 0;
+        grandTotal += net;
+      }
+      document.getElementById("grandTotal").textContent = "Rs " + grandTotal.toFixed(2);
+    }
+    
+    function removeRow(btn) {
+      const row = btn.parentNode.parentNode;
+      row.parentNode.removeChild(row);
+      recalcGrandTotal();
+    }
+    
+    /* New Item Modal for Product Catalog */
+    function showNewItemModal() {
+      document.getElementById("newItemModal").style.display = "block";
+    }
+    
+    function saveNewItem() {
+      const code = document.getElementById("newProductCode").value.trim();
+      const desc = document.getElementById("newDescription").value.trim();
+      const size = document.getElementById("newCtnSize").value.trim();
+      const price = parseFloat(document.getElementById("newCtnPrice").value);
+      const boxes = parseFloat(document.getElementById("newBoxesPerCtn").value);
+      if (code && desc && size && price && boxes) {
+        items[code] = { description: desc, ctnSize: size, ctnPrice: price, boxesPerCtn: boxes };
+        populateItems();
+        alert("New item added successfully!");
+        saveItemsToStorage();
+        document.getElementById("newProductCode").value = "";
+        document.getElementById("newDescription").value = "";
+        document.getElementById("newCtnSize").value = "";
+        document.getElementById("newCtnPrice").value = "";
+        document.getElementById("newBoxesPerCtn").value = "";
+        closeModal("newItemModal");
+      } else {
+        alert("Please fill in all fields correctly.");
+      }
+    }
+    
+    /* Edit Item Modal for Product Catalog */
+    function openEditModal(code) {
+      closeModal('savedItemsModal');
+      const item = items[code];
+      if (!item) return;
+      document.getElementById("editProductCode").value = code;
+      document.getElementById("editDescription").value = item.description;
+      document.getElementById("editCtnSize").value = item.ctnSize;
+      document.getElementById("editCtnPrice").value = item.ctnPrice;
+      document.getElementById("editBoxesPerCtn").value = item.boxesPerCtn;
+      document.getElementById("editItemModal").style.display = "block";
+    }
+    
+    function saveEditedItem() {
+      const code = document.getElementById("editProductCode").value;
+      items[code] = {
+        description: document.getElementById("editDescription").value,
+        ctnSize: document.getElementById("editCtnSize").value,
+        ctnPrice: parseFloat(document.getElementById("editCtnPrice").value),
+        boxesPerCtn: parseFloat(document.getElementById("editBoxesPerCtn").value)
+      };
+      saveItemsToStorage();
+      populateItems();
+      closeModal("editItemModal");
+      showSavedItemsModal();
+    }
+    
+    /* Saved Items Modal: Fetch saved billing documents from Firestore */
+    async function showSavedItemsModal() {
+      const listDiv = document.getElementById("savedItemsList");
+      listDiv.innerHTML = "";
+      if (window.fetchBillingDocuments) {
+        const bills = await window.fetchBillingDocuments();
+        bills.forEach(bill => {
+          const para = document.createElement("p");
+          para.style.cursor = "pointer";
+          para.textContent = `Bill ID: ${bill.id}, Date: ${bill.billDate}`;
+          para.onclick = () => alert(JSON.stringify(bill, null, 2));
+          listDiv.appendChild(para);
+        });
+      } else {
+        console.error("Firestore fetching function is not defined.");
+      }
+      document.getElementById("savedItemsModal").style.display = "block";
+    }
+    
+    document.addEventListener("DOMContentLoaded", () => {
+      loadItemsFromStorage();
+      populateItems();
+    });
+    
+    /* Generate Excel Export (unchanged) */
+    function generateExcel() {
+      const origTable = document.getElementById("billTable");
+      const clone = origTable.cloneNode(true);
+      const headerRows = clone.tHead.rows;
+      for (let i = 0; i < headerRows.length; i++) {
+        headerRows[i].deleteCell(-1);
+      }
+      const bodyRows = clone.tBodies[0].rows;
+      for (let i = 0; i < bodyRows.length; i++) {
+        bodyRows[i].deleteCell(-1);
+      }
+      const inputs = clone.querySelectorAll("input");
+      inputs.forEach(input => { input.parentNode.textContent = input.value; });
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.table_to_sheet(clone);
+      XLSX.utils.book_append_sheet(wb, ws, "Bill");
+      XLSX.writeFile(wb, "bill.xlsx");
+    }
+    
+    /* Next Bill: Gather dynamic bill data, store to Firestore, then print */
     async function nextBill() {
-      const customerName = document.getElementById("customerName").value;
+      // Gather dynamic bill data from the bill table rows.
+      const tbody = document.getElementById("billTable").querySelector("tbody");
+      const rows = Array.from(tbody.rows).map(row => {
+        const cells = row.cells;
+        return {
+          productCode: cells[0].textContent,
+          description: cells[1].textContent,
+          netAmount: cells[3] ? cells[3].textContent : "0"  // Adjust this if your row structure is different
+        };
+      });
+      // For this example, we compute the grand total from the displayed grand total.
       const netAmountText = document.getElementById("grandTotal").textContent;
       const netAmount = netAmountText.replace("Rs", "").trim();
       const billDate = new Date().toISOString();
+      // Get customer name from the header.
+      const customerName = document.getElementById("customerName").value;
       
       const billData = {
         customerName: customerName,
         billDate: billDate,
-        netAmount: netAmount
+        netAmount: netAmount,
+        // Optionally, include the detailed rows:
+        rows: rows
       };
       
       if (window.saveBillDataToFirestore) {
@@ -281,25 +478,6 @@
         link.click();
         document.body.removeChild(clone);
       });
-    }
-    
-    // Function to show the saved items modal by fetching billing documents from Firestore.
-    async function showSavedItemsModal() {
-      const listDiv = document.getElementById("savedItemsList");
-      listDiv.innerHTML = "";
-      if (window.fetchBillingDocuments) {
-        const bills = await window.fetchBillingDocuments();
-        bills.forEach(bill => {
-          const para = document.createElement("p");
-          para.style.cursor = "pointer";
-          para.textContent = `Bill ID: ${bill.id}, Date: ${bill.billDate}`;
-          para.onclick = () => alert(JSON.stringify(bill, null, 2));
-          listDiv.appendChild(para);
-        });
-      } else {
-        console.error("Firestore fetching function is not defined.");
-      }
-      document.getElementById("savedItemsModal").style.display = "block";
     }
   </script>
   
@@ -325,7 +503,7 @@
     
     /**
      * Saves the bill data in Firestore under the "billing" collection.
-     * Expects billData with fields: customerName, billDate, netAmount.
+     * Expects billData with fields: customerName, billDate, netAmount, (and optionally rows).
      * @param {Object} billData - The bill data to store.
      */
     async function saveBillDataToFirestore(billData) {
