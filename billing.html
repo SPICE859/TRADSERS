@@ -8,6 +8,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.2/xlsx.full.min.js"></script>
   <!-- html2canvas for image export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- Firebase libraries -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <style>
     /* Basic styles for Login */
     .login-container {
@@ -254,7 +257,27 @@
     <button onclick="closeModal('savedItemsModal')">Close</button>
   </div>
  
+  <!-- Firebase Initialization -->
   <script>
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    const firebaseConfig = {
+      apiKey: "AIzaSyD_ojS20opjpxmwHxIHATC52ncABe_fkuk",
+      authDomain: "ahyan-traders.firebaseapp.com",
+      projectId: "ahyan-traders",
+      storageBucket: "ahyan-traders.firebasestorage.app",
+      messagingSenderId: "1024047266496",
+      appId: "1:1024047266496:web:349c052d55564a96bfcb25",
+      measurementId: "G-11ZNXV1ZZL"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+  </script>
+ 
+  <script>
+    /* Global items object */
+    let items = {};
+
     /* Login Functionality */
     function login() {
       const username = document.getElementById("username").value;
@@ -263,30 +286,23 @@
       if (username === "admin" && password === "admin") {
         document.getElementById("loginContainer").style.display = "none";
         document.getElementById("billingSystem").style.display = "block";
-        loadItemsFromStorage();
-        populateItems();
+        loadItemsFromFirestore();
       } else {
         errorMsg.textContent = "Invalid username or password!";
       }
     }
    
-    /* Billing System Functions using localStorage */
-    let items = {
-      "P001": { description: "Item A", ctnSize: "Small", ctnPrice: 1000, boxesPerCtn: 10 },
-      "P002": { description: "Item B", ctnSize: "Medium", ctnPrice: 2000, boxesPerCtn: 20 },
-      "P003": { description: "Item C", ctnSize: "Large", ctnPrice: 3000, boxesPerCtn: 30 }
-    };
-   
-    function loadItemsFromStorage() {
-      const stored = localStorage.getItem("savedItems");
-      if (stored) {
-        try { items = JSON.parse(stored); }
-        catch(e) { console.error("Error parsing savedItems:", e); }
-      }
-    }
-   
-    function saveItemsToStorage() {
-      localStorage.setItem("savedItems", JSON.stringify(items));
+    /* Firestore Functions for Billing System */
+    function loadItemsFromFirestore() {
+      db.collection("savedItems").get().then((querySnapshot) => {
+        items = {};
+        querySnapshot.forEach((doc) => {
+          items[doc.id] = doc.data();
+        });
+        populateItems();
+      }).catch((error) => {
+        console.error("Error loading items: ", error);
+      });
     }
    
     function populateItems() {
@@ -334,7 +350,7 @@
       let salesTaxPercent = parseFloat(row.querySelector(".salesTax").value) || 0;
       let gross = (ctns * product.ctnPrice) + (boxes * (product.ctnPrice / product.boxesPerCtn)) + (pcs * (product.ctnPrice / (product.boxesPerCtn * 10)));
       row.querySelector(".gross").textContent = gross.toFixed(2);
-      // Sales tax is now percentage-based:
+      // Sales tax is percentage-based:
       let salesTaxValue = (salesTaxPercent / 100) * gross;
       let net = gross - tradeOffer + salesTaxValue;
       row.querySelector(".net").textContent = net.toFixed(2);
@@ -371,16 +387,23 @@
       let price = parseFloat(document.getElementById("newCtnPrice").value);
       let boxes = parseFloat(document.getElementById("newBoxesPerCtn").value);
       if(code && desc && size && price && boxes) {
-        items[code] = { description: desc, ctnSize: size, ctnPrice: price, boxesPerCtn: boxes };
-        populateItems();
-        alert("New item added successfully!");
-        saveItemsToStorage();
-        document.getElementById("newProductCode").value = "";
-        document.getElementById("newDescription").value = "";
-        document.getElementById("newCtnSize").value = "";
-        document.getElementById("newCtnPrice").value = "";
-        document.getElementById("newBoxesPerCtn").value = "";
-        closeModal("newItemModal");
+        let newItem = { description: desc, ctnSize: size, ctnPrice: price, boxesPerCtn: boxes };
+        db.collection("savedItems").doc(code).set(newItem)
+          .then(() => {
+            alert("New item added successfully!");
+            items[code] = newItem;
+            populateItems();
+            document.getElementById("newProductCode").value = "";
+            document.getElementById("newDescription").value = "";
+            document.getElementById("newCtnSize").value = "";
+            document.getElementById("newCtnPrice").value = "";
+            document.getElementById("newBoxesPerCtn").value = "";
+            closeModal("newItemModal");
+          })
+          .catch((error) => {
+            console.error("Error adding new item: ", error);
+            alert("Error adding new item: " + error.message);
+          });
       } else {
         alert("Please fill in all fields correctly.");
       }
@@ -400,16 +423,23 @@
     }
     function saveEditedItem() {
       let code = document.getElementById("editProductCode").value;
-      items[code] = {
+      let updatedItem = {
         description: document.getElementById("editDescription").value,
         ctnSize: document.getElementById("editCtnSize").value,
         ctnPrice: parseFloat(document.getElementById("editCtnPrice").value),
         boxesPerCtn: parseFloat(document.getElementById("editBoxesPerCtn").value)
       };
-      saveItemsToStorage();
-      populateItems();
-      closeModal("editItemModal");
-      showSavedItemsModal();
+      db.collection("savedItems").doc(code).update(updatedItem)
+        .then(() => {
+          items[code] = updatedItem;
+          populateItems();
+          closeModal("editItemModal");
+          showSavedItemsModal();
+        })
+        .catch((error) => {
+          console.error("Error updating item: ", error);
+          alert("Error updating item: " + error.message);
+        });
     }
    
     /* Saved Items Modal */
@@ -448,11 +478,17 @@
       if (!code || !items[code]) { alert("Product code not found!"); return; }
       let pass = prompt("Enter deletion password:");
       if (pass === "delete123") {
-        delete items[code];
-        alert("Item " + code + " deleted successfully!");
-        saveItemsToStorage();
-        populateItems();
-        showSavedItemsModal();
+        db.collection("savedItems").doc(code).delete()
+          .then(() => {
+            alert("Item " + code + " deleted successfully!");
+            delete items[code];
+            populateItems();
+            showSavedItemsModal();
+          })
+          .catch((error) => {
+            console.error("Error deleting item: ", error);
+            alert("Error deleting item: " + error.message);
+          });
       } else {
         alert("Incorrect password!");
       }
@@ -468,21 +504,29 @@
         let workbook = XLSX.read(data, { type: 'binary' });
         let firstSheet = workbook.Sheets[workbook.SheetNames[0]];
         let excelItems = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+        let batch = db.batch();
         for (let i = 1; i < excelItems.length; i++) {
           let row = excelItems[i];
           if (row && row[0]) {
             let code = row[0].toString();
-            items[code] = {
+            let newItem = {
               description: row[1] ? row[1].toString() : "",
               ctnSize: row[2] ? row[2].toString() : "",
               ctnPrice: row[3] ? parseFloat(row[3]) : 0,
               boxesPerCtn: row[4] ? parseFloat(row[4]) : 0
             };
+            let docRef = db.collection("savedItems").doc(code);
+            batch.set(docRef, newItem);
+            items[code] = newItem;
           }
         }
-        saveItemsToStorage();
-        populateItems();
-        alert("Items loaded from Excel successfully!");
+        batch.commit().then(() => {
+          populateItems();
+          alert("Items loaded from Excel successfully!");
+        }).catch((error) => {
+          console.error("Error loading items from Excel: ", error);
+          alert("Error loading items from Excel: " + error.message);
+        });
       };
       reader.readAsBinaryString(file);
     }
@@ -526,8 +570,6 @@
         document.getElementById("grandTotal").textContent = "Rs 0.00";
       });
     }
-   
-    document.addEventListener("DOMContentLoaded", populateItems);
   </script>
 </body>
 </html>
