@@ -19,62 +19,138 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       text-align: center;
     }
-    .login-container h2 { color: #007bff; margin-bottom: 20px; }
+    .login-container h2 {
+      color: #007bff;
+      margin-bottom: 20px;
+    }
     .login-container input[type="text"],
     .login-container input[type="password"] {
-      width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd;
-      border-radius: 5px; font-size: 1em;
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 1em;
     }
     .login-container button {
-      width: 100%; padding: 10px; background: #007bff;
-      border: none; border-radius: 5px; color: white; font-size: 1em; cursor: pointer;
+      width: 100%;
+      padding: 10px;
+      background: #007bff;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      font-size: 1em;
+      cursor: pointer;
     }
-    .login-container button:hover { background: #0056b3; }
-    .error { color: red; margin-bottom: 10px; font-size: 0.9em; }
-    
+    .login-container button:hover {
+      background: #0056b3;
+    }
+    .error {
+      color: red;
+      margin-bottom: 10px;
+      font-size: 0.9em;
+    }
     /* Billing System Styles */
-    .billing-system { display: none; }
+    .billing-system {
+      display: none;
+    }
     .container {
-      max-width: 1000px; margin: auto; background: white; padding: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 10px; text-align: center;
+      max-width: 1000px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      text-align: center;
     }
     h1 {
-      background: #007bff; color: white; padding: 10px; border-radius: 10px;
+      background: #007bff;
+      color: white;
+      padding: 10px;
+      border-radius: 10px;
     }
     .header-details {
-      display: flex; flex-direction: column; align-items: flex-start; margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      margin-top: 10px;
     }
-    .header-details div { margin-bottom: 10px; }
-    .header-details label { margin-right: 5px; font-weight: bold; }
-    .header-details input { padding: 5px; }
-    /* Minimal Bill Table for Demo */
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    th { background-color: #007bff; color: white; }
+    .header-details div {
+      margin-bottom: 10px;
+    }
+    .header-details label {
+      margin-right: 5px;
+      font-weight: bold;
+    }
+    .header-details input {
+      padding: 5px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
+    }
     .total-container {
-      text-align: right; margin-top: 10px; font-size: 20px; font-weight: bold;
+      text-align: right;
+      margin-top: 10px;
+      font-size: 20px;
+      font-weight: bold;
     }
     button {
-      background: #007bff; color: white; border: none; padding: 10px 15px;
-      cursor: pointer; border-radius: 5px; margin: 5px;
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+      border-radius: 5px;
+      margin: 5px;
     }
-    button:hover { background: #0056b3; }
-    
+    button:hover {
+      background: #0056b3;
+    }
     /* Modal styles */
     .modal {
-      display: none; position: fixed; z-index: 1000; left: 50%; top: 50%;
-      transform: translate(-50%, -50%); background: white; padding: 20px;
-      border: 1px solid #888; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.25);
-      width: 300px; text-align: left;
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border: 1px solid #888;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.25);
+      width: 300px;
+      text-align: left;
     }
-    .modal button { margin-top: 10px; }
-    
+    .modal button {
+      margin-top: 10px;
+    }
     /* Print styles */
     @media print {
-      body { color: black; background: white; }
-      .no-print { display: none; }
-      table, th, td { border: 1px solid black; }
-      td:empty::after { content: "0.00"; }
+      body {
+        color: black;
+        background: white;
+      }
+      .no-print {
+        display: none;
+      }
+      table, th, td {
+        border: 1px solid black;
+      }
+      td:empty::after {
+        content: "0.00";
+      }
     }
   </style>
 </head>
@@ -99,7 +175,7 @@
           <input type="text" id="customerName" value="John Doe">
         </div>
       </div>
-      <!-- Bill Table (for demonstration, using a static row) -->
+      <!-- Bill Table (for demonstration, a static table row) -->
       <table id="billTable">
         <thead>
           <tr>
@@ -154,7 +230,7 @@
     function login() {
       const username = document.getElementById("username").value;
       const password = document.getElementById("password").value;
-      if(username === "admin" && password === "admin") {
+      if (username === "admin" && password === "admin") {
         document.getElementById("loginContainer").style.display = "none";
         document.getElementById("billingSystem").style.display = "block";
       } else {
@@ -171,7 +247,7 @@
       });
     }
     
-    // nextBill function: Save bill data to Firestore and then print the bill.
+    // nextBill function: Gather bill data, store it in Firestore, then print the bill.
     async function nextBill() {
       const customerName = document.getElementById("customerName").value;
       const netAmountText = document.getElementById("grandTotal").textContent;
@@ -190,7 +266,7 @@
         console.error("Firestore saving function is not defined.");
       }
       
-      // Print the bill using html2canvas
+      // Print the bill using html2canvas.
       const container = document.querySelector('.container');
       const clone = container.cloneNode(true);
       const npElements = clone.querySelectorAll('.no-print');
