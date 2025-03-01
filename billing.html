@@ -552,19 +552,51 @@
     }
    
     /* Next Bill: Save bill data then capture an image and clear invoice */
-    function nextBill() {
-      // Collect bill data
-      let invoiceNo = "INV-" + Date.now();
-      let customer = document.getElementById("customerName").value;
-      let billDate = new Date().toISOString();
-      let netAmountText = document.getElementById("grandTotal").textContent;
-      let netAmount = parseFloat(netAmountText.replace('Rs ', '')) || 0;
-      let billData = {
-        invoiceNo: invoiceNo,
-        customer: customer,
-        billDate: billDate,
-        netAmount: netAmount
-      };
+    /* Next Bill: Save bill data then capture an image and clear invoice */
+  function nextBill() {
+    // Generate an invoice number using the current timestamp
+    let invoiceNo = "INV-" + Date.now();
+    let customer = document.getElementById("customerName").value;
+    let billDate = new Date().toISOString();
+    let netAmountText = document.getElementById("grandTotal").textContent;
+    let netAmount = parseFloat(netAmountText.replace('Rs ', '')) || 0;
+    
+    let billData = {
+      invoiceNo: invoiceNo,
+      customer: customer,
+      billDate: billDate,
+      netAmount: netAmount
+    };
+
+    console.log("Attempting to save bill:", billData);
+
+    // Save the bill data to the "billing" collection
+    db.collection("billing").doc(invoiceNo).set(billData)
+      .then(() => {
+        console.log("Bill data saved successfully");
+        // Capture bill image and clear invoice
+        let container = document.querySelector('.container');
+        let clone = container.cloneNode(true);
+        let npElements = clone.querySelectorAll('.no-print');
+        npElements.forEach(el => el.parentNode.removeChild(el));
+        clone.style.position = 'absolute';
+        clone.style.top = '-9999px';
+        document.body.appendChild(clone);
+        html2canvas(clone).then(function(canvas) {
+          let link = document.createElement('a');
+          link.download = 'bill.png';
+          link.href = canvas.toDataURL();
+          link.click();
+          document.body.removeChild(clone);
+          document.getElementById("billTable").querySelector("tbody").innerHTML = "";
+          document.getElementById("grandTotal").textContent = "Rs 0.00";
+        });
+      })
+      .catch(error => {
+        console.error("Error saving bill data:", error);
+        alert("Error saving bill data: " + error.message);
+      });
+  }
       // Save bill data to Firestore in the "billing" collection
       db.collection("billing").doc(invoiceNo).set(billData)
         .then(() => {
