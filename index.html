@@ -583,7 +583,7 @@
     // Fetch and display billing data from the "billing data" collection
     async function updateSaleSummaryTable() {
       try {
-        const querySnapshot = await getDocs(collection(db, "billing data"));
+        const querySnapshot = await getDocs(collection(db, "billing"));
         const tbody = document.getElementById("salesTableBody");
         tbody.innerHTML = "";
         let total = 0;
