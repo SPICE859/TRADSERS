@@ -526,29 +526,30 @@
     }
    
     /* Next Bill: Capture the bill, store bill data in Firestore, then clear invoice */
-    async function nextBill() {
-      // Gather bill data from the bill table.
-      let tbody = document.getElementById("billTable").querySelector("tbody");
-      let rows = Array.from(tbody.rows).map(row => {
-        let cells = row.cells;
-        return {
-          productCode: cells[0].textContent,
-          description: cells[1].textContent,
-          ctnSize: cells[2].textContent,
-          tradePrice: cells[3].textContent,
-          gross: cells[7].textContent,
-          netammount: cells[10].textContent
-        };
-      });
-      let billData = {
-        rows: rows,
-        grandTotal: document.getElementById("grandTotal").textContent,
-        date: new Date().toISOString()
-      };
-      // Store the bill data in Firestore
-      if (window.storeBillingDataInFirestore) {
-        await window.storeBillingDataInFirestore(billData);
-      }
+   async function nextBill() {
+  // Save the simplified bill data to Firestore
+  await saveBillDataToFirestore();
+
+  // Then proceed with printing the bill as an image using html2canvas.
+  let container = document.querySelector('.container');
+  let clone = container.cloneNode(true);
+  let npElements = clone.querySelectorAll('.no-print');
+  npElements.forEach(el => el.parentNode.removeChild(el));
+  clone.style.position = 'absolute';
+  clone.style.top = '-9999px';
+  document.body.appendChild(clone);
+  html2canvas(clone).then(function(canvas) {
+    let link = document.createElement('a');
+    link.download = 'bill.png';
+    link.href = canvas.toDataURL();
+    link.click();
+    document.body.removeChild(clone);
+    let tbody = document.getElementById("billTable").querySelector("tbody");
+    tbody.innerHTML = "";
+    document.getElementById("grandTotal").textContent = "Rs 0.00";
+  });
+}
+
       
       // Print the bill as an image using html2canvas.
       let container = document.querySelector('.container');
