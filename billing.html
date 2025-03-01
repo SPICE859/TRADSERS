@@ -295,9 +295,9 @@
       }
     }
    
-    /* Firestore Functions for Billing System */
+    /* Firestore Functions for Billing System (Using the "items" collection) */
     function loadItemsFromFirestore() {
-      db.collection("savedItems").get().then((querySnapshot) => {
+      db.collection("items").get().then((querySnapshot) => {
         items = {};
         querySnapshot.forEach((doc) => {
           items[doc.id] = doc.data();
@@ -391,7 +391,7 @@
       let boxes = parseFloat(document.getElementById("newBoxesPerCtn").value);
       if(code && desc && size && price && boxes) {
         let newItem = { description: desc, ctnSize: size, ctnPrice: price, boxesPerCtn: boxes };
-        db.collection("savedItems").doc(code).set(newItem)
+        db.collection("items").doc(code).set(newItem)
           .then(() => {
             alert("New item added successfully!");
             items[code] = newItem;
@@ -432,7 +432,7 @@
         ctnPrice: parseFloat(document.getElementById("editCtnPrice").value),
         boxesPerCtn: parseFloat(document.getElementById("editBoxesPerCtn").value)
       };
-      db.collection("savedItems").doc(code).update(updatedItem)
+      db.collection("items").doc(code).update(updatedItem)
         .then(() => {
           items[code] = updatedItem;
           populateItems();
@@ -481,7 +481,7 @@
       if (!code || !items[code]) { alert("Product code not found!"); return; }
       let pass = prompt("Enter deletion password:");
       if (pass === "delete123") {
-        db.collection("savedItems").doc(code).delete()
+        db.collection("items").doc(code).delete()
           .then(() => {
             alert("Item " + code + " deleted successfully!");
             delete items[code];
@@ -518,7 +518,7 @@
               ctnPrice: row[3] ? parseFloat(row[3]) : 0,
               boxesPerCtn: row[4] ? parseFloat(row[4]) : 0
             };
-            let docRef = db.collection("savedItems").doc(code);
+            let docRef = db.collection("items").doc(code);
             batch.set(docRef, newItem);
             items[code] = newItem;
           }
