@@ -528,6 +528,7 @@
     /* Next Bill: Capture the bill, store bill data in Firestore, then clear invoice */
    async function nextBill() {
   // Save the simplified bill data to Firestore
+      await saveBillDataToFirestore();
 
 
   // Then proceed with printing the bill as an image using html2canvas.
@@ -547,7 +548,7 @@
     let tbody = document.getElementById("billTable").querySelector("tbody");
     tbody.innerHTML = "";
     document.getElementById("grandTotal").textContent = "Rs 0.00";
-      await saveBillDataToFirestore();
+     
   });
 }
 
