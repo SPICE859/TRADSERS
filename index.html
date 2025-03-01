@@ -397,6 +397,7 @@
     
     // Save new item to Firestore
     async function saveNewItemFromModal() {
+      const code = document.getElementById("newProductCode").value.trim();
       const code = document.getElementById("newItemCodeModal").value.trim();
       const desc = document.getElementById("newItemDescModal").value.trim();
       const size = document.getElementById("newItemCtnSizeModal").value.trim();
