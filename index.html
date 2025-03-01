@@ -405,7 +405,7 @@
       const price = parseFloat(document.getElementById("newItemCtnPriceModal").value);
       if (code && desc && size && !isNaN(boxes) && !isNaN(price)) {
         try {
-          await addDoc(collection(db, "items")(.doc "code"), { code, description: desc, ctnSize: size, boxesPerCtn: boxes, ctnPrice: price });
+          await addDoc(collection(db, "items"), { code, description: desc, ctnSize: size, boxesPerCtn: boxes, ctnPrice: price });
           alert("Item added successfully!");
           document.getElementById("newItemCodeModal").value = "";
           document.getElementById("newItemDescModal").value = "";
