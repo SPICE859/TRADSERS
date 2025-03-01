@@ -252,6 +252,17 @@
   </div>
  
   <script>
+    // Define a closeModal function to hide modals
+    function closeModal(id) {
+      console.log("Closing modal:", id);
+      const modal = document.getElementById(id);
+      if(modal) {
+        modal.style.display = "none";
+      } else {
+        console.error("Modal with id", id, "not found.");
+      }
+    }
+    
     /* Login Functionality */
     function login() {
       const username = document.getElementById("username").value;
@@ -408,6 +419,7 @@
     /* Saved Items Modal: Fetch saved items from the dashboard database (using Firestore) */
     async function fetchBillingDocuments() {
       try {
+        // Ensure Firestore (db) is defined
         const billingRef = db.collection("billing");
         const q = billingRef.orderBy("date", "desc");
         const querySnapshot = await q.get();
