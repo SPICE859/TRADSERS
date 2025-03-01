@@ -73,8 +73,8 @@
     }
     .header-details {
       display: flex;
-      flex-direction: column; /* stack items vertically */
-      align-items: flex-start; /* align items to the left */
+      flex-direction: column;
+      align-items: flex-start;
       margin-top: 10px;
     }
     .header-details div { margin-bottom: 10px; }
@@ -86,7 +86,6 @@
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
     th { background-color: #007bff; color: white; }
-    /* Two-row header for Sale Qty with line under group header */
     thead tr:first-child th[colspan] { border-bottom: 2px solid #000; }
     .total-container {
       text-align: right;
@@ -121,13 +120,12 @@
       width: 300px;
       text-align: left;
     }
-    /* Give the Edit modal a higher z-index */
     #editItemModal { z-index: 1100; }
     .modal h3 { margin-top: 0; }
     .modal input { width: 100%; padding: 5px; margin: 5px 0 10px 0; }
     .modal button { margin-top: 10px; }
    
-    /* Print styles: force black and white, but show all table columns */
+    /* Print styles */
     @media print {
       body { color: black; background: white; }
       .no-print:not(#billTable .no-print) { display: none; }
@@ -227,7 +225,7 @@
     <button onclick="closeModal('newItemModal')">Close</button>
   </div>
  
-  <!-- Modal for Editing Saved Item -->
+  <!-- Modal for Editing Item -->
   <div id="editItemModal" class="modal no-print">
     <h3>Edit Item</h3>
     <input type="hidden" id="editProductCode" />
@@ -243,7 +241,7 @@
     <button onclick="closeModal('editItemModal')">Close</button>
   </div>
  
-  <!-- Modal for Viewing Saved Items -->
+  <!-- Modal for Viewing Items -->
   <div id="savedItemsModal" class="modal no-print">
     <h3>Saved Items</h3>
     <div class="search-container">
@@ -264,7 +262,7 @@
       apiKey: "AIzaSyD_ojS20opjpxmwHxIHATC52ncABe_fkuk",
       authDomain: "ahyan-traders.firebaseapp.com",
       projectId: "ahyan-traders",
-      storageBucket: "ahyan-traders.appspot.com",  // Corrected format
+      storageBucket: "ahyan-traders.appspot.com",
       messagingSenderId: "1024047266496",
       appId: "1:1024047266496:web:349c052d55564a96bfcb25",
       measurementId: "G-11ZNXV1ZZL"
@@ -272,13 +270,12 @@
     firebase.initializeApp(firebaseConfig);
     var db = firebase.firestore();
     
-    // Optional logging to check Firebase and Firestore initialization
     console.log("Firebase App:", firebase.app());
     console.log("Firestore instance:", db);
   </script>
  
   <script>
-    /* Global items object */
+    /* Global items object to hold products loaded from Firestore "items" collection */
     let items = {};
 
     /* Login Functionality */
@@ -295,7 +292,7 @@
       }
     }
    
-    /* Firestore Functions for Billing System (Using the "items" collection) */
+    /* Load products from Firestore collection "items" */
     function loadItemsFromFirestore() {
       db.collection("items").get().then((querySnapshot) => {
         items = {};
@@ -308,6 +305,7 @@
       });
     }
    
+    /* Populate the product datalist for search */
     function populateItems() {
       let dataList = document.getElementById("productList");
       dataList.innerHTML = "";
@@ -318,11 +316,15 @@
       }
     }
    
+    /* Add product to bill (retrieved from Firestore "items" collection) */
     function addItem() {
       let inputVal = document.getElementById("item").value;
       if (!inputVal) return;
       let productCode = inputVal.split(" - ")[0];
-      if (!items[productCode]) { alert("Invalid product code."); return; }
+      if (!items[productCode]) { 
+        alert("Invalid product code."); 
+        return; 
+      }
       let product = items[productCode];
       let tableBody = document.getElementById("billTable").querySelector("tbody");
       let row = tableBody.insertRow();
@@ -353,7 +355,6 @@
       let salesTaxPercent = parseFloat(row.querySelector(".salesTax").value) || 0;
       let gross = (ctns * product.ctnPrice) + (boxes * (product.ctnPrice / product.boxesPerCtn)) + (pcs * (product.ctnPrice / (product.boxesPerCtn * 10)));
       row.querySelector(".gross").textContent = gross.toFixed(2);
-      // Sales tax is percentage-based:
       let salesTaxValue = (salesTaxPercent / 100) * gross;
       let net = gross - tradeOffer + salesTaxValue;
       row.querySelector(".net").textContent = net.toFixed(2);
@@ -376,7 +377,7 @@
       recalcGrandTotal();
     }
    
-    /* New Item Modal */
+    /* New Item Modal functions (save, edit, delete) now operate on the Firestore "items" collection */
     function showNewItemModal() {
       document.getElementById("newItemModal").style.display = "block";
     }
@@ -389,7 +390,7 @@
       let size = document.getElementById("newCtnSize").value.trim();
       let price = parseFloat(document.getElementById("newCtnPrice").value);
       let boxes = parseFloat(document.getElementById("newBoxesPerCtn").value);
-      if(code && desc && size && price && boxes) {
+      if (code && desc && size && price && boxes) {
         let newItem = { description: desc, ctnSize: size, ctnPrice: price, boxesPerCtn: boxes };
         db.collection("items").doc(code).set(newItem)
           .then(() => {
@@ -412,7 +413,6 @@
       }
     }
    
-    /* Edit Item Modal */
     function openEditModal(code) {
       closeModal('savedItemsModal');
       let item = items[code];
@@ -445,7 +445,6 @@
         });
     }
    
-    /* Saved Items Modal */
     function showSavedItemsModal() {
       let listDiv = document.getElementById("savedItemsList");
       listDiv.innerHTML = "";
@@ -475,7 +474,6 @@
       }
     }
    
-    /* Delete Item Functionality */
     function deleteItem() {
       let code = prompt("Enter the product code to delete:");
       if (!code || !items[code]) { alert("Product code not found!"); return; }
@@ -497,7 +495,7 @@
       }
     }
    
-    /* Load Items from Excel */
+    /* Load Items from Excel into Firestore "items" collection */
     function loadItemsFromExcel(inputElem) {
       let file = inputElem.files[0];
       if (!file) return;
@@ -534,7 +532,7 @@
       reader.readAsBinaryString(file);
     }
    
-    /* Generate Excel Export */
+    /* Generate Excel Export for the bill */
     function generateExcel() {
       let origTable = document.getElementById("billTable");
       let clone = origTable.cloneNode(true);
@@ -554,9 +552,8 @@
       XLSX.writeFile(wb, "bill.xlsx");
     }
    
-    /* Next Bill: Save bill data then capture an image and clear invoice */
+    /* Next Bill: Save invoice data (from bill table and customer info) to Firestore "billing" collection */
     function nextBill() {
-      // Generate an invoice number using the current timestamp
       let invoiceNo = "INV-" + Date.now();
       let customer = document.getElementById("customerName").value;
       let billDate = new Date().toISOString();
@@ -572,12 +569,10 @@
 
       console.log("Saving bill data:", billData);
 
-      // Save the bill data to Firestore in the "billing" collection
       db.collection("billing").doc(invoiceNo).set(billData)
         .then(() => {
           console.log("Bill data saved successfully");
           alert("Bill saved with Invoice No: " + invoiceNo);
-          // Capture bill image and clear invoice
           let container = document.querySelector('.container');
           let clone = container.cloneNode(true);
           let npElements = clone.querySelectorAll('.no-print');
