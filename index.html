@@ -285,13 +285,13 @@
             <th>Product ID</th>
             <th>Product Name</th>
             <th>CTN Size</th>
-            <th>Available Boxes</th>
+            <th>Available Boxes<br>(CTNs, Boxes, Pcs)</th>
             <th>Unit Price (Rs.)</th>
             <th>Total Value (Rs.)</th>
           </tr>
         </thead>
         <tbody id="stockTableBody">
-          <!-- Dynamically generated rows -->
+          <!-- Dynamically generated rows from aggregated stock data -->
         </tbody>
         <tfoot>
           <tr>
@@ -476,33 +476,63 @@
       }
     }
     
-    // Update the Stock Report table
+    // Updated Stock Report Table: Aggregate stock from the "stock" collection and merge with item details
     async function updateStockReportTable() {
       try {
-        const filter = document.getElementById("stockSearchInput").value.toUpperCase();
-        const querySnapshot = await getDocs(collection(db, "items"));
+        // Fetch items and build a map for quick lookup
+        const itemsSnapshot = await getDocs(collection(db, "items"));
+        const itemsMap = {};
+        itemsSnapshot.forEach((docSnap) => {
+          itemsMap[docSnap.id] = docSnap.data();
+        });
+    
+        // Fetch stock entries and aggregate by itemId
+        const stockSnapshot = await getDocs(collection(db, "stock"));
+        const stockAggregation = {};
+        stockSnapshot.forEach((docSnap) => {
+          const stockEntry = docSnap.data();
+          const itemId = stockEntry.itemId;
+          if (!stockAggregation[itemId]) {
+            stockAggregation[itemId] = { ctns: 0, boxes: 0, pcs: 0 };
+          }
+          stockAggregation[itemId].ctns += stockEntry.ctns;
+          stockAggregation[itemId].boxes += stockEntry.boxes;
+          stockAggregation[itemId].pcs += stockEntry.pcs;
+        });
+    
+        // Build the table
         const tbody = document.getElementById("stockTableBody");
         tbody.innerHTML = "";
-        let totalValue = 0;
-        querySnapshot.forEach((docSnap) => {
-          const item = docSnap.data();
-          if (item.code.toUpperCase().indexOf(filter) > -1 ||
-              item.description.toUpperCase().indexOf(filter) > -1 ||
-              item.ctnSize.toUpperCase().indexOf(filter) > -1) {
-            let total = item.boxesPerCtn * item.ctnPrice;
-            totalValue += total;
+        let netStockValue = 0;
+        const filter = document.getElementById("stockSearchInput").value.toUpperCase();
+        for (const itemId in itemsMap) {
+          const item = itemsMap[itemId];
+          // Filter items if needed
+          if (
+            item.code.toUpperCase().indexOf(filter) > -1 ||
+            item.description.toUpperCase().indexOf(filter) > -1 ||
+            item.ctnSize.toUpperCase().indexOf(filter) > -1
+          ) {
+            const agg = stockAggregation[itemId] || { ctns: 0, boxes: 0, pcs: 0 };
+            // Calculate available boxes: CTNs converted to boxes plus additional boxes
+            const availableBoxes = (agg.ctns * item.boxesPerCtn) + agg.boxes;
+            // Calculate total value:
+            // Value from cartons: (ctns * ctnPrice)
+            // Value from boxes: (boxes / boxesPerCtn * ctnPrice)
+            const totalValueForItem = (agg.ctns * item.ctnPrice) + ((agg.boxes / item.boxesPerCtn) * item.ctnPrice);
+            netStockValue += totalValueForItem;
             let row = `<tr>
-                <td>${item.code}</td>
-                <td>${item.description}</td>
-                <td>${item.ctnSize}</td>
-                <td>${item.boxesPerCtn}</td>
-                <td>Rs. ${parseFloat(item.ctnPrice).toFixed(2)}</td>
-                <td>Rs. ${total.toFixed(2)}</td>
+              <td>${item.code}</td>
+              <td>${item.description}</td>
+              <td>${item.ctnSize}</td>
+              <td>${availableBoxes} <br>(CTNs: ${agg.ctns}, Boxes: ${agg.boxes}, Pcs: ${agg.pcs})</td>
+              <td>Rs. ${parseFloat(item.ctnPrice).toFixed(2)}</td>
+              <td>Rs. ${totalValueForItem.toFixed(2)}</td>
             </tr>`;
             tbody.innerHTML += row;
           }
-        });
-        document.getElementById("netStockValue").textContent = "Rs. " + totalValue.toFixed(2);
+        }
+        document.getElementById("netStockValue").textContent = "Rs. " + netStockValue.toFixed(2);
       } catch (error) {
         console.error("Error fetching stock items:", error);
       }
@@ -655,7 +685,7 @@
       }
     }
     
-    // Saves the new stock entry to a new "stock" collection
+    // Saves the new stock entry to the "stock" collection and updates the report
     async function saveNewStock() {
       const itemId = document.getElementById("stockItemSelect").value;
       const ctns = parseInt(document.getElementById("stockCtns").value) || 0;
