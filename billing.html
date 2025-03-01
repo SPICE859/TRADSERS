@@ -405,27 +405,34 @@
       showSavedItemsModal();
     }
    
-    /* Saved Items Modal: Fetch saved items from the dashboard database */
-    function fetchDashboardSavedItems() {
-      // Replace the URL below with the endpoint that returns saved items from your database.
-      fetch('http://localhost:3000/savedItems')
-        .then(response => response.json())
-        .then(data => {
-          const listDiv = document.getElementById("savedItemsList");
-          listDiv.innerHTML = "";
-          data.forEach(item => {
-            let para = document.createElement("p");
-            para.style.cursor = "pointer";
-            para.textContent = item.code + " - " + item.description;
-            para.onclick = () => openEditModal(item.code);
-            listDiv.appendChild(para);
-          });
-        })
-        .catch(error => console.error("Error fetching dashboard saved items:", error));
+    /* Saved Items Modal: Fetch saved items from the dashboard database (using Firestore) */
+    async function fetchBillingDocuments() {
+      try {
+        const billingRef = db.collection("billing");
+        const q = billingRef.orderBy("date", "desc");
+        const querySnapshot = await q.get();
+        const bills = [];
+        querySnapshot.forEach((doc) => {
+          bills.push({ id: doc.id, ...doc.data() });
+        });
+        return bills;
+      } catch (error) {
+        console.error("Error fetching billing documents:", error);
+        return [];
+      }
     }
    
-    function showSavedItemsModal() {
-      fetchDashboardSavedItems();
+    async function showSavedItemsModal() {
+      const listDiv = document.getElementById("savedItemsList");
+      listDiv.innerHTML = "";
+      const bills = await fetchBillingDocuments();
+      bills.forEach(bill => {
+        let para = document.createElement("p");
+        para.style.cursor = "pointer";
+        para.textContent = `Bill ID: ${bill.id}, Date: ${bill.date}`;
+        para.onclick = () => alert(JSON.stringify(bill, null, 2));
+        listDiv.appendChild(para);
+      });
       document.getElementById("savedItemsModal").style.display = "block";
     }
    
@@ -506,8 +513,8 @@
       XLSX.writeFile(wb, "bill.xlsx");
     }
    
-    /* Next Bill: Capture the bill, store bill data in Firebase Storage, then clear invoice */
-    function nextBill() {
+    /* Next Bill: Capture the bill, store bill data in Firestore, then clear invoice */
+    async function nextBill() {
       // Gather bill data from the bill table.
       let tbody = document.getElementById("billTable").querySelector("tbody");
       let rows = Array.from(tbody.rows).map(row => {
@@ -526,9 +533,9 @@
         grandTotal: document.getElementById("grandTotal").textContent,
         date: new Date().toISOString()
       };
-      const billId = "bill_" + Date.now();
-      if (window.storeBillingData) {
-        window.storeBillingData(billData, billId);
+      // Store the bill data in Firestore
+      if (window.storeBillingDataInFirestore) {
+        await window.storeBillingDataInFirestore(billData);
       }
       
       // Print the bill as an image using html2canvas.
@@ -553,62 +560,61 @@
     document.addEventListener("DOMContentLoaded", populateItems);
   </script>
  
-  <!-- Firebase Storage Integration for Bill Storage -->
+  <!-- Firebase Firestore Integration for Bill Storage -->
   <script type="module">
-    // Import Firebase modules for app, analytics, and storage
+    // Import Firebase modules for app, analytics, and Firestore
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-analytics.js";
-    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, listAll } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-storage.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
     
-    // Updated Firebase configuration with correct storageBucket
-   const firebaseConfig = {
-    apiKey: "AIzaSyD_ojS20opjpxmwHxIHATC52ncABe_fkuk",
-    authDomain: "ahyan-traders.firebaseapp.com",
-    projectId: "ahyan-traders",
-  storageBucket: "ahyan-traders.appspot.com"
-
-    messagingSenderId: "1024047266496",
-    appId: "1:1024047266496:web:349c052d55564a96bfcb25",
-    measurementId: "G-11ZNXV1ZZL"
+    const firebaseConfig = {
+      apiKey: "AIzaSyD_ojS20opjpxmwHxIHATC52ncABe_fkuk",
+      authDomain: "ahyan-traders.firebaseapp.com",
+      projectId: "ahyan-traders",
+      storageBucket: "ahyan-traders.appspot.com",
+      messagingSenderId: "1024047266496",
+      appId: "1:1024047266496:web:349c052d55564a96bfcb25",
+      measurementId: "G-11ZNXV1ZZL"
     };
     
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
-    const storage = getStorage(app);
-    
-    // Expose helper functions globally for use in billing system functions.
-    window.firebaseStorageRef = (path) => storageRef(storage, path);
-    window.uploadBytes = uploadBytes;
-    window.getDownloadURL = getDownloadURL;
-    window.listAllFiles = listAll;
+    const db = getFirestore(app);
     
     /**
-     * Uploads billing data to Firebase Storage.
-     * Bill data will be stored at the root using the billId as the filename.
+     * Stores billing data in Firestore under a collection named "billing".
      * @param {Object} billData - The bill data to store.
-     * @param {string} billId - Unique identifier for the bill.
      */
-    function storeBillingData(billData, billId) {
-      console.log("storeBillingData called", billData, billId); // Debug log
-      const dataStr = JSON.stringify(billData, null, 2);
-      const blob = new Blob([dataStr], { type: 'application/json' });
-      const storagePath = `${billId}.json`;
-      const fileRef = storageRef(storage, storagePath);
-      
-      uploadBytes(fileRef, blob)
-        .then((snapshot) => {
-          console.log("Billing data stored at:", snapshot.metadata.fullPath);
-          return getDownloadURL(snapshot.ref);
-        })
-        .then((downloadURL) => {
-          console.log("Download URL for billing data:", downloadURL);
-        })
-        .catch((error) => {
-          console.error("Error storing billing data:", error);
-        });
+    async function storeBillingDataInFirestore(billData) {
+      try {
+        const docRef = await addDoc(collection(db, "billing"), billData);
+        console.log("Billing data stored in Firestore with ID:", docRef.id);
+      } catch (error) {
+        console.error("Error storing billing data in Firestore:", error);
+      }
     }
     
-    window.storeBillingData = storeBillingData;
+    /**
+     * Fetches billing documents from Firestore, ordered by date descending.
+     */
+    async function fetchBillingDocuments() {
+      try {
+        const billingRef = collection(db, "billing");
+        const q = query(billingRef, orderBy("date", "desc"));
+        const querySnapshot = await getDocs(q);
+        const bills = [];
+        querySnapshot.forEach((doc) => {
+          bills.push({ id: doc.id, ...doc.data() });
+        });
+        return bills;
+      } catch (error) {
+        console.error("Error fetching billing documents:", error);
+        return [];
+      }
+    }
+    
+    window.storeBillingDataInFirestore = storeBillingDataInFirestore;
+    window.fetchBillingDocuments = fetchBillingDocuments;
   </script>
 </body>
 </html>
