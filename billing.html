@@ -597,16 +597,38 @@
      * Stores billing data in Firestore under a collection named "billing".
      * @param {Object} billData - The bill data to store.
      */
-   async function storeBillingDataInFirestore(billData) {
+ // Import Firestore functions in your Firestore integration script if not already imported:
+// import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+// const db = getFirestore(app);
+
+async function saveBillDataToFirestore() {
+  // Get customer name from the customer field
+  const customerName = document.getElementById("customerName").value;
+  
+  // Get the net amount from the grand total display.
+  // Assuming the net amount is displayed as "Rs 0.00", remove "Rs" and trim whitespace.
+  const netAmountText = document.getElementById("grandTotal").textContent;
+  const netAmount = netAmountText.replace("Rs", "").trim();
+  
+  // Get the current date (you can format this as needed)
+  const billDate = new Date().toISOString();
+  
+  // Create the bill data object with the required fields
+  const billData = {
+    customerName: customerName,
+    billDate: billDate,
+    netAmount: netAmount
+  };
+
   try {
+    // Save the bill data in Firestore under the "billing" collection
     const docRef = await addDoc(collection(db, "billing"), billData);
     console.log("Billing data stored in Firestore with ID:", docRef.id);
   } catch (error) {
     console.error("Error storing billing data in Firestore:", error);
   }
 }
-window.storeBillingDataInFirestore = storeBillingDataInFirestore;
-    
+
     /**
      * Fetches billing documents from Firestore, ordered by date descending.
      */
