@@ -177,7 +177,7 @@
       text-align: left;
     }
     .modal h3 { margin-top: 0; }
-    .modal input {
+    .modal input, .modal select {
       width: 100%;
       padding: 5px;
       margin: 5px 0 10px 0;
@@ -275,6 +275,10 @@
       <div class="search-container">
         <input type="text" id="stockSearchInput" placeholder="Search by Product ID, Name, or CTN Size...">
       </div>
+      <!-- New Button to Add Stock -->
+      <div style="text-align: center; margin-bottom: 10px;">
+        <button onclick="openAddStockModal()">Add New Stock</button>
+      </div>
       <table id="stockTable">
         <thead>
           <tr>
@@ -354,6 +358,28 @@
     <input type="number" id="editBoxesPerCtn">
     <button onclick="saveEditedItem()">Save Changes</button>
     <button onclick="closeModal('editItemModal')">Close</button>
+  </div>
+  
+  <!-- New Modal for Adding Stock -->
+  <div id="addStockModal" class="modal no-print">
+    <h3>Add New Stock</h3>
+    <label for="stockItemSelect">Select Item:</label>
+    <select id="stockItemSelect"></select>
+    <label>Add Qty:</label>
+    <div>
+      <label for="stockCtns">CTNs:</label>
+      <input type="number" id="stockCtns" placeholder="0" value="0">
+    </div>
+    <div>
+      <label for="stockBoxes">Boxes:</label>
+      <input type="number" id="stockBoxes" placeholder="0" value="0">
+    </div>
+    <div>
+      <label for="stockPcs">Pcs:</label>
+      <input type="number" id="stockPcs" placeholder="0" value="0">
+    </div>
+    <button onclick="saveNewStock()">Save Stock</button>
+    <button onclick="closeModal('addStockModal')">Close</button>
   </div>
   
   <!-- ---------- Firebase & Firestore Integration Script ---------- -->
@@ -580,7 +606,7 @@
       }
     }
     
-    // Fetch and display billing data from the "billing data" collection
+    // Fetch and display billing data from the "billing" collection
     async function updateSaleSummaryTable() {
       try {
         const querySnapshot = await getDocs(collection(db, "billing"));
@@ -603,6 +629,59 @@
         document.getElementById("netTotal").textContent = "Rs. " + total.toFixed(2);
       } catch (error) {
         console.error("Error fetching billing data:", error);
+      }
+    }
+    
+    // New Functions for Stock Addition Modal
+    
+    // Opens the Add Stock Modal and populates the select list with saved items
+    function openAddStockModal() {
+      document.getElementById("addStockModal").style.display = "block";
+      populateStockItemSelect();
+    }
+    
+    // Populates the stock item select dropdown dynamically from the "items" collection
+    async function populateStockItemSelect() {
+      try {
+        const querySnapshot = await getDocs(collection(db, "items"));
+        const select = document.getElementById("stockItemSelect");
+        select.innerHTML = "<option value=''>Select an item</option>";
+        querySnapshot.forEach((docSnap) => {
+          const item = docSnap.data();
+          select.innerHTML += `<option value="${docSnap.id}">${item.code} - ${item.description}</option>`;
+        });
+      } catch (error) {
+        console.error("Error populating stock items:", error);
+      }
+    }
+    
+    // Saves the new stock entry to a new "stock" collection
+    async function saveNewStock() {
+      const itemId = document.getElementById("stockItemSelect").value;
+      const ctns = parseInt(document.getElementById("stockCtns").value) || 0;
+      const boxes = parseInt(document.getElementById("stockBoxes").value) || 0;
+      const pcs = parseInt(document.getElementById("stockPcs").value) || 0;
+      if (!itemId) {
+        alert("Please select an item.");
+        return;
+      }
+      try {
+        await addDoc(collection(db, "stock"), { 
+          itemId, 
+          ctns, 
+          boxes, 
+          pcs, 
+          date: new Date().toISOString() 
+        });
+        alert("Stock added successfully!");
+        document.getElementById("stockCtns").value = "0";
+        document.getElementById("stockBoxes").value = "0";
+        document.getElementById("stockPcs").value = "0";
+        closeModal("addStockModal");
+        updateStockReportTable();
+      } catch (error) {
+        console.error("Error adding stock:", error);
+        alert("Error adding stock.");
       }
     }
     
@@ -642,6 +721,8 @@
     window.filterSales = filterSales;
     window.filterViewSavedItems = filterViewSavedItems;
     window.showSection = showSection;
+    window.openAddStockModal = openAddStockModal;
+    window.saveNewStock = saveNewStock;
   </script>
 </body>
 </html>
