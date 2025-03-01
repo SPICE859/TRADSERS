@@ -19,100 +19,56 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       text-align: center;
     }
-    .login-container h2 {
-      color: #007bff;
-      margin-bottom: 20px;
-    }
+    .login-container h2 { color: #007bff; margin-bottom: 20px; }
     .login-container input[type="text"],
     .login-container input[type="password"] {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 1em;
+      width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd;
+      border-radius: 5px; font-size: 1em;
     }
     .login-container button {
-      width: 100%;
-      padding: 10px;
-      background: #007bff;
-      border: none;
-      border-radius: 5px;
-      color: white;
-      font-size: 1em;
-      cursor: pointer;
+      width: 100%; padding: 10px; background: #007bff;
+      border: none; border-radius: 5px; color: white; font-size: 1em; cursor: pointer;
     }
-    .login-container button:hover {
-      background: #0056b3;
-    }
-    .error {
-      color: red;
-      margin-bottom: 10px;
-      font-size: 0.9em;
-    }
+    .login-container button:hover { background: #0056b3; }
+    .error { color: red; margin-bottom: 10px; font-size: 0.9em; }
+    
     /* Billing System Styles */
     .billing-system { display: none; }
     .container {
-      max-width: 1000px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      border-radius: 10px;
-      text-align: center;
+      max-width: 1000px; margin: auto; background: white; padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 10px; text-align: center;
     }
     h1 {
-      background: #007bff;
-      color: white;
-      padding: 10px;
-      border-radius: 10px;
+      background: #007bff; color: white; padding: 10px; border-radius: 10px;
     }
     .header-details {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      margin-top: 10px;
+      display: flex; flex-direction: column; align-items: flex-start; margin-top: 10px;
     }
     .header-details div { margin-bottom: 10px; }
     .header-details label { margin-right: 5px; font-weight: bold; }
     .header-details input { padding: 5px; }
-    /* For simplicity, we’re using a very minimal bill table here */
+    /* Minimal Bill Table for Demo */
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
     th { background-color: #007bff; color: white; }
     .total-container {
-      text-align: right;
-      margin-top: 10px;
-      font-size: 20px;
-      font-weight: bold;
+      text-align: right; margin-top: 10px; font-size: 20px; font-weight: bold;
     }
     button {
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      cursor: pointer;
-      border-radius: 5px;
-      margin: 5px;
+      background: #007bff; color: white; border: none; padding: 10px 15px;
+      cursor: pointer; border-radius: 5px; margin: 5px;
     }
     button:hover { background: #0056b3; }
-    /* Modal styles (if needed for other parts) */
+    
+    /* Modal styles */
     .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 20px;
-      border: 1px solid #888;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.25);
-      width: 300px;
-      text-align: left;
+      display: none; position: fixed; z-index: 1000; left: 50%; top: 50%;
+      transform: translate(-50%, -50%); background: white; padding: 20px;
+      border: 1px solid #888; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.25);
+      width: 300px; text-align: left;
     }
     .modal button { margin-top: 10px; }
+    
     /* Print styles */
     @media print {
       body { color: black; background: white; }
@@ -127,12 +83,12 @@
   <div class="login-container" id="loginContainer">
     <h2>Login</h2>
     <div class="error" id="errorMsg"></div>
-    <input type="text" id="username" placeholder="Username" />
-    <input type="password" id="password" placeholder="Password" />
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
     <button onclick="login()">Login</button>
   </div>
-
-  <!-- Billing System (initially hidden) -->
+  
+  <!-- Billing System -->
   <div class="billing-system" id="billingSystem">
     <div class="container">
       <h1>AHYAN TRADERS</h1>
@@ -140,11 +96,10 @@
       <div class="header-details">
         <div>
           <label for="customerName">Customer:</label>
-          <input type="text" id="customerName" value="John Doe" />
+          <input type="text" id="customerName" value="John Doe">
         </div>
       </div>
-     
-      <!-- Bill Table (for demonstration, a simple table) -->
+      <!-- Bill Table (for demonstration, using a static row) -->
       <table id="billTable">
         <thead>
           <tr>
@@ -154,84 +109,121 @@
           </tr>
         </thead>
         <tbody>
-          <!-- For demonstration, we won't add dynamic rows here -->
+          <tr>
+            <td>P001</td>
+            <td>Item A</td>
+            <td>Rs 1000.00</td>
+          </tr>
         </tbody>
       </table>
-     
       <div class="total-container">Grand Total: <span id="grandTotal">Rs 1000.00</span></div>
-     
-      <!-- Action Buttons -->
       <div class="no-print">
         <button onclick="window.print()">Print</button>
         <button onclick="nextBill()">Next Bill</button>
+        <button onclick="showSavedItemsModal()">View Saved Items</button>
       </div>
     </div>
   </div>
-
+  
+  <!-- Modal for Viewing Saved Items -->
+  <div id="savedItemsModal" class="modal no-print">
+    <h3>Saved Items</h3>
+    <div class="search-container">
+      <label for="savedSearch">Search:</label>
+      <input type="text" id="savedSearch" placeholder="Type to search..." oninput="filterDashboardSavedItems()">
+    </div>
+    <div id="savedItemsList">
+      <!-- Firestore saved bills will be listed here -->
+    </div>
+    <button onclick="closeModal('savedItemsModal')">Close</button>
+  </div>
+  
   <script>
-    // Simple closeModal function for any modal (if needed)
+    // Function to close modals
     function closeModal(id) {
       const modal = document.getElementById(id);
       if (modal) {
         modal.style.display = "none";
         console.log("Modal closed:", id);
+      } else {
+        console.error("Modal with id", id, "not found.");
       }
     }
     
-    // Login functionality
+    // Login function
     function login() {
       const username = document.getElementById("username").value;
       const password = document.getElementById("password").value;
-      const errorMsg = document.getElementById("errorMsg");
-      if (username === "admin" && password === "admin") {
+      if(username === "admin" && password === "admin") {
         document.getElementById("loginContainer").style.display = "none";
         document.getElementById("billingSystem").style.display = "block";
       } else {
-        errorMsg.textContent = "Invalid username or password!";
+        document.getElementById("errorMsg").textContent = "Invalid username or password!";
       }
     }
     
-    // For demonstration, we assume the bill table is static.
-    // The grand total is taken from the element with id "grandTotal".
+    // Filter function for saved items modal
+    function filterDashboardSavedItems() {
+      const searchVal = document.getElementById("savedSearch").value.toLowerCase();
+      const listDiv = document.getElementById("savedItemsList");
+      Array.from(listDiv.getElementsByTagName("p")).forEach(para => {
+        para.style.display = para.textContent.toLowerCase().includes(searchVal) ? "block" : "none";
+      });
+    }
     
-    // nextBill function: save bill data to Firestore then print
+    // nextBill function: Save bill data to Firestore and then print the bill.
     async function nextBill() {
-      // Gather the required fields:
       const customerName = document.getElementById("customerName").value;
       const netAmountText = document.getElementById("grandTotal").textContent;
       const netAmount = netAmountText.replace("Rs", "").trim();
       const billDate = new Date().toISOString();
       
-      // Build the bill data object with only the required fields.
       const billData = {
         customerName: customerName,
         billDate: billDate,
         netAmount: netAmount
       };
       
-      // Call Firestore function to store bill data.
       if (window.saveBillDataToFirestore) {
         await window.saveBillDataToFirestore(billData);
       } else {
         console.error("Firestore saving function is not defined.");
       }
       
-      // Print the bill as an image using html2canvas.
-      let container = document.querySelector('.container');
-      let clone = container.cloneNode(true);
-      // Remove any no-print elements if necessary
-      let npElements = clone.querySelectorAll('.no-print');
+      // Print the bill using html2canvas
+      const container = document.querySelector('.container');
+      const clone = container.cloneNode(true);
+      const npElements = clone.querySelectorAll('.no-print');
       npElements.forEach(el => el.parentNode.removeChild(el));
       clone.style.position = 'absolute';
       clone.style.top = '-9999px';
       document.body.appendChild(clone);
-      html2canvas(clone).then(function(canvas) {
-        let link = document.createElement('a');
+      html2canvas(clone).then(canvas => {
+        const link = document.createElement('a');
         link.download = 'bill.png';
         link.href = canvas.toDataURL();
         link.click();
         document.body.removeChild(clone);
       });
+    }
+    
+    // Function to show the saved items modal by fetching billing documents from Firestore.
+    async function showSavedItemsModal() {
+      const listDiv = document.getElementById("savedItemsList");
+      listDiv.innerHTML = "";
+      if (window.fetchBillingDocuments) {
+        const bills = await window.fetchBillingDocuments();
+        bills.forEach(bill => {
+          const para = document.createElement("p");
+          para.style.cursor = "pointer";
+          para.textContent = `Bill ID: ${bill.id}, Date: ${bill.billDate}`;
+          para.onclick = () => alert(JSON.stringify(bill, null, 2));
+          listDiv.appendChild(para);
+        });
+      } else {
+        console.error("Firestore fetching function is not defined.");
+      }
+      document.getElementById("savedItemsModal").style.display = "block";
     }
   </script>
   
@@ -239,9 +231,8 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-analytics.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
     
-    // Update your Firebase configuration here:
     const firebaseConfig = {
       apiKey: "AIzaSyD_ojS20opjpxmwHxIHATC52ncABe_fkuk",
       authDomain: "ahyan-traders.firebaseapp.com",
@@ -257,8 +248,8 @@
     const db = getFirestore(app);
     
     /**
-     * Stores the bill data in Firestore under a collection named "billing".
-     * The bill data object should contain the fields: customerName, billDate, and netAmount.
+     * Saves the bill data in Firestore under the "billing" collection.
+     * Expects billData with fields: customerName, billDate, netAmount.
      * @param {Object} billData - The bill data to store.
      */
     async function saveBillDataToFirestore(billData) {
@@ -270,7 +261,27 @@
       }
     }
     
+    /**
+     * Fetches billing documents from Firestore, ordered by billDate descending.
+     */
+    async function fetchBillingDocuments() {
+      try {
+        const billingRef = collection(db, "billing");
+        const q = query(billingRef, orderBy("billDate", "desc"));
+        const querySnapshot = await getDocs(q);
+        const bills = [];
+        querySnapshot.forEach(doc => {
+          bills.push({ id: doc.id, ...doc.data() });
+        });
+        return bills;
+      } catch (error) {
+        console.error("Error fetching billing documents:", error);
+        return [];
+      }
+    }
+    
     window.saveBillDataToFirestore = saveBillDataToFirestore;
+    window.fetchBillingDocuments = fetchBillingDocuments;
   </script>
 </body>
 </html>
