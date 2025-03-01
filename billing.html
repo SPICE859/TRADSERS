@@ -50,7 +50,6 @@
       margin-bottom: 10px;
       font-size: 0.9em;
     }
-   
     /* Billing System Styles */
     .billing-system { display: none; }
     .container {
@@ -77,13 +76,10 @@
     .header-details div { margin-bottom: 10px; }
     .header-details label { margin-right: 5px; font-weight: bold; }
     .header-details input { padding: 5px; }
-    .item-entry { margin-top: 20px; }
-    .item-entry label { margin-right: 5px; }
-    #item { padding: 5px; width: 250px; }
+    /* For simplicity, we’re using a very minimal bill table here */
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
     th { background-color: #007bff; color: white; }
-    thead tr:first-child th[colspan] { border-bottom: 2px solid #000; }
     .total-container {
       text-align: right;
       margin-top: 10px;
@@ -100,8 +96,7 @@
       margin: 5px;
     }
     button:hover { background: #0056b3; }
-   
-    /* Modal styles */
+    /* Modal styles (if needed for other parts) */
     .modal {
       display: none;
       position: fixed;
@@ -117,16 +112,11 @@
       width: 300px;
       text-align: left;
     }
-    #editItemModal { z-index: 1100; }
-    .modal h3 { margin-top: 0; }
-    .modal input { width: 100%; padding: 5px; margin: 5px 0 10px 0; }
     .modal button { margin-top: 10px; }
-   
     /* Print styles */
     @media print {
       body { color: black; background: white; }
-      .no-print:not(#billTable .no-print) { display: none; }
-      #billTable .no-print { display: table-cell !important; }
+      .no-print { display: none; }
       table, th, td { border: 1px solid black; }
       td:empty::after { content: "0.00"; }
     }
@@ -152,118 +142,43 @@
           <label for="customerName">Customer:</label>
           <input type="text" id="customerName" value="John Doe" />
         </div>
-        <div>
-          <label for="route">Route:</label>
-          <input type="text" id="route" value="Default Route" />
-        </div>
       </div>
      
-      <!-- Item Entry Section -->
-      <div class="item-entry no-print">
-        <label for="item">Product Code:</label>
-        <input type="text" id="item" list="productList" placeholder="Search product code..." />
-        <datalist id="productList"></datalist>
-        <button onclick="addItem()">Add to Bill</button>
-        <button onclick="showNewItemModal()">Add New Item</button>
-      </div>
-     
-      <!-- Bill Table -->
+      <!-- Bill Table (for demonstration, a simple table) -->
       <table id="billTable">
         <thead>
           <tr>
-            <th rowspan="2">Product Code</th>
-            <th rowspan="2">Description</th>
-            <th rowspan="2">CTN Size</th>
-            <th rowspan="2">Trade Price</th>
-            <th colspan="3">Sale Qty</th>
-            <th rowspan="2">Gross Amount</th>
-            <th rowspan="2" class="no-print">Trade Offer</th>
-            <th rowspan="2" class="no-print">Sales Tax (%)</th>
-            <th rowspan="2">Net Amount</th>
-            <th rowspan="2" class="no-print">Action</th>
-          </tr>
-          <tr>
-            <th class="no-print">Ctns</th>
-            <th class="no-print">Boxes</th>
-            <th class="no-print">Pcs</th>
+            <th>Product Code</th>
+            <th>Description</th>
+            <th>Net Amount</th>
           </tr>
         </thead>
         <tbody>
-          <!-- Rows added dynamically -->
+          <!-- For demonstration, we won't add dynamic rows here -->
         </tbody>
       </table>
      
-      <div class="total-container">Grand Total: <span id="grandTotal">Rs 0.00</span></div>
+      <div class="total-container">Grand Total: <span id="grandTotal">Rs 1000.00</span></div>
      
       <!-- Action Buttons -->
       <div class="no-print">
-        <button onclick="generateExcel()">Generate Excel</button>
         <button onclick="window.print()">Print</button>
-        <button onclick="showSavedItemsModal()">View Saved Items</button>
         <button onclick="nextBill()">Next Bill</button>
       </div>
     </div>
   </div>
- 
-  <!-- Modal for Adding New Item -->
-  <div id="newItemModal" class="modal no-print">
-    <h3>Add New Item</h3>
-    <label for="newProductCode">Product Code:</label>
-    <input type="text" id="newProductCode" placeholder="e.g., P004" />
-    <label for="newDescription">Description:</label>
-    <input type="text" id="newDescription" placeholder="Product description" />
-    <label for="newCtnSize">CTN Size:</label>
-    <input type="text" id="newCtnSize" placeholder="e.g., Small/Medium/Large" />
-    <label for="newCtnPrice">CTN Price:</label>
-    <input type="number" id="newCtnPrice" placeholder="Price per CTN" />
-    <label for="newBoxesPerCtn">Boxes per CTN:</label>
-    <input type="number" id="newBoxesPerCtn" placeholder="Number of boxes in one CTN" />
-    <button onclick="saveNewItem()">Save Item</button>
-    <button onclick="closeModal('newItemModal')">Close</button>
-  </div>
- 
-  <!-- Modal for Editing Saved Item -->
-  <div id="editItemModal" class="modal no-print">
-    <h3>Edit Item</h3>
-    <input type="hidden" id="editProductCode" />
-    <label for="editDescription">Description:</label>
-    <input type="text" id="editDescription" />
-    <label for="editCtnSize">CTN Size:</label>
-    <input type="text" id="editCtnSize" />
-    <label for="editCtnPrice">CTN Price:</label>
-    <input type="number" id="editCtnPrice" />
-    <label for="editBoxesPerCtn">Boxes per CTN:</label>
-    <input type="number" id="editBoxesPerCtn" />
-    <button onclick="saveEditedItem()">Save Changes</button>
-    <button onclick="closeModal('editItemModal')">Close</button>
-  </div>
- 
-  <!-- Modal for Viewing Saved Items from Dashboard Database -->
-  <div id="savedItemsModal" class="modal no-print">
-    <h3>Saved Items</h3>
-    <div class="search-container">
-      <label for="savedSearch">Search from Description:</label>
-      <input type="text" id="savedSearch" placeholder="Type to search..." oninput="filterDashboardSavedItems()" />
-    </div>
-    <div id="savedItemsList">
-      <!-- Dashboard saved items will be populated here -->
-    </div>
-    <button onclick="closeModal('savedItemsModal')">Close</button>
-  </div>
- 
+
   <script>
-    // Define a closeModal function to hide modals
+    // Simple closeModal function for any modal (if needed)
     function closeModal(id) {
-      console.log("Closing modal:", id);
       const modal = document.getElementById(id);
-      if(modal) {
+      if (modal) {
         modal.style.display = "none";
-      } else {
-        console.error("Modal with id", id, "not found.");
+        console.log("Modal closed:", id);
       }
     }
     
-    /* Login Functionality */
+    // Login functionality
     function login() {
       const username = document.getElementById("username").value;
       const password = document.getElementById("password").value;
@@ -271,289 +186,40 @@
       if (username === "admin" && password === "admin") {
         document.getElementById("loginContainer").style.display = "none";
         document.getElementById("billingSystem").style.display = "block";
-        loadItemsFromStorage();
-        populateItems();
       } else {
         errorMsg.textContent = "Invalid username or password!";
       }
     }
-   
-    /* Billing System Functions using localStorage for product items */
-    let items = {
-      "P001": { description: "Item A", ctnSize: "Small", ctnPrice: 1000, boxesPerCtn: 10 },
-      "P002": { description: "Item B", ctnSize: "Medium", ctnPrice: 2000, boxesPerCtn: 20 },
-      "P003": { description: "Item C", ctnSize: "Large", ctnPrice: 3000, boxesPerCtn: 30 }
-    };
-   
-    function loadItemsFromStorage() {
-      const stored = localStorage.getItem("savedItems");
-      if (stored) {
-        try { items = JSON.parse(stored); }
-        catch(e) { console.error("Error parsing savedItems:", e); }
-      }
-    }
-   
-    function saveItemsToStorage() {
-      localStorage.setItem("savedItems", JSON.stringify(items));
-    }
-   
-    function populateItems() {
-      let dataList = document.getElementById("productList");
-      dataList.innerHTML = "";
-      for (let code in items) {
-        let option = document.createElement("option");
-        option.value = code + " - " + items[code].description;
-        dataList.appendChild(option);
-      }
-    }
-   
-    function addItem() {
-      let inputVal = document.getElementById("item").value;
-      if (!inputVal) return;
-      let productCode = inputVal.split(" - ")[0];
-      if (!items[productCode]) { alert("Invalid product code."); return; }
-      let product = items[productCode];
-      let tableBody = document.getElementById("billTable").querySelector("tbody");
-      let row = tableBody.insertRow();
-      row.setAttribute("data-product", JSON.stringify(product));
-      let cellCode = row.insertCell(); cellCode.textContent = productCode;
-      let cellDesc = row.insertCell(); cellDesc.textContent = product.description;
-      let cellCtnSize = row.insertCell(); cellCtnSize.textContent = product.ctnSize;
-      let cellRate = row.insertCell(); cellRate.textContent = product.ctnPrice.toFixed(2);
-      let cellCtns = row.insertCell(); cellCtns.innerHTML = '<input type="number" class="ctns" value="1" style="width:50px;" />';
-      let cellBoxes = row.insertCell(); cellBoxes.innerHTML = '<input type="number" class="boxes" value="0" style="width:50px;" />';
-      let cellPcs = row.insertCell(); cellPcs.innerHTML = '<input type="number" class="pcs" value="0" style="width:50px;" />';
-      let cellGross = row.insertCell(); cellGross.className = "gross"; cellGross.textContent = "0.00";
-      let cellTrade = row.insertCell(); cellTrade.className = "no-print"; cellTrade.innerHTML = '<input type="number" class="tradeOffer" value="0" style="width:70px;" />';
-      let cellTax = row.insertCell(); cellTax.className = "no-print"; cellTax.innerHTML = '<input type="number" class="salesTax" value="0" style="width:70px;" />';
-      let cellNet = row.insertCell(); cellNet.className = "net"; cellNet.textContent = "0.00";
-      let cellAction = row.insertCell(); cellAction.className = "no-print"; cellAction.innerHTML = '<button onclick="removeRow(this)">Remove</button>';
-      let inputs = row.querySelectorAll("input");
-      inputs.forEach(input => input.addEventListener("input", () => updateRow(row)));
-      updateRow(row);
-    }
-   
-    function updateRow(row) {
-      let product = JSON.parse(row.getAttribute("data-product"));
-      let ctns = parseFloat(row.querySelector(".ctns").value) || 0;
-      let boxes = parseFloat(row.querySelector(".boxes").value) || 0;
-      let pcs = parseFloat(row.querySelector(".pcs").value) || 0;
-      let tradeOffer = parseFloat(row.querySelector(".tradeOffer").value) || 0;
-      let salesTaxPercent = parseFloat(row.querySelector(".salesTax").value) || 0;
-      let gross = (ctns * product.ctnPrice) + (boxes * (product.ctnPrice / product.boxesPerCtn)) + (pcs * (product.ctnPrice / (product.boxesPerCtn * 10)));
-      row.querySelector(".gross").textContent = gross.toFixed(2);
-      let salesTaxValue = (salesTaxPercent / 100) * gross;
-      let net = gross - tradeOffer + salesTaxValue;
-      row.querySelector(".net").textContent = net.toFixed(2);
-      recalcGrandTotal();
-    }
-   
-    function recalcGrandTotal() {
-      let rows = document.getElementById("billTable").querySelector("tbody").rows;
-      let grandTotal = 0;
-      for (let row of rows) {
-        let net = parseFloat(row.querySelector(".net").textContent) || 0;
-        grandTotal += net;
-      }
-      document.getElementById("grandTotal").textContent = "Rs " + grandTotal.toFixed(2);
-    }
-   
-    function removeRow(btn) {
-      let row = btn.parentNode.parentNode;
-      row.parentNode.removeChild(row);
-      recalcGrandTotal();
-    }
-   
-    /* New Item Modal */
-    function showNewItemModal() {
-      document.getElementById("newItemModal").style.display = "block";
-    }
-    function saveNewItem() {
-      let code = document.getElementById("newProductCode").value.trim();
-      let desc = document.getElementById("newDescription").value.trim();
-      let size = document.getElementById("newCtnSize").value.trim();
-      let price = parseFloat(document.getElementById("newCtnPrice").value);
-      let boxes = parseFloat(document.getElementById("newBoxesPerCtn").value);
-      if(code && desc && size && price && boxes) {
-        items[code] = { description: desc, ctnSize: size, ctnPrice: price, boxesPerCtn: boxes };
-        populateItems();
-        alert("New item added successfully!");
-        saveItemsToStorage();
-        document.getElementById("newProductCode").value = "";
-        document.getElementById("newDescription").value = "";
-        document.getElementById("newCtnSize").value = "";
-        document.getElementById("newCtnPrice").value = "";
-        document.getElementById("newBoxesPerCtn").value = "";
-        closeModal("newItemModal");
-      } else {
-        alert("Please fill in all fields correctly.");
-      }
-    }
-   
-    /* Edit Item Modal */
-    function openEditModal(code) {
-      closeModal('savedItemsModal');
-      let item = items[code];
-      if (!item) return;
-      document.getElementById("editProductCode").value = code;
-      document.getElementById("editDescription").value = item.description;
-      document.getElementById("editCtnSize").value = item.ctnSize;
-      document.getElementById("editCtnPrice").value = item.ctnPrice;
-      document.getElementById("editBoxesPerCtn").value = item.boxesPerCtn;
-      document.getElementById("editItemModal").style.display = "block";
-    }
-    function saveEditedItem() {
-      let code = document.getElementById("editProductCode").value;
-      items[code] = {
-        description: document.getElementById("editDescription").value,
-        ctnSize: document.getElementById("editCtnSize").value,
-        ctnPrice: parseFloat(document.getElementById("editCtnPrice").value),
-        boxesPerCtn: parseFloat(document.getElementById("editBoxesPerCtn").value)
+    
+    // For demonstration, we assume the bill table is static.
+    // The grand total is taken from the element with id "grandTotal".
+    
+    // nextBill function: save bill data to Firestore then print
+    async function nextBill() {
+      // Gather the required fields:
+      const customerName = document.getElementById("customerName").value;
+      const netAmountText = document.getElementById("grandTotal").textContent;
+      const netAmount = netAmountText.replace("Rs", "").trim();
+      const billDate = new Date().toISOString();
+      
+      // Build the bill data object with only the required fields.
+      const billData = {
+        customerName: customerName,
+        billDate: billDate,
+        netAmount: netAmount
       };
-      saveItemsToStorage();
-      populateItems();
-      closeModal("editItemModal");
-      showSavedItemsModal();
-    }
-   
-    /* Saved Items Modal: Fetch saved items from the dashboard database (using Firestore) */
-    async function fetchBillingDocuments() {
-      try {
-        // Ensure Firestore (db) is defined
-        const billingRef = db.collection("billing");
-        const q = billingRef.orderBy("date", "desc");
-        const querySnapshot = await q.get();
-        const bills = [];
-        querySnapshot.forEach((doc) => {
-          bills.push({ id: doc.id, ...doc.data() });
-        });
-        return bills;
-      } catch (error) {
-        console.error("Error fetching billing documents:", error);
-        return [];
-      }
-    }
-   
-    async function showSavedItemsModal() {
-      const listDiv = document.getElementById("savedItemsList");
-      listDiv.innerHTML = "";
-      const bills = await fetchBillingDocuments();
-      bills.forEach(bill => {
-        let para = document.createElement("p");
-        para.style.cursor = "pointer";
-        para.textContent = `Bill ID: ${bill.id}, Date: ${bill.date}`;
-        para.onclick = () => alert(JSON.stringify(bill, null, 2));
-        listDiv.appendChild(para);
-      });
-      document.getElementById("savedItemsModal").style.display = "block";
-    }
-   
-    function filterDashboardSavedItems() {
-      let searchVal = document.getElementById("savedSearch").value.toLowerCase();
-      let listDiv = document.getElementById("savedItemsList");
-      Array.from(listDiv.getElementsByTagName("p")).forEach(para => {
-        if (para.textContent.toLowerCase().includes(searchVal)) {
-          para.style.display = "block";
-        } else {
-          para.style.display = "none";
-        }
-      });
-    }
-   
-    /* Delete Item Functionality */
-    function deleteItem() {
-      let code = prompt("Enter the product code to delete:");
-      if (!code || !items[code]) { alert("Product code not found!"); return; }
-      let pass = prompt("Enter deletion password:");
-      if (pass === "delete123") {
-        delete items[code];
-        alert("Item " + code + " deleted successfully!");
-        saveItemsToStorage();
-        populateItems();
-        showSavedItemsModal();
+      
+      // Call Firestore function to store bill data.
+      if (window.saveBillDataToFirestore) {
+        await window.saveBillDataToFirestore(billData);
       } else {
-        alert("Incorrect password!");
+        console.error("Firestore saving function is not defined.");
       }
-    }
-   
-    /* Load Items from Excel */
-    function loadItemsFromExcel(inputElem) {
-      let file = inputElem.files[0];
-      if (!file) return;
-      let reader = new FileReader();
-      reader.onload = function(e) {
-        let data = e.target.result;
-        let workbook = XLSX.read(data, { type: 'binary' });
-        let firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-        let excelItems = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-        for (let i = 1; i < excelItems.length; i++) {
-          let row = excelItems[i];
-          if (row && row[0]) {
-            let code = row[0].toString();
-            items[code] = {
-              description: row[1] ? row[1].toString() : "",
-              ctnSize: row[2] ? row[2].toString() : "",
-              ctnPrice: row[3] ? parseFloat(row[3]) : 0,
-              boxesPerCtn: row[4] ? parseFloat(row[4]) : 0
-            };
-          }
-        }
-        saveItemsToStorage();
-        populateItems();
-        alert("Items loaded from Excel successfully!");
-      };
-      reader.readAsBinaryString(file);
-    }
-   
-    /* Generate Excel Export */
-    function generateExcel() {
-      let origTable = document.getElementById("billTable");
-      let clone = origTable.cloneNode(true);
-      let headerRows = clone.tHead.rows;
-      for (let i = 0; i < headerRows.length; i++) {
-        headerRows[i].deleteCell(-1);
-      }
-      let bodyRows = clone.tBodies[0].rows;
-      for (let i = 0; i < bodyRows.length; i++) {
-        bodyRows[i].deleteCell(-1);
-      }
-      let inputs = clone.querySelectorAll("input");
-      inputs.forEach(input => { input.parentNode.textContent = input.value; });
-      let wb = XLSX.utils.book_new();
-      let ws = XLSX.utils.table_to_sheet(clone);
-      XLSX.utils.book_append_sheet(wb, ws, "Bill");
-      XLSX.writeFile(wb, "bill.xlsx");
-    }
-   
-    /* Next Bill: Capture the bill, store bill data in Firestore, then clear invoice */
-   async function nextBill() {
-  // Save the simplified bill data to Firestore
-      await saveBillDataToFirestore();
-
-  // Then proceed with printing the bill as an image using html2canvas.
-  let container = document.querySelector('.container');
-  let clone = container.cloneNode(true);
-  let npElements = clone.querySelectorAll('.no-print');
-  npElements.forEach(el => el.parentNode.removeChild(el));
-  clone.style.position = 'absolute';
-  clone.style.top = '-9999px';
-  document.body.appendChild(clone);
-  html2canvas(clone).then(function(canvas) {
-    let link = document.createElement('a');
-    link.download = 'bill.png';
-    link.href = canvas.toDataURL();
-    link.click();
-    document.body.removeChild(clone);
-    let tbody = document.getElementById("billTable").querySelector("tbody");
-    tbody.innerHTML = "";
-    document.getElementById("grandTotal").textContent = "Rs 0.00";
-  });
-}
-
       
       // Print the bill as an image using html2canvas.
       let container = document.querySelector('.container');
       let clone = container.cloneNode(true);
+      // Remove any no-print elements if necessary
       let npElements = clone.querySelectorAll('.no-print');
       npElements.forEach(el => el.parentNode.removeChild(el));
       clone.style.position = 'absolute';
@@ -565,21 +231,17 @@
         link.href = canvas.toDataURL();
         link.click();
         document.body.removeChild(clone);
-        tbody.innerHTML = "";
-        document.getElementById("grandTotal").textContent = "Rs 0.00";
       });
     }
-   
-    document.addEventListener("DOMContentLoaded", populateItems);
   </script>
- 
-  <!-- Firebase Firestore Integration for Bill Storage -->
+  
+  <!-- Firebase Firestore Integration -->
   <script type="module">
-    // Import Firebase modules for app, analytics, and Firestore
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-analytics.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
     
+    // Update your Firebase configuration here:
     const firebaseConfig = {
       apiKey: "AIzaSyD_ojS20opjpxmwHxIHATC52ncABe_fkuk",
       authDomain: "ahyan-traders.firebaseapp.com",
@@ -595,62 +257,20 @@
     const db = getFirestore(app);
     
     /**
-     * Stores billing data in Firestore under a collection named "billing".
+     * Stores the bill data in Firestore under a collection named "billing".
+     * The bill data object should contain the fields: customerName, billDate, and netAmount.
      * @param {Object} billData - The bill data to store.
      */
- // Import Firestore functions in your Firestore integration script if not already imported:
-// import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
-// const db = getFirestore(app);
-
-async function saveBillDataToFirestore() {
-  // Get customer name from the customer field
-  const customerName = document.getElementById("customerName").value;
-  
-  // Get the net amount from the grand total display.
-  // Assuming the net amount is displayed as "Rs 0.00", remove "Rs" and trim whitespace.
-  const netAmountText = document.getElementById("grandTotal").textContent;
-  const netAmount = netAmountText.replace("Rs", "").trim();
-  
-  // Get the current date (you can format this as needed)
-  const billDate = new Date().toISOString();
-  
-  // Create the bill data object with the required fields
-  const billData = {
-    customerName: customerName,
-    billDate: billDate,
-    netAmount: netAmount
-  };
-
-  try {
-    // Save the bill data in Firestore under the "billing" collection
-    const docRef = await addDoc(collection(db, "billing"), billData);
-    console.log("Billing data stored in Firestore with ID:", docRef.id);
-  } catch (error) {
-    console.error("Error storing billing data in Firestore:", error);
-  }
-}
-
-    /**
-     * Fetches billing documents from Firestore, ordered by date descending.
-     */
-    async function fetchBillingDocuments() {
+    async function saveBillDataToFirestore(billData) {
       try {
-        const billingRef = collection(db, "billing");
-        const q = query(billingRef, orderBy("date", "desc"));
-        const querySnapshot = await getDocs(q);
-        const bills = [];
-        querySnapshot.forEach((doc) => {
-          bills.push({ id: doc.id, ...doc.data() });
-        });
-        return bills;
+        const docRef = await addDoc(collection(db, "billing"), billData);
+        console.log("Billing data stored in Firestore with ID:", docRef.id);
       } catch (error) {
-        console.error("Error fetching billing documents:", error);
-        return [];
+        console.error("Error storing billing data in Firestore:", error);
       }
     }
     
-    window.storeBillingDataInFirestore = storeBillingDataInFirestore;
-    window.fetchBillingDocuments = fetchBillingDocuments;
+    window.saveBillDataToFirestore = saveBillDataToFirestore;
   </script>
 </body>
 </html>
