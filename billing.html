@@ -597,14 +597,15 @@
      * Stores billing data in Firestore under a collection named "billing".
      * @param {Object} billData - The bill data to store.
      */
-    async function storeBillingDataInFirestore(billData) {
-      try {
-        const docRef = await addDoc(collection(db, "billing"), billData);
-        console.log("Billing data stored in Firestore with ID:", docRef.id);
-      } catch (error) {
-        console.error("Error storing billing data in Firestore:", error);
-      }
-    }
+   async function storeBillingDataInFirestore(billData) {
+  try {
+    const docRef = await addDoc(collection(db, "billing"), billData);
+    console.log("Billing data stored in Firestore with ID:", docRef.id);
+  } catch (error) {
+    console.error("Error storing billing data in Firestore:", error);
+  }
+}
+window.storeBillingDataInFirestore = storeBillingDataInFirestore;
     
     /**
      * Fetches billing documents from Firestore, ordered by date descending.
