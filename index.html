@@ -503,7 +503,7 @@
     async function updateStockReportTable() {
       try {
         // Fetch items and build a map
-        const itemsSnapshot = await getDocs(collection(db, "items"));
+        const itemsSnapshot = await getDocs(collection(db, "saveditems"));
         const itemsMap = {};
         itemsSnapshot.forEach((docSnap) => {
           itemsMap[docSnap.id] = docSnap.data();
