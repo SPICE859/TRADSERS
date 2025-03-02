@@ -292,7 +292,7 @@
           </tr>
         </thead>
         <tbody id="stockTableBody">
-          <!-- Dynamically generated rows from aggregated stock and sale data -->
+          <!-- Dynamically generated rows using saved items and stock entries -->
         </tbody>
         <tfoot>
           <tr>
@@ -436,6 +436,24 @@
     const analytics = getAnalytics(app);
     const db = getFirestore(app);
     
+    // Helper function: Get saved items from Firestore (used in view saved items and stock report)
+    async function getSavedItems() {
+      const itemsSnapshot = await getDocs(collection(db, "items"));
+      const itemsMap = {};
+      itemsSnapshot.forEach((docSnap) => {
+        // Ensure each field has a fallback value if undefined
+        const data = docSnap.data();
+        itemsMap[docSnap.id] = {
+          code: data.code || "",
+          description: data.description || "",
+          ctnSize: data.ctnSize || "",
+          boxesPerCtn: data.boxesPerCtn || 0,
+          ctnPrice: data.ctnPrice || 0
+        };
+      });
+      return itemsMap;
+    }
+    
     // Modal Functions
     function openAddItemModal() {
       document.getElementById("addItemModal").style.display = "block";
@@ -472,14 +490,14 @@
       }
     }
     
-    // Update the View Saved Items table
+    // Update the View Saved Items table (used in that section)
     async function updateSavedItemsTable() {
       try {
-        const querySnapshot = await getDocs(collection(db, "items"));
+        const itemsMap = await getSavedItems();
         const tbody = document.getElementById("savedItemsTableBody");
         tbody.innerHTML = "";
-        querySnapshot.forEach((docSnap) => {
-          const item = docSnap.data();
+        for (const id in itemsMap) {
+          const item = itemsMap[id];
           let row = document.createElement("tr");
           row.innerHTML = `
             <td>${item.code}</td>
@@ -488,26 +506,22 @@
             <td>${item.boxesPerCtn}</td>
             <td>${parseFloat(item.ctnPrice).toFixed(2)}</td>
             <td>
-              <button onclick="openEditModal('${docSnap.id}')">Edit</button>
-              <button onclick="deleteItem('${docSnap.id}')">Delete</button>
+              <button onclick="openEditModal('${id}')">Edit</button>
+              <button onclick="deleteItem('${id}')">Delete</button>
             </td>
           `;
           tbody.appendChild(row);
-        });
+        }
       } catch (error) {
         console.error("Error fetching saved items:", error);
       }
     }
     
-    // Updated Stock Report Table: Aggregate stock and sale data, then subtract sales
+    // Updated Stock Report Table: Get saved items and aggregate stock entries from DB
     async function updateStockReportTable() {
       try {
-        // Fetch items and build a map
-        const itemsSnapshot = await getDocs(collection(db, "saveditems"));
-        const itemsMap = {};
-        itemsSnapshot.forEach((docSnap) => {
-          itemsMap[docSnap.id] = docSnap.data();
-        });
+        // Get saved items from Firestore (same as used in view saved items)
+        const itemsMap = await getSavedItems();
     
         // Fetch stock entries and aggregate by itemId
         const stockSnapshot = await getDocs(collection(db, "stock"));
@@ -523,58 +537,45 @@
           stockAggregation[itemId].pcs += stockEntry.pcs;
         });
     
-        // Fetch sale entries from "sales" collection and aggregate by itemId
-        const saleSnapshot = await getDocs(collection(db, "sales"));
-        const saleAggregation = {};
-        saleSnapshot.forEach((docSnap) => {
-          const saleEntry = docSnap.data();
-          const itemId = saleEntry.itemId;
-          if (!saleAggregation[itemId]) {
-            saleAggregation[itemId] = { ctns: 0, boxes: 0, pcs: 0 };
-          }
-          saleAggregation[itemId].ctns += saleEntry.ctns;
-          saleAggregation[itemId].boxes += saleEntry.boxes;
-          saleAggregation[itemId].pcs += saleEntry.pcs;
-        });
+        // (Optional) Fetch sale entries if you wish to subtract sold quantities – not shown here.
+        // For now, we simply show the stock added from the database.
     
-        // Build the table using net (stock - sales)
+        // Build the table using saved items and stock entries
         const tbody = document.getElementById("stockTableBody");
         tbody.innerHTML = "";
         let netStockValue = 0;
-        const filter = document.getElementById("stockSearchInput").value.toUpperCase();
+        const filter = (document.getElementById("stockSearchInput").value || "").toUpperCase();
         for (const itemId in itemsMap) {
           const item = itemsMap[itemId];
-          // Apply filter if needed
+          // Apply filter using fallbacks for each field
           if (
-            item.code.toUpperCase().indexOf(filter) > -1 ||
-            item.description.toUpperCase().indexOf(filter) > -1 ||
-            item.ctnSize.toUpperCase().indexOf(filter) > -1
+            (item.code || "").toUpperCase().indexOf(filter) > -1 ||
+            (item.description || "").toUpperCase().indexOf(filter) > -1 ||
+            (item.ctnSize || "").toUpperCase().indexOf(filter) > -1
           ) {
             const stockAgg = stockAggregation[itemId] || { ctns: 0, boxes: 0, pcs: 0 };
-            const saleAgg = saleAggregation[itemId] || { ctns: 0, boxes: 0, pcs: 0 };
-            // Compute net values
-            const netCtns = stockAgg.ctns - saleAgg.ctns;
-            const netBoxes = stockAgg.boxes - saleAgg.boxes;
-            const netPcs = stockAgg.pcs - saleAgg.pcs;
-            // Calculate available boxes: (net CTNs * boxesPerCtn) + net Boxes
-            const availableBoxes = (netCtns * item.boxesPerCtn) + netBoxes;
-            // Calculate total value: using net CTNs and net Boxes (pcs not valued)
-            const totalValueForItem = (netCtns * item.ctnPrice) + ((netBoxes / item.boxesPerCtn) * item.ctnPrice);
+            // Calculate available boxes: (CTNs * boxesPerCtn) + Boxes
+            const availableBoxes = (stockAgg.ctns * item.boxesPerCtn) + stockAgg.boxes;
+            // Calculate total value based on CTNs and Boxes (ignoring pcs)
+            const totalValueForItem = (stockAgg.ctns * item.ctnPrice) + ((stockAgg.boxes / item.boxesPerCtn) * item.ctnPrice);
             netStockValue += totalValueForItem;
             let row = `<tr>
               <td>${item.code}</td>
               <td>${item.description}</td>
               <td>${item.ctnSize}</td>
-              <td>${availableBoxes} <br>(CTNs: ${netCtns}, Boxes: ${netBoxes}, Pcs: ${netPcs})</td>
+              <td>${availableBoxes} <br>(CTNs: ${stockAgg.ctns}, Boxes: ${stockAgg.boxes}, Pcs: ${stockAgg.pcs})</td>
               <td>Rs. ${parseFloat(item.ctnPrice).toFixed(2)}</td>
               <td>Rs. ${totalValueForItem.toFixed(2)}</td>
             </tr>`;
             tbody.innerHTML += row;
           }
         }
+        if (tbody.innerHTML === "") {
+          tbody.innerHTML = "<tr><td colspan='6'>No data available</td></tr>";
+        }
         document.getElementById("netStockValue").textContent = "Rs. " + netStockValue.toFixed(2);
       } catch (error) {
-        console.error("Error fetching stock or sale items:", error);
+        console.error("Error fetching stock or saved items:", error);
       }
     }
     
@@ -660,14 +661,14 @@
     
     // Filter for View Saved Items
     function filterViewSavedItems() {
-      let filter = document.getElementById("viewSavedSearch").value.toUpperCase();
+      let filter = (document.getElementById("viewSavedSearch").value || "").toUpperCase();
       let table = document.getElementById("savedItemsTable");
       let trs = table.getElementsByTagName("tr");
       for (let i = 1; i < trs.length; i++) {
         let tds = trs[i].getElementsByTagName("td");
         let show = false;
         for (let j = 0; j < tds.length - 1; j++) {
-          if (tds[j].textContent.toUpperCase().indexOf(filter) > -1) {
+          if ((tds[j].textContent || "").toUpperCase().indexOf(filter) > -1) {
             show = true;
             break;
           }
@@ -676,82 +677,7 @@
       }
     }
     
-    // Fetch and display billing data for Sale Summary page
-    async function updateSaleSummaryTable() {
-      try {
-        const querySnapshot = await getDocs(collection(db, "billing"));
-        const tbody = document.getElementById("salesTableBody");
-        tbody.innerHTML = "";
-        let total = 0;
-        querySnapshot.forEach((docSnap) => {
-          const bill = docSnap.data();
-          // Assuming bill has fields: date, invoiceNo, customer, netAmount
-          let netAmount = parseFloat(bill.netAmount);
-          total += netAmount;
-          let row = `<tr>
-            <td>${bill.date}</td>
-            <td>${bill.invoiceNo}</td>
-            <td>${bill.customer}</td>
-            <td>Rs. ${netAmount.toFixed(2)}</td>
-          </tr>`;
-          tbody.innerHTML += row;
-        });
-        document.getElementById("netTotal").textContent = "Rs. " + total.toFixed(2);
-      } catch (error) {
-        console.error("Error fetching billing data:", error);
-      }
-    }
-    
-    // New Functions for Stock Addition Modal
-    function openAddStockModal() {
-      document.getElementById("addStockModal").style.display = "block";
-      populateStockItemSelect();
-    }
-    
-    async function populateStockItemSelect() {
-      try {
-        const querySnapshot = await getDocs(collection(db, "items"));
-        const select = document.getElementById("stockItemSelect");
-        select.innerHTML = "<option value=''>Select an item</option>";
-        querySnapshot.forEach((docSnap) => {
-          const item = docSnap.data();
-          select.innerHTML += `<option value="${docSnap.id}">${item.code} - ${item.description}</option>`;
-        });
-      } catch (error) {
-        console.error("Error populating stock items:", error);
-      }
-    }
-    
-    async function saveNewStock() {
-      const itemId = document.getElementById("stockItemSelect").value;
-      const ctns = parseInt(document.getElementById("stockCtns").value) || 0;
-      const boxes = parseInt(document.getElementById("stockBoxes").value) || 0;
-      const pcs = parseInt(document.getElementById("stockPcs").value) || 0;
-      if (!itemId) {
-        alert("Please select an item.");
-        return;
-      }
-      try {
-        await addDoc(collection(db, "stock"), { 
-          itemId, 
-          ctns, 
-          boxes, 
-          pcs, 
-          date: new Date().toISOString() 
-        });
-        alert("Stock added successfully!");
-        document.getElementById("stockCtns").value = "0";
-        document.getElementById("stockBoxes").value = "0";
-        document.getElementById("stockPcs").value = "0";
-        closeModal("addStockModal");
-        updateStockReportTable();
-      } catch (error) {
-        console.error("Error adding stock:", error);
-        alert("Error adding stock.");
-      }
-    }
-    
-    // New Functions for Updating Sale Modal
+    // (Optional) Update Sale functions if you want to subtract sold quantities
     function openUpdateSaleModal() {
       document.getElementById("updateSaleModal").style.display = "block";
       populateSaleItemSelect();
@@ -759,13 +685,13 @@
     
     async function populateSaleItemSelect() {
       try {
-        const querySnapshot = await getDocs(collection(db, "items"));
+        const itemsMap = await getSavedItems();
         const select = document.getElementById("saleItemSelect");
         select.innerHTML = "<option value=''>Select an item</option>";
-        querySnapshot.forEach((docSnap) => {
-          const item = docSnap.data();
-          select.innerHTML += `<option value="${docSnap.id}">${item.code} - ${item.description}</option>`;
-        });
+        for (const id in itemsMap) {
+          const item = itemsMap[id];
+          select.innerHTML += `<option value="${id}">${item.code} - ${item.description}</option>`;
+        }
       } catch (error) {
         console.error("Error populating sale items:", error);
       }
@@ -808,7 +734,7 @@
       }
       document.getElementById(sectionId).style.display = "block";
       if (sectionId === "saleSummary") {
-        updateSaleSummaryTable(); // Fetch billing data when Sale Summary is shown
+        // updateSaleSummaryTable(); // If you use this function
       }
       if (sectionId === "stockReport") {
         updateStockReportTable();
