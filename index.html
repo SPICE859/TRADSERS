@@ -547,10 +547,10 @@
           ) {
             const stockAgg = stockAggregation[itemId] || { ctns: 0, boxes: 0, pcs: 0 };
             const saleAgg = saleAggregation[itemId] || { ctns: 0, boxes: 0, pcs: 0 };
-            // Subtract sale from stock to get net available
+            // Calculate net available: subtract sales from stock
             const netCTNs = stockAgg.ctns - saleAgg.ctns;
             const netBoxes = stockAgg.boxes - saleAgg.boxes;
-            // Calculate total value based on net available quantities
+            // Total value based on net quantities:
             const totalValueForItem = (netCTNs * item.ctnPrice) + ((netBoxes / item.boxesPerCtn) * item.ctnPrice);
             netStockValue += totalValueForItem;
             let row = `<tr>
@@ -756,7 +756,7 @@
     }
     
     // ---------------------- Global Function Attachment ----------------------
-    document.addEventListener('DOMContentLoaded', () => {
+    function attachGlobals() {
       window.openAddItemModal = openAddItemModal;
       window.closeModal = closeModal;
       window.saveNewItemFromModal = saveNewItemFromModal;
@@ -774,14 +774,19 @@
       window.saveSale = saveSale;
       window.updateSaleSummaryTable = updateSaleSummaryTable;
       console.log("Global functions attached");
-    });
+    }
+    // Check if DOM is already loaded; if so, attach immediately.
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", attachGlobals);
+    } else {
+      attachGlobals();
+    }
     
     // Initialize by showing the home section.
     showSection('home');
     
     // Update stock report when the search input changes.
     document.getElementById('stockSearchInput').addEventListener('input', updateStockReportTable);
-    
   </script>
 </body>
 </html>
