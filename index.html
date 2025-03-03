@@ -666,9 +666,8 @@
             let netAmount = parseFloat(bill.netAmount);
             total += netAmount;
             let dateStr = "N/A";
-            if (bill.billdate) {
-              // If the date is a Firestore Timestamp, convert it; otherwise, use it directly.
-              dateStr = bill.date.toDate ? bill.date.toDate().toLocaleString() : bill.date;
+            if (bill.billDate) {
+              dateStr = new Date(bill.billDate).toLocaleString();
             }
             let row = `<tr>
               <td>${dateStr}</td>
