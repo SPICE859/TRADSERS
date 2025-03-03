@@ -27,7 +27,7 @@
       }
       body,
       html {
-        font-family: 'Roboto', sans-serif;
+        font-family: "Roboto", sans-serif;
         background: var(--light);
         color: var(--primary);
         min-height: 100vh;
@@ -87,16 +87,20 @@
         font-size: 28px;
         font-weight: 500;
       }
-      .home-header {
-        margin-bottom: 0;
+      /* Home section: center title and gallery */
+      #home {
+        text-align: center;
       }
-      /* ---------- Gallery Styles ---------- */
+      .home-title {
+        margin-bottom: 20px;
+        font-size: 36px;
+        font-weight: 700;
+      }
       .gallery {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
         justify-content: center;
-        margin-top: 20px;
+        gap: 10px;
       }
       .gallery img {
         width: 300px;
@@ -114,8 +118,8 @@
         font-size: 16px;
         margin-right: 5px;
       }
-      .filter-container input[type='date'],
-      .search-container input[type='text'] {
+      .filter-container input[type="date"],
+      .search-container input[type="text"] {
         padding: 8px;
         font-size: 16px;
         margin-right: 10px;
@@ -249,21 +253,16 @@
 
     <!-- ---------- Main Content ---------- -->
     <div class="main-content">
-      <!-- Home Section with Gallery -->
-      <div id="home" class="section">
-        <div class="header-large home-header">AHYAN TRADERS</div>
+      <!-- Home Section -->
+      <div id="home" class="section" style="display: block;">
+        <div class="home-title">AHYAN TRADERS</div>
         <div class="gallery">
-          <!-- Replace placeholder images with actual images as needed -->
+          <!-- Replace these with your actual image URLs -->
           <img src="https://via.placeholder.com/300x200?text=Image+1" alt="Image 1" />
           <img src="https://via.placeholder.com/300x200?text=Image+2" alt="Image 2" />
           <img src="https://via.placeholder.com/300x200?text=Image+3" alt="Image 3" />
           <img src="https://via.placeholder.com/300x200?text=Image+4" alt="Image 4" />
           <img src="https://via.placeholder.com/300x200?text=Image+5" alt="Image 5" />
-          <img src="https://via.placeholder.com/300x200?text=Image+6" alt="Image 6" />
-          <img src="https://via.placeholder.com/300x200?text=Image+7" alt="Image 7" />
-          <img src="https://via.placeholder.com/300x200?text=Image+8" alt="Image 8" />
-          <img src="https://via.placeholder.com/300x200?text=Image+9" alt="Image 9" />
-          <img src="https://via.placeholder.com/300x200?text=Image+10" alt="Image 10" />
         </div>
       </div>
 
@@ -287,7 +286,7 @@
             </tr>
           </thead>
           <tbody id="salesTableBody">
-            <!-- Billing data from Firestore will be inserted here -->
+            <!-- Billing data will be inserted here -->
           </tbody>
           <tfoot>
             <tr>
@@ -302,9 +301,12 @@
       <div id="stockReport" class="section">
         <div class="header-large">Stock Report</div>
         <div class="search-container">
-          <input type="text" id="stockSearchInput" placeholder="Search by Product ID, Name, or CTN Size..." />
+          <input
+            type="text"
+            id="stockSearchInput"
+            placeholder="Search by Product ID, Name, or CTN Size..."
+          />
         </div>
-        <!-- Buttons for Adding Stock and Updating Sale -->
         <div style="text-align: center; margin-bottom: 10px;">
           <button onclick="openAddStockModal()">Add New Stock</button>
           <button onclick="openUpdateSaleModal()">Update Sale</button>
@@ -322,7 +324,7 @@
             </tr>
           </thead>
           <tbody id="stockTableBody">
-            <!-- Data aggregated from saved items, stock, and sales will appear here -->
+            <!-- Aggregated stock & sale data will appear here -->
           </tbody>
           <tfoot>
             <tr>
@@ -466,7 +468,7 @@
       const analytics = getAnalytics(appFirebase);
       const db = getFirestore(appFirebase);
 
-      // Helper: Get saved items (used for both "View Saved Items" and "Stock Report")
+      // Helper: Get saved items (used in "View Saved Items" and "Stock Report")
       async function getSavedItems() {
         const itemsSnapshot = await getDocs(collection(db, "items"));
         const itemsMap = {};
@@ -484,15 +486,12 @@
       }
 
       /* ---------------------- Modal and Utility Functions ---------------------- */
-
       function openAddItemModal() {
         document.getElementById("addItemModal").style.display = "block";
       }
-
       function closeModal(id) {
         document.getElementById(id).style.display = "none";
       }
-
       async function saveNewItemFromModal() {
         const code = document.getElementById("newItemCodeModal").value.trim();
         const desc = document.getElementById("newItemDescModal").value.trim();
@@ -525,7 +524,6 @@
           alert("Please fill in all fields correctly.");
         }
       }
-
       async function updateSavedItemsTable() {
         try {
           const itemsMap = await getSavedItems();
@@ -596,7 +594,7 @@
             ) {
               const stockAgg = stockAggregation[itemId] || { ctns: 0, boxes: 0, pcs: 0 };
               const saleAgg = saleAggregation[itemId] || { ctns: 0, boxes: 0, pcs: 0 };
-              // Subtract sale from stock to get net available
+              // Net available = stock minus sales
               const netCTNs = stockAgg.ctns - saleAgg.ctns;
               const netBoxes = stockAgg.boxes - saleAgg.boxes;
               // Calculate total value based on net quantities:
@@ -750,9 +748,7 @@
           let tds = trs[i].getElementsByTagName("td");
           let show = false;
           for (let j = 0; j < tds.length - 1; j++) {
-            if (
-              (tds[j].textContent || "").toUpperCase().indexOf(filter) > -1
-            ) {
+            if ((tds[j].textContent || "").toUpperCase().indexOf(filter) > -1) {
               show = true;
               break;
             }
@@ -766,7 +762,6 @@
         document.getElementById("updateSaleModal").style.display = "block";
         populateSaleItemSelect();
       }
-
       async function populateSaleItemSelect() {
         try {
           const itemsMap = await getSavedItems();
@@ -780,7 +775,6 @@
           console.error("Error populating sale items:", error);
         }
       }
-
       async function saveSale() {
         const itemId = document.getElementById("saleItemSelect").value;
         const ctns = parseInt(document.getElementById("saleCtns").value) || 0;
@@ -845,12 +839,8 @@
         console.log("Global functions attached");
       }
 
-      // Attach global functions once the DOM is ready.
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", attachGlobals);
-      } else {
-        attachGlobals();
-      }
+      // Since this script is at the end of the body, the DOM is already loaded.
+      attachGlobals();
 
       // Initialize by showing the home section.
       showSection("home");
