@@ -665,10 +665,15 @@
             const bill = doc.data();
             let netAmount = parseFloat(bill.netAmount);
             total += netAmount;
+            let dateStr = "N/A";
+            if (bill.date) {
+              // If the date is a Firestore Timestamp, convert it; otherwise, use it directly.
+              dateStr = bill.date.toDate ? bill.date.toDate().toLocaleString() : bill.date;
+            }
             let row = `<tr>
-              <td>${bill.date}</td>
-              <td>${bill.invoiceNo}</td>
-              <td>${bill.customer}</td>
+              <td>${dateStr}</td>
+              <td>${bill.invoiceNo || ""}</td>
+              <td>${bill.customer || ""}</td>
               <td>Rs. ${netAmount.toFixed(2)}</td>
             </tr>`;
             tbody.innerHTML += row;
