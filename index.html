@@ -301,11 +301,7 @@
       <div id="stockReport" class="section">
         <div class="header-large">Stock Report</div>
         <div class="search-container">
-          <input
-            type="text"
-            id="stockSearchInput"
-            placeholder="Search by Product ID, Name, or CTN Size..."
-          />
+          <input type="text" id="stockSearchInput" placeholder="Search by Product ID, Name, or CTN Size..." />
         </div>
         <div style="text-align: center; margin-bottom: 10px;">
           <button onclick="openAddStockModal()">Add New Stock</button>
@@ -324,7 +320,7 @@
             </tr>
           </thead>
           <tbody id="stockTableBody">
-            <!-- Aggregated stock and sale data will appear here -->
+            <!-- Aggregated stock & sale data will appear here -->
           </tbody>
           <tfoot>
             <tr>
@@ -340,12 +336,7 @@
         <div class="header-large">View Saved Items</div>
         <div class="container">
           <div class="search-container">
-            <input
-              type="text"
-              id="viewSavedSearch"
-              placeholder="Search items..."
-              oninput="filterViewSavedItems()"
-            />
+            <input type="text" id="viewSavedSearch" placeholder="Search items..." oninput="filterViewSavedItems()" />
           </div>
           <table id="savedItemsTable">
             <thead>
@@ -436,23 +427,13 @@
       <button onclick="closeModal('updateSaleModal')">Close</button>
     </div>
 
-    <!-- ---------- Firebase & Firestore Integration Script ---------- -->
-    <script type="module">
-      // Import Firebase modules
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-      import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-analytics.js";
-      import {
-        getFirestore,
-        collection,
-        addDoc,
-        getDocs,
-        deleteDoc,
-        doc,
-        updateDoc,
-        getDoc
-      } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
-
-      // Firebase configuration
+    <!-- ---------- Firebase & Firestore Script Tags (Compat) ---------- -->
+    <!-- Use Firebase compat libraries so that our code runs in the global scope -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <script>
+      // Initialize Firebase and Firestore using compat libraries
       const firebaseConfig = {
         apiKey: "AIzaSyD_ojS20opjpxmwHxIHATC52ncABe_fkuk",
         authDomain: "ahyan-traders.firebaseapp.com",
@@ -463,18 +444,17 @@
         measurementId: "G-11ZNXV1ZZL"
       };
 
-      // Initialize Firebase and Firestore
-      const appFirebase = initializeApp(firebaseConfig);
-      const analytics = getAnalytics(appFirebase);
-      const db = getFirestore(appFirebase);
+      firebase.initializeApp(firebaseConfig);
+      firebase.analytics();
+      const db = firebase.firestore();
 
-      // Helper: Get saved items (used for both "View Saved Items" and "Stock Report")
+      // Helper: Get saved items
       async function getSavedItems() {
-        const itemsSnapshot = await getDocs(collection(db, "items"));
+        const itemsSnapshot = await db.collection("items").get();
         const itemsMap = {};
-        itemsSnapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          itemsMap[docSnap.id] = {
+        itemsSnapshot.forEach((doc) => {
+          const data = doc.data();
+          itemsMap[doc.id] = {
             code: data.code || "",
             description: data.description || "",
             ctnSize: data.ctnSize || "",
@@ -500,7 +480,7 @@
         const price = parseFloat(document.getElementById("newItemCtnPriceModal").value);
         if (code && desc && size && !isNaN(boxes) && !isNaN(price)) {
           try {
-            await addDoc(collection(db, "items"), {
+            await db.collection("items").add({
               code,
               description: desc,
               ctnSize: size,
@@ -550,103 +530,15 @@
         }
       }
 
-      // ---------------------- Missing Stock Functions ----------------------
-      async function populateStockItemSelect() {
-        try {
-          const itemsMap = await getSavedItems();
-          const select = document.getElementById("stockItemSelect");
-          select.innerHTML = "<option value=''>Select an item</option>";
-          for (const id in itemsMap) {
-            const item = itemsMap[id];
-            select.innerHTML += `<option value="${id}">${item.code} - ${item.description}</option>`;
-          }
-        } catch (error) {
-          console.error("Error populating stock items:", error);
-        }
-      }
-      function openAddStockModal() {
-        document.getElementById("addStockModal").style.display = "block";
-        populateStockItemSelect();
-      }
-      async function saveNewStock() {
-        const itemId = document.getElementById("stockItemSelect").value;
-        const ctns = parseInt(document.getElementById("stockCtns").value) || 0;
-        const boxes = parseInt(document.getElementById("stockBoxes").value) || 0;
-        if (!itemId) {
-          alert("Please select an item.");
-          return;
-        }
-        try {
-          await addDoc(collection(db, "stock"), {
-            itemId,
-            ctns,
-            boxes,
-            date: new Date().toISOString()
-          });
-          alert("Stock added successfully!");
-          document.getElementById("stockCtns").value = "0";
-          document.getElementById("stockBoxes").value = "0";
-          closeModal("addStockModal");
-          updateStockReportTable();
-        } catch (error) {
-          console.error("Error adding stock:", error);
-          alert("Error adding stock.");
-        }
-      }
-
-      // ---------------------- Sale Functions ----------------------
-      function openUpdateSaleModal() {
-        document.getElementById("updateSaleModal").style.display = "block";
-        populateSaleItemSelect();
-      }
-      async function populateSaleItemSelect() {
-        try {
-          const itemsMap = await getSavedItems();
-          const select = document.getElementById("saleItemSelect");
-          select.innerHTML = "<option value=''>Select an item</option>";
-          for (const id in itemsMap) {
-            const item = itemsMap[id];
-            select.innerHTML += `<option value="${id}">${item.code} - ${item.description}</option>`;
-          }
-        } catch (error) {
-          console.error("Error populating sale items:", error);
-        }
-      }
-      async function saveSale() {
-        const itemId = document.getElementById("saleItemSelect").value;
-        const ctns = parseInt(document.getElementById("saleCtns").value) || 0;
-        const boxes = parseInt(document.getElementById("saleBoxes").value) || 0;
-        if (!itemId) {
-          alert("Please select an item.");
-          return;
-        }
-        try {
-          await addDoc(collection(db, "sales"), {
-            itemId,
-            ctns,
-            boxes,
-            date: new Date().toISOString()
-          });
-          alert("Sale updated successfully!");
-          document.getElementById("saleCtns").value = "0";
-          document.getElementById("saleBoxes").value = "0";
-          closeModal("updateSaleModal");
-          updateStockReportTable();
-        } catch (error) {
-          console.error("Error updating sale:", error);
-          alert("Error updating sale.");
-        }
-      }
-
       // ---------------------- Stock Report with Sales Subtraction ----------------------
       async function updateStockReportTable() {
         try {
           const itemsMap = await getSavedItems();
           // Aggregate stock entries
-          const stockSnapshot = await getDocs(collection(db, "stock"));
+          const stockSnapshot = await db.collection("stock").get();
           const stockAggregation = {};
-          stockSnapshot.forEach((docSnap) => {
-            const stockEntry = docSnap.data();
+          stockSnapshot.forEach((doc) => {
+            const stockEntry = doc.data();
             const itemId = stockEntry.itemId;
             if (!stockAggregation[itemId]) {
               stockAggregation[itemId] = { ctns: 0, boxes: 0, pcs: 0 };
@@ -656,10 +548,10 @@
             stockAggregation[itemId].pcs += stockEntry.pcs;
           });
           // Aggregate sale entries
-          const saleSnapshot = await getDocs(collection(db, "sales"));
+          const saleSnapshot = await db.collection("sales").get();
           const saleAggregation = {};
-          saleSnapshot.forEach((docSnap) => {
-            const saleEntry = docSnap.data();
+          saleSnapshot.forEach((doc) => {
+            const saleEntry = doc.data();
             const itemId = saleEntry.itemId;
             if (!saleAggregation[itemId]) {
               saleAggregation[itemId] = { ctns: 0, boxes: 0, pcs: 0 };
@@ -715,7 +607,7 @@
 
       async function deleteItem(itemId) {
         try {
-          await deleteDoc(doc(db, "items", itemId));
+          await db.collection("items").doc(itemId).delete();
           alert("Item deleted successfully");
           updateSavedItemsTable();
           updateStockReportTable();
@@ -727,9 +619,9 @@
 
       async function openEditModal(itemId) {
         try {
-          const docRef = doc(db, "items", itemId);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
+          const docRef = db.collection("items").doc(itemId);
+          const docSnap = await docRef.get();
+          if (docSnap.exists) {
             const item = docSnap.data();
             document.getElementById("editItemId").value = itemId;
             document.getElementById("editDescription").value = item.description;
@@ -751,8 +643,7 @@
         const boxes = parseFloat(document.getElementById("editBoxesPerCtn").value);
         if (desc && size && !isNaN(price) && !isNaN(boxes)) {
           try {
-            const itemRef = doc(db, "items", itemId);
-            await updateDoc(itemRef, {
+            await db.collection("items").doc(itemId).update({
               description: desc,
               ctnSize: size,
               ctnPrice: price,
@@ -773,12 +664,12 @@
 
       async function updateSaleSummaryTable() {
         try {
-          const querySnapshot = await getDocs(collection(db, "billing"));
+          const querySnapshot = await db.collection("billing").get();
           const tbody = document.getElementById("salesTableBody");
           tbody.innerHTML = "";
           let total = 0;
-          querySnapshot.forEach((docSnap) => {
-            const bill = docSnap.data();
+          querySnapshot.forEach((doc) => {
+            const bill = doc.data();
             let netAmount = parseFloat(bill.netAmount);
             total += netAmount;
             let row = `<tr>
@@ -813,8 +704,7 @@
           }
           if (showRow) {
             rows[i].style.display = "";
-            var amountText =
-              rows[i].getElementsByTagName("td")[3].textContent.trim();
+            var amountText = rows[i].getElementsByTagName("td")[3].textContent.trim();
             var netAmount = parseFloat(amountText.replace("Rs.", "").trim());
             if (!isNaN(netAmount)) {
               total += netAmount;
@@ -823,13 +713,11 @@
             rows[i].style.display = "none";
           }
         }
-        document.getElementById("netTotal").textContent =
-          "Rs. " + total.toFixed(2);
+        document.getElementById("netTotal").textContent = "Rs. " + total.toFixed(2);
       }
 
       function filterViewSavedItems() {
-        let filter = (document.getElementById("viewSavedSearch").value || "")
-          .toUpperCase();
+        let filter = (document.getElementById("viewSavedSearch").value || "").toUpperCase();
         let table = document.getElementById("savedItemsTable");
         let trs = table.getElementsByTagName("tr");
         for (let i = 1; i < trs.length; i++) {
@@ -842,6 +730,67 @@
             }
           }
           trs[i].style.display = show ? "" : "none";
+        }
+      }
+
+      // ---------------------- Sale Functions ----------------------
+      function openUpdateSaleModal() {
+        document.getElementById("updateSaleModal").style.display = "block";
+        populateSaleItemSelect();
+      }
+      async function populateSaleItemSelect() {
+        try {
+          const itemsMap = await getSavedItems();
+          const select = document.getElementById("saleItemSelect");
+          select.innerHTML = "<option value=''>Select an item</option>";
+          for (const id in itemsMap) {
+            const item = itemsMap[id];
+            select.innerHTML += `<option value="${id}">${item.code} - ${item.description}</option>`;
+          }
+        } catch (error) {
+          console.error("Error populating sale items:", error);
+        }
+      }
+      async function saveSale() {
+        const itemId = document.getElementById("saleItemSelect").value;
+        const ctns = parseInt(document.getElementById("saleCtns").value) || 0;
+        const boxes = parseInt(document.getElementById("saleBoxes").value) || 0;
+        if (!itemId) {
+          alert("Please select an item.");
+          return;
+        }
+        try {
+          await db.collection("sales").add({
+            itemId,
+            ctns,
+            boxes,
+            date: new Date().toISOString()
+          });
+          alert("Sale updated successfully!");
+          document.getElementById("saleCtns").value = "0";
+          document.getElementById("saleBoxes").value = "0";
+          closeModal("updateSaleModal");
+          updateStockReportTable();
+        } catch (error) {
+          console.error("Error updating sale:", error);
+          alert("Error updating sale.");
+        }
+      }
+
+      function showSection(sectionId) {
+        const sections = document.getElementsByClassName("section");
+        for (let i = 0; i < sections.length; i++) {
+          sections[i].style.display = "none";
+        }
+        document.getElementById(sectionId).style.display = "block";
+        if (sectionId === "saleSummary") {
+          updateSaleSummaryTable();
+        }
+        if (sectionId === "stockReport") {
+          updateStockReportTable();
+        }
+        if (sectionId === "viewSavedItemsSection") {
+          updateSavedItemsTable();
         }
       }
 
@@ -865,16 +814,14 @@
         window.updateSaleSummaryTable = updateSaleSummaryTable;
         console.log("Global functions attached");
       }
-      // Attach globals immediately (script is at end of body)
+      // Attach globals immediately (we are using non‑module scripts now)
       attachGlobals();
 
       // Initialize by showing the home section.
       showSection("home");
 
       // Update stock report when the search input changes.
-      document
-        .getElementById("stockSearchInput")
-        .addEventListener("input", updateStockReportTable);
+      document.getElementById("stockSearchInput").addEventListener("input", updateStockReportTable);
     </script>
   </body>
 </html>
