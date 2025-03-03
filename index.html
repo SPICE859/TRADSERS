@@ -238,200 +238,12 @@
         }
       }
     </style>
-  </head>
-  <body>
-    <!-- ---------- Sidebar ---------- -->
-    <div class="sidebar">
-      <h2>AHYAN TRADERS</h2>
-      <button onclick="showSection('home')">Home</button>
-      <button onclick="showSection('saleSummary')">Sale Summary</button>
-      <button onclick="showSection('stockReport')">Stock Report</button>
-      <button onclick="openAddItemModal()">Add New Item</button>
-      <button onclick="showSection('viewSavedItemsSection')">View Saved Items</button>
-      <button onclick="window.location.href='billing.html'">Billing System</button>
-    </div>
-
-    <!-- ---------- Main Content ---------- -->
-    <div class="main-content">
-      <!-- Home Section -->
-      <div id="home" class="section">
-        <div class="home-title">AHYAN TRADERS</div>
-        <div class="gallery">
-          <!-- Replace these URLs with your actual image URLs -->
-          <img src="https://via.placeholder.com/300x200?text=Image+1" alt="Image 1" />
-          <img src="https://via.placeholder.com/300x200?text=Image+2" alt="Image 2" />
-          <img src="https://via.placeholder.com/300x200?text=Image+3" alt="Image 3" />
-          <img src="https://via.placeholder.com/300x200?text=Image+4" alt="Image 4" />
-          <img src="https://via.placeholder.com/300x200?text=Image+5" alt="Image 5" />
-        </div>
-      </div>
-
-      <!-- Sale Summary Section -->
-      <div id="saleSummary" class="section">
-        <div class="header-large">Sale Summary</div>
-        <div class="filter-container">
-          <label for="startDate">Initial Date:</label>
-          <input type="date" id="startDate" />
-          <label for="endDate">Current Date:</label>
-          <input type="date" id="endDate" />
-          <button onclick="filterSales()">Filter</button>
-        </div>
-        <table id="salesTable">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Invoice No</th>
-              <th>Customer</th>
-              <th>Net Amount (Rs.)</th>
-            </tr>
-          </thead>
-          <tbody id="salesTableBody">
-            <!-- Billing data will be inserted here -->
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colspan="3" style="text-align: right;">Net Total Sale (Rs.):</td>
-              <td id="netTotal">Rs. 0.00</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-
-      <!-- Stock Report Section -->
-      <div id="stockReport" class="section">
-        <div class="header-large">Stock Report</div>
-        <div class="search-container">
-          <input type="text" id="stockSearchInput" placeholder="Search by Product ID, Name, or CTN Size..." />
-        </div>
-        <div style="text-align: center; margin-bottom: 10px;">
-          <button onclick="openAddStockModal()">Add New Stock</button>
-          <button onclick="openUpdateSaleModal()">Update Sale</button>
-        </div>
-        <table id="stockTable">
-          <thead>
-            <tr>
-              <th>Product ID</th>
-              <th>Product Name</th>
-              <th>CTN Size</th>
-              <th>Available CTNs</th>
-              <th>Available Boxes</th>
-              <th>Unit Price (Rs.)</th>
-              <th>Total Value (Rs.)</th>
-            </tr>
-          </thead>
-          <tbody id="stockTableBody">
-            <!-- Aggregated stock and sale data will appear here -->
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colspan="6" style="text-align: right;">Net Total Stock Value (Rs.):</td>
-              <td id="netStockValue">Rs. 0.00</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-
-      <!-- View Saved Items Section -->
-      <div id="viewSavedItemsSection" class="section">
-        <div class="header-large">View Saved Items</div>
-        <div class="container">
-          <div class="search-container">
-            <input type="text" id="viewSavedSearch" placeholder="Search items..." oninput="filterViewSavedItems()" />
-          </div>
-          <table id="savedItemsTable">
-            <thead>
-              <tr>
-                <th>Product Code</th>
-                <th>Description</th>
-                <th>CTN Size</th>
-                <th>Boxes per CTN</th>
-                <th>CTN Price</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="savedItemsTableBody">
-              <!-- Saved items will be populated here -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ---------- Modals ---------- -->
-    <!-- Add New Item Modal -->
-    <div id="addItemModal" class="modal no-print">
-      <h3>Add New Item</h3>
-      <label for="newItemCodeModal">Product Code:</label>
-      <input type="text" id="newItemCodeModal" required />
-      <label for="newItemDescModal">Description:</label>
-      <input type="text" id="newItemDescModal" required />
-      <label for="newItemCtnSizeModal">CTN Size:</label>
-      <input type="text" id="newItemCtnSizeModal" required />
-      <label for="newItemBoxesModal">Boxes per CTN:</label>
-      <input type="number" id="newItemBoxesModal" required />
-      <label for="newItemCtnPriceModal">CTN Price:</label>
-      <input type="number" id="newItemCtnPriceModal" step="0.01" required />
-      <button onclick="saveNewItemFromModal()">Save Item</button>
-      <button onclick="closeModal('addItemModal')">Close</button>
-    </div>
-
-    <!-- Edit Item Modal -->
-    <div id="editItemModal" class="modal no-print">
-      <h3>Edit Item</h3>
-      <input type="hidden" id="editItemId" />
-      <label for="editDescription">Description:</label>
-      <input type="text" id="editDescription" />
-      <label for="editCtnSize">CTN Size:</label>
-      <input type="text" id="editCtnSize" />
-      <label for="editCtnPrice">CTN Price:</label>
-      <input type="number" id="editCtnPrice" />
-      <label for="editBoxesPerCtn">Boxes per CTN:</label>
-      <input type="number" id="editBoxesPerCtn" />
-      <button onclick="saveEditedItem()">Save Changes</button>
-      <button onclick="closeModal('editItemModal')">Close</button>
-    </div>
-
-    <!-- Add New Stock Modal -->
-    <div id="addStockModal" class="modal no-print">
-      <h3>Add New Stock</h3>
-      <label for="stockItemSelect">Select Item:</label>
-      <select id="stockItemSelect"></select>
-      <label>Add Qty:</label>
-      <div>
-        <label for="stockCtns">CTNs:</label>
-        <input type="number" id="stockCtns" placeholder="0" value="0" />
-      </div>
-      <div>
-        <label for="stockBoxes">Boxes:</label>
-        <input type="number" id="stockBoxes" placeholder="0" value="0" />
-      </div>
-      <button onclick="saveNewStock()">Save Stock</button>
-      <button onclick="closeModal('addStockModal')">Close</button>
-    </div>
-
-    <!-- Update Sale Modal -->
-    <div id="updateSaleModal" class="modal no-print">
-      <h3>Update Sale</h3>
-      <label for="saleItemSelect">Select Item:</label>
-      <select id="saleItemSelect"></select>
-      <label>Sale Qty:</label>
-      <div>
-        <label for="saleCtns">CTNs:</label>
-        <input type="number" id="saleCtns" placeholder="0" value="0" />
-      </div>
-      <div>
-        <label for="saleBoxes">Boxes:</label>
-        <input type="number" id="saleBoxes" placeholder="0" value="0" />
-      </div>
-      <button onclick="saveSale()">Save Sale</button>
-      <button onclick="closeModal('updateSaleModal')">Close</button>
-    </div>
-
-    <!-- ---------- Firebase & Firestore (Compat) Scripts ---------- -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-    <script>
+    <!-- Load Firebase compat libraries with defer -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js" defer></script>
+    <!-- Our custom code with defer -->
+    <script defer>
       // Initialize Firebase using compat libraries
       const firebaseConfig = {
         apiKey: "AIzaSyD_ojS20opjpxmwHxIHATC52ncABe_fkuk",
@@ -528,7 +340,7 @@
         }
       }
 
-      /* ---------------------- Stock Report Functions ---------------------- */
+      // ---------------------- Stock Report Functions ----------------------
       async function updateStockReportTable() {
         try {
           const itemsMap = await getSavedItems();
@@ -575,7 +387,7 @@
               // Calculate net available = stock minus sales
               const netCTNs = stockAgg.ctns - saleAgg.ctns;
               const netBoxes = stockAgg.boxes - saleAgg.boxes;
-              // Calculate total value based on net quantities
+              // Calculate total value based on net quantities:
               const totalValueForItem =
                 netCTNs * item.ctnPrice +
                 ((netBoxes / item.boxesPerCtn) * item.ctnPrice);
@@ -696,7 +508,8 @@
           }
           if (showRow) {
             rows[i].style.display = "";
-            var amountText = rows[i].getElementsByTagName("td")[3].textContent.trim();
+            var amountText =
+              rows[i].getElementsByTagName("td")[3].textContent.trim();
             var netAmount = parseFloat(amountText.replace("Rs.", "").trim());
             if (!isNaN(netAmount)) {
               total += netAmount;
@@ -705,7 +518,8 @@
             rows[i].style.display = "none";
           }
         }
-        document.getElementById("netTotal").textContent = "Rs. " + total.toFixed(2);
+        document.getElementById("netTotal").textContent =
+          "Rs. " + total.toFixed(2);
       }
       function filterViewSavedItems() {
         let filter = (document.getElementById("viewSavedSearch").value || "").toUpperCase();
@@ -802,13 +616,12 @@
         window.updateSaleSummaryTable = updateSaleSummaryTable;
         console.log("Global functions attached");
       }
-      // Attach globals immediately (we’re using compat libraries so code is in global scope)
+      // Attach globals immediately (we're using defer so DOM is ready)
       attachGlobals();
       // Initialize by showing the home section.
       showSection("home");
-      // Update stock report when search input changes.
+      // Update stock report when the search input changes.
       document.getElementById("stockSearchInput").addEventListener("input", updateStockReportTable);
     </script>
   </body>
 </html>
-
