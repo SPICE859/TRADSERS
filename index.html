@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -24,7 +24,6 @@
       color: var(--primary);
       min-height: 100vh;
     }
-    
     /* ---------- Sidebar ---------- */
     .sidebar {
       position: fixed;
@@ -57,7 +56,6 @@
     .sidebar button:hover {
       background: var(--accent);
     }
-    
     /* ---------- Main Content ---------- */
     .main-content {
       margin-left: 270px;
@@ -81,10 +79,7 @@
       font-size: 28px;
       font-weight: 500;
     }
-    .home-header {
-      margin-bottom: 0;
-    }
-    
+    .home-header { margin-bottom: 0; }
     /* ---------- Gallery Styles ---------- */
     .gallery {
       display: flex;
@@ -98,7 +93,6 @@
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.15);
     }
-    
     /* ---------- Form & Table Styles ---------- */
     .filter-container, .search-container {
       text-align: center;
@@ -159,7 +153,6 @@
       border-radius: 8px;
       text-align: center;
     }
-    
     /* ---------- Modal Styles ---------- */
     .modal {
       display: none;
@@ -195,7 +188,6 @@
       transition: background var(--transition);
     }
     .modal button:hover { background: var(--accent); }
-    
     /* ---------- Print Styles ---------- */
     @media print {
       body { color: black; background: white; }
@@ -223,7 +215,7 @@
     <div id="home" class="section">
       <div class="header-large home-header">AHYAN TRADERS</div>
       <div class="gallery">
-        <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/1.png" alt="Image 1">
+        <img src="file:///System/1.png" alt="Image 1">
         <img src="file:///C:/Users/samad/Desktop/System/2.png" alt="Image 2">
         <img src="file:///C:/Users/samad/Desktop/System/3.png" alt="Image 3">
         <img src="file:///C:/Users/samad/Desktop/System/4.png" alt="Image 4">
@@ -330,6 +322,7 @@
   </div>
   
   <!-- ---------- Modals ---------- -->
+  <!-- Add New Item Modal -->
   <div id="addItemModal" class="modal no-print">
     <h3>Add New Item</h3>
     <label for="newItemCodeModal">Product Code:</label>
@@ -346,6 +339,7 @@
     <button onclick="closeModal('addItemModal')">Close</button>
   </div>
   
+  <!-- Edit Item Modal -->
   <div id="editItemModal" class="modal no-print">
     <h3>Edit Item</h3>
     <input type="hidden" id="editItemId">
@@ -361,7 +355,7 @@
     <button onclick="closeModal('editItemModal')">Close</button>
   </div>
   
-  <!-- Modal for Adding Stock -->
+  <!-- Add New Stock Modal -->
   <div id="addStockModal" class="modal no-print">
     <h3>Add New Stock</h3>
     <label for="stockItemSelect">Select Item:</label>
@@ -383,7 +377,7 @@
     <button onclick="closeModal('addStockModal')">Close</button>
   </div>
   
-  <!-- Modal for Updating Sale -->
+  <!-- Update Sale Modal -->
   <div id="updateSaleModal" class="modal no-print">
     <h3>Update Sale</h3>
     <label for="saleItemSelect">Select Item:</label>
@@ -436,7 +430,7 @@
     const analytics = getAnalytics(app);
     const db = getFirestore(app);
     
-    // Helper: Fetch saved items (used by both View Saved Items and Stock Report)
+    // Helper: Get saved items (used for both "View Saved Items" and "Stock Report")
     async function getSavedItems() {
       const itemsSnapshot = await getDocs(collection(db, "items"));
       const itemsMap = {};
@@ -453,15 +447,16 @@
       return itemsMap;
     }
     
-    // Modal Functions
+    /* ---------------------- Modal and Utility Functions ---------------------- */
+    
     function openAddItemModal() {
       document.getElementById("addItemModal").style.display = "block";
     }
+    
     function closeModal(id) {
       document.getElementById(id).style.display = "none";
     }
     
-    // Save New Item
     async function saveNewItemFromModal() {
       const code = document.getElementById("newItemCodeModal").value.trim();
       const desc = document.getElementById("newItemDescModal").value.trim();
@@ -489,7 +484,6 @@
       }
     }
     
-    // Update View Saved Items Table
     async function updateSavedItemsTable() {
       try {
         const itemsMap = await getSavedItems();
@@ -516,7 +510,6 @@
       }
     }
     
-    // Update Stock Report Table using saved items and stock entries
     async function updateStockReportTable() {
       try {
         const itemsMap = await getSavedItems();
@@ -568,7 +561,6 @@
       }
     }
     
-    // Delete Item
     async function deleteItem(itemId) {
       try {
         await deleteDoc(doc(db, "items", itemId));
@@ -581,7 +573,6 @@
       }
     }
     
-    // Open Edit Modal
     async function openEditModal(itemId) {
       try {
         const docRef = doc(db, "items", itemId);
@@ -600,7 +591,6 @@
       }
     }
     
-    // Save Edited Item
     async function saveEditedItem() {
       const itemId = document.getElementById("editItemId").value;
       const desc = document.getElementById("editDescription").value.trim();
@@ -624,7 +614,6 @@
       }
     }
     
-    // Sale Summary Update Function
     async function updateSaleSummaryTable() {
       try {
         const querySnapshot = await getDocs(collection(db, "billing"));
@@ -649,7 +638,6 @@
       }
     }
     
-    // Filter for Sale Summary
     function filterSales() {
       var startDate = document.getElementById("startDate").value;
       var endDate = document.getElementById("endDate").value;
@@ -673,7 +661,6 @@
       document.getElementById("netTotal").textContent = "Rs. " + total.toFixed(2);
     }
     
-    // Filter for View Saved Items
     function filterViewSavedItems() {
       let filter = (document.getElementById("viewSavedSearch").value || "").toUpperCase();
       let table = document.getElementById("savedItemsTable");
@@ -691,7 +678,56 @@
       }
     }
     
-    // Update Sale Functions
+    /* ---------------------- Stock and Sale Functions ---------------------- */
+    
+    function openAddStockModal() {
+      document.getElementById("addStockModal").style.display = "block";
+      populateStockItemSelect();
+    }
+    
+    async function populateStockItemSelect() {
+      try {
+        const itemsMap = await getSavedItems();
+        const select = document.getElementById("stockItemSelect");
+        select.innerHTML = "<option value=''>Select an item</option>";
+        for (const id in itemsMap) {
+          const item = itemsMap[id];
+          select.innerHTML += `<option value="${id}">${item.code} - ${item.description}</option>`;
+        }
+      } catch (error) {
+        console.error("Error populating stock items:", error);
+      }
+    }
+    
+    async function saveNewStock() {
+      const itemId = document.getElementById("stockItemSelect").value;
+      const ctns = parseInt(document.getElementById("stockCtns").value) || 0;
+      const boxes = parseInt(document.getElementById("stockBoxes").value) || 0;
+      const pcs = parseInt(document.getElementById("stockPcs").value) || 0;
+      if (!itemId) {
+        alert("Please select an item.");
+        return;
+      }
+      try {
+        await addDoc(collection(db, "stock"), { 
+          itemId, 
+          ctns, 
+          boxes, 
+          pcs, 
+          date: new Date().toISOString() 
+        });
+        alert("Stock added successfully!");
+        document.getElementById("stockCtns").value = "0";
+        document.getElementById("stockBoxes").value = "0";
+        document.getElementById("stockPcs").value = "0";
+        closeModal("addStockModal");
+        updateStockReportTable();
+      } catch (error) {
+        console.error("Error adding stock:", error);
+        alert("Error adding stock.");
+      }
+    }
+    
     function openUpdateSaleModal() {
       document.getElementById("updateSaleModal").style.display = "block";
       populateSaleItemSelect();
@@ -740,10 +776,9 @@
       }
     }
     
-    // Section Navigation
     function showSection(sectionId) {
-      var sections = document.getElementsByClassName("section");
-      for (var i = 0; i < sections.length; i++) {
+      const sections = document.getElementsByClassName("section");
+      for (let i = 0; i < sections.length; i++) {
         sections[i].style.display = "none";
       }
       document.getElementById(sectionId).style.display = "block";
@@ -758,48 +793,34 @@
       }
     }
     
-    // Initialize: Show Home by default
+    // ---------------------- Global Function Attachment ----------------------
+    document.addEventListener('DOMContentLoaded', () => {
+      // Attach all functions to the global window object so inline onclick handlers can access them.
+      window.openAddItemModal = openAddItemModal;
+      window.closeModal = closeModal;
+      window.saveNewItemFromModal = saveNewItemFromModal;
+      window.updateSavedItemsTable = updateSavedItemsTable;
+      window.updateStockReportTable = updateStockReportTable;
+      window.deleteItem = deleteItem;
+      window.openEditModal = openEditModal;
+      window.saveEditedItem = saveEditedItem;
+      window.filterSales = filterSales;
+      window.filterViewSavedItems = filterViewSavedItems;
+      window.showSection = showSection;
+      window.openAddStockModal = openAddStockModal;
+      window.saveNewStock = saveNewStock;
+      window.openUpdateSaleModal = openUpdateSaleModal;
+      window.saveSale = saveSale;
+      window.updateSaleSummaryTable = updateSaleSummaryTable;
+      console.log("Global functions attached");
+    });
+    
+    // Initialize by showing the home section.
     showSection('home');
     
-    // Update Stock Report on search input change
+    // Update stock report when the search input changes.
     document.getElementById('stockSearchInput').addEventListener('input', updateStockReportTable);
     
-    // Expose functions to global scope
-    window.openAddItemModal = openAddItemModal;
-    window.closeModal = closeModal;
-    window.saveNewItemFromModal = saveNewItemFromModal;
-    window.updateSavedItemsTable = updateSavedItemsTable;
-    window.updateStockReportTable = updateStockReportTable;
-    window.deleteItem = deleteItem;
-    window.openEditModal = openEditModal;
-    window.saveEditedItem = saveEditedItem;
-    window.filterSales = filterSales;
-    window.filterViewSavedItems = filterViewSavedItems;
-    window.showSection = showSection;
-    window.openAddStockModal = openAddStockModal;
-    window.saveNewStock = saveNewStock;
-    window.openUpdateSaleModal = openUpdateSaleModal;
-    window.saveSale = saveSale;
-    document.addEventListener('DOMContentLoaded', () => {
-  console.log("Module loaded, attaching global functions");
-  window.openAddItemModal = openAddItemModal;
-  window.closeModal = closeModal;
-  window.saveNewItemFromModal = saveNewItemFromModal;
-  window.updateSavedItemsTable = updateSavedItemsTable;
-  window.updateStockReportTable = updateStockReportTable;
-  window.deleteItem = deleteItem;
-  window.openEditModal = openEditModal;
-  window.saveEditedItem = saveEditedItem;
-  window.filterSales = filterSales;
-  window.filterViewSavedItems = filterViewSavedItems;
-  window.showSection = showSection;
-  window.openAddStockModal = openAddStockModal;
-  window.saveNewStock = saveNewStock;
-  window.openUpdateSaleModal = openUpdateSaleModal;
-  window.saveSale = saveSale;
-  console.log("Global functions attached");
-});
-
   </script>
 </body>
 </html>
