@@ -665,9 +665,10 @@
             const bill = doc.data();
             let netAmount = parseFloat(bill.netAmount);
             total += netAmount;
+            // Convert the ISO string date to "YYYY-MM-DD" format
             let dateStr = "N/A";
             if (bill.billDate) {
-              dateStr = new Date(bill.billDate).toLocaleString();
+              dateStr = new Date(bill.billDate).toISOString().split("T")[0];
             }
             let row = `<tr>
               <td>${dateStr}</td>
