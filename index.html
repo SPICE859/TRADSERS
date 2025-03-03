@@ -258,16 +258,11 @@
         <div class="home-title">AHYAN TRADERS</div>
         <div class="gallery">
           <!-- Replace these URLs with your actual image URLs -->
-          <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/3.png
-" alt="Image 1" />
-          <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/2.png
-" alt="Image 2" />
-          <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/4.png
-" alt="Image 3" />
-          <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/5.png
-" alt="Image 4" />
-          <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/7.png
-" alt="Image 5" />
+          <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/3.png" alt="Image 1" />
+          <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/2.png" alt="Image 2" />
+          <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/4.png" alt="Image 3" />
+          <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/5.png" alt="Image 4" />
+          <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/7.png" alt="Image 5" />
         </div>
       </div>
 
@@ -316,7 +311,7 @@
           <thead>
             <tr>
               <th>Product ID</th>
-              <th>Product Name</th>
+              <th>Description</th>
               <th>CTN Size</th>
               <th>Available CTNs</th>
               <th>Available Boxes</th>
@@ -346,7 +341,7 @@
           <table id="savedItemsTable">
             <thead>
               <tr>
-                <th>Product Code</th>
+                <th>Product ID</th>
                 <th>Description</th>
                 <th>CTN Size</th>
                 <th>Boxes per CTN</th>
@@ -516,7 +511,7 @@
             const item = itemsMap[id];
             let row = document.createElement("tr");
             row.innerHTML = `
-              <td>${item.code}</td>
+              <td>${id}</td>
               <td>${item.description}</td>
               <td>${item.ctnSize}</td>
               <td>${item.boxesPerCtn}</td>
@@ -571,7 +566,7 @@
           for (const itemId in itemsMap) {
             const item = itemsMap[itemId];
             if (
-              (item.code || "").toUpperCase().indexOf(filter) > -1 ||
+              (itemId || "").toUpperCase().indexOf(filter) > -1 ||
               (item.description || "").toUpperCase().indexOf(filter) > -1 ||
               (item.ctnSize || "").toUpperCase().indexOf(filter) > -1
             ) {
@@ -586,7 +581,7 @@
                 ((netBoxes / item.boxesPerCtn) * item.ctnPrice);
               netStockValue += totalValueForItem;
               let row = `<tr>
-                <td>${item.code}</td>
+                <td>${itemId}</td>
                 <td>${item.description}</td>
                 <td>${item.ctnSize}</td>
                 <td>${netCTNs}</td>
