@@ -10,9 +10,7 @@
       rel="stylesheet"
     />
     <style>
-      /* ===================================================================== */
-      /*                          Global CSS Variables                         */
-      /* ===================================================================== */
+      /* ---------- CSS Variables & Global Styles ---------- */
       :root {
         --primary: #34495e;
         --secondary: #2c3e50;
@@ -22,9 +20,6 @@
         --error: #e74c3c;
         --transition: 0.3s;
       }
-      /* ===================================================================== */
-      /*                           Reset & Global Styles                       */
-      /* ===================================================================== */
       * {
         margin: 0;
         padding: 0;
@@ -37,9 +32,7 @@
         color: var(--primary);
         min-height: 100vh;
       }
-      /* ===================================================================== */
-      /*                             Sidebar Styles                            */
-      /* ===================================================================== */
+      /* ---------- Sidebar ---------- */
       .sidebar {
         position: fixed;
         top: 0;
@@ -71,9 +64,7 @@
       .sidebar button:hover {
         background: var(--accent);
       }
-      /* ===================================================================== */
-      /*                           Main Content Styles                         */
-      /* ===================================================================== */
+      /* ---------- Main Content ---------- */
       .main-content {
         margin-left: 270px;
         padding: 20px;
@@ -96,9 +87,7 @@
         font-size: 28px;
         font-weight: 500;
       }
-      /* ===================================================================== */
-      /*                           Home Section Styles                         */
-      /* ===================================================================== */
+      /* ---------- Home Section ---------- */
       #home {
         text-align: center;
       }
@@ -118,9 +107,7 @@
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
       }
-      /* ===================================================================== */
-      /*                      Form & Table General Styles                      */
-      /* ===================================================================== */
+      /* ---------- Form & Table Styles ---------- */
       .filter-container,
       .search-container {
         text-align: center;
@@ -192,9 +179,7 @@
         border-radius: 8px;
         text-align: center;
       }
-      /* ===================================================================== */
-      /*                              Modal Styles                             */
-      /* ===================================================================== */
+      /* ---------- Modal Styles ---------- */
       .modal {
         display: none;
         position: fixed;
@@ -234,9 +219,7 @@
       .modal button:hover {
         background: var(--accent);
       }
-      /* ===================================================================== */
-      /*                             Print Styles                              */
-      /* ===================================================================== */
+      /* ---------- Print Styles ---------- */
       @media print {
         body {
           color: black;
@@ -254,15 +237,10 @@
           content: "0.00";
         }
       }
-      /* ===================================================================== */
-      /*                        End of CSS (900+ Lines)                        */
-      /* ===================================================================== */
     </style>
   </head>
   <body>
-    <!-- ===================================================================== -->
-    <!--                                Sidebar                                -->
-    <!-- ===================================================================== -->
+    <!-- ---------- Sidebar ---------- -->
     <div class="sidebar">
       <h2>AHYAN TRADERS</h2>
       <button onclick="showSection('home')">Home</button>
@@ -272,15 +250,14 @@
       <button onclick="showSection('viewSavedItemsSection')">View Saved Items</button>
       <button onclick="window.location.href='billing.html'">Billing System</button>
     </div>
-    <!-- ===================================================================== -->
-    <!--                              Main Content                           -->
-    <!-- ===================================================================== -->
+
+    <!-- ---------- Main Content ---------- -->
     <div class="main-content">
-      <!-- -------------------- Home Section -------------------- -->
+      <!-- Home Section -->
       <div id="home" class="section">
         <div class="home-title">AHYAN TRADERS</div>
         <div class="gallery">
-          <!-- Placeholder images; replace with your actual image URLs -->
+          <!-- Replace these URLs with your actual image URLs -->
           <img src="https://via.placeholder.com/300x200?text=Image+1" alt="Image 1" />
           <img src="https://via.placeholder.com/300x200?text=Image+2" alt="Image 2" />
           <img src="https://via.placeholder.com/300x200?text=Image+3" alt="Image 3" />
@@ -288,7 +265,8 @@
           <img src="https://via.placeholder.com/300x200?text=Image+5" alt="Image 5" />
         </div>
       </div>
-      <!-- -------------------- Sale Summary Section -------------------- -->
+
+      <!-- Sale Summary Section -->
       <div id="saleSummary" class="section">
         <div class="header-large">Sale Summary</div>
         <div class="filter-container">
@@ -318,7 +296,8 @@
           </tfoot>
         </table>
       </div>
-      <!-- -------------------- Stock Report Section -------------------- -->
+
+      <!-- Stock Report Section -->
       <div id="stockReport" class="section">
         <div class="header-large">Stock Report</div>
         <div class="search-container">
@@ -341,7 +320,7 @@
             </tr>
           </thead>
           <tbody id="stockTableBody">
-            <!-- Aggregated stock & sale data will appear here -->
+            <!-- Aggregated stock and sale data will appear here -->
           </tbody>
           <tfoot>
             <tr>
@@ -351,7 +330,8 @@
           </tfoot>
         </table>
       </div>
-      <!-- -------------------- View Saved Items Section -------------------- -->
+
+      <!-- View Saved Items Section -->
       <div id="viewSavedItemsSection" class="section">
         <div class="header-large">View Saved Items</div>
         <div class="container">
@@ -376,9 +356,8 @@
         </div>
       </div>
     </div>
-    <!-- ===================================================================== -->
-    <!--                                Modals                               -->
-    <!-- ===================================================================== -->
+
+    <!-- ---------- Modals ---------- -->
     <!-- Add New Item Modal -->
     <div id="addItemModal" class="modal no-print">
       <h3>Add New Item</h3>
@@ -395,6 +374,7 @@
       <button onclick="saveNewItemFromModal()">Save Item</button>
       <button onclick="closeModal('addItemModal')">Close</button>
     </div>
+
     <!-- Edit Item Modal -->
     <div id="editItemModal" class="modal no-print">
       <h3>Edit Item</h3>
@@ -410,6 +390,7 @@
       <button onclick="saveEditedItem()">Save Changes</button>
       <button onclick="closeModal('editItemModal')">Close</button>
     </div>
+
     <!-- Add New Stock Modal -->
     <div id="addStockModal" class="modal no-print">
       <h3>Add New Stock</h3>
@@ -427,6 +408,7 @@
       <button onclick="saveNewStock()">Save Stock</button>
       <button onclick="closeModal('addStockModal')">Close</button>
     </div>
+
     <!-- Update Sale Modal -->
     <div id="updateSaleModal" class="modal no-print">
       <h3>Update Sale</h3>
@@ -444,24 +426,50 @@
       <button onclick="saveSale()">Save Sale</button>
       <button onclick="closeModal('updateSaleModal')">Close</button>
     </div>
-    <!-- ===================================================================== -->
-    <!--                             Custom Script                           -->
-    <!-- ===================================================================== -->
-    <script defer>
-      /* ========================================================================= */
-      /*                         Global Utility Functions                          */
-      /* ========================================================================= */
-      // Function to open the Add New Item modal
+
+    <!-- ---------- Firebase & Firestore (Compat) Scripts ---------- -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <script>
+      // Initialize Firebase using compat libraries
+      const firebaseConfig = {
+        apiKey: "AIzaSyD_ojS20opjpxmwHxIHATC52ncABe_fkuk",
+        authDomain: "ahyan-traders.firebaseapp.com",
+        projectId: "ahyan-traders",
+        storageBucket: "ahyan-traders.firebasestorage.app",
+        messagingSenderId: "1024047266496",
+        appId: "1:1024047266496:web:349c052d55564a96bfcb25",
+        measurementId: "G-11ZNXV1ZZL"
+      };
+      firebase.initializeApp(firebaseConfig);
+      firebase.analytics();
+      const db = firebase.firestore();
+
+      // Helper: Get saved items
+      async function getSavedItems() {
+        const itemsSnapshot = await db.collection("items").get();
+        const itemsMap = {};
+        itemsSnapshot.forEach((doc) => {
+          const data = doc.data();
+          itemsMap[doc.id] = {
+            code: data.code || "",
+            description: data.description || "",
+            ctnSize: data.ctnSize || "",
+            boxesPerCtn: data.boxesPerCtn || 0,
+            ctnPrice: data.ctnPrice || 0
+          };
+        });
+        return itemsMap;
+      }
+
+      /* ---------------------- Modal and Utility Functions ---------------------- */
       function openAddItemModal() {
         document.getElementById("addItemModal").style.display = "block";
       }
-      // Function to close a modal by its id
       function closeModal(id) {
         document.getElementById(id).style.display = "none";
       }
-      /* ========================================================================= */
-      /*                    Functions for "Add New Item" Modal                   */
-      /* ========================================================================= */
       async function saveNewItemFromModal() {
         const code = document.getElementById("newItemCodeModal").value.trim();
         const desc = document.getElementById("newItemDescModal").value.trim();
@@ -471,11 +479,11 @@
         if (code && desc && size && !isNaN(boxes) && !isNaN(price)) {
           try {
             await db.collection("items").add({
-              code: code,
+              code,
               description: desc,
               ctnSize: size,
               boxesPerCtn: boxes,
-              ctnPrice: price,
+              ctnPrice: price
             });
             alert("Item added successfully!");
             document.getElementById("newItemCodeModal").value = "";
@@ -494,9 +502,116 @@
           alert("Please fill in all fields correctly.");
         }
       }
-      /* ========================================================================= */
-      /*                   Functions for "Edit Item" Modal                         */
-      /* ========================================================================= */
+      async function updateSavedItemsTable() {
+        try {
+          const itemsMap = await getSavedItems();
+          const tbody = document.getElementById("savedItemsTableBody");
+          tbody.innerHTML = "";
+          for (const id in itemsMap) {
+            const item = itemsMap[id];
+            let row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${item.code}</td>
+              <td>${item.description}</td>
+              <td>${item.ctnSize}</td>
+              <td>${item.boxesPerCtn}</td>
+              <td>${parseFloat(item.ctnPrice).toFixed(2)}</td>
+              <td>
+                <button onclick="openEditModal('${id}')">Edit</button>
+                <button onclick="deleteItem('${id}')">Delete</button>
+              </td>
+            `;
+            tbody.appendChild(row);
+          }
+        } catch (error) {
+          console.error("Error fetching saved items:", error);
+        }
+      }
+
+      /* ---------------------- Stock Report Functions ---------------------- */
+      async function updateStockReportTable() {
+        try {
+          const itemsMap = await getSavedItems();
+          // Aggregate stock entries
+          const stockSnapshot = await db.collection("stock").get();
+          const stockAggregation = {};
+          stockSnapshot.forEach((doc) => {
+            const stockEntry = doc.data();
+            const itemId = stockEntry.itemId;
+            if (!stockAggregation[itemId]) {
+              stockAggregation[itemId] = { ctns: 0, boxes: 0, pcs: 0 };
+            }
+            stockAggregation[itemId].ctns += stockEntry.ctns;
+            stockAggregation[itemId].boxes += stockEntry.boxes;
+            stockAggregation[itemId].pcs += stockEntry.pcs;
+          });
+          // Aggregate sale entries
+          const saleSnapshot = await db.collection("sales").get();
+          const saleAggregation = {};
+          saleSnapshot.forEach((doc) => {
+            const saleEntry = doc.data();
+            const itemId = saleEntry.itemId;
+            if (!saleAggregation[itemId]) {
+              saleAggregation[itemId] = { ctns: 0, boxes: 0, pcs: 0 };
+            }
+            saleAggregation[itemId].ctns += saleEntry.ctns;
+            saleAggregation[itemId].boxes += saleEntry.boxes;
+            saleAggregation[itemId].pcs += saleEntry.pcs;
+          });
+
+          const tbody = document.getElementById("stockTableBody");
+          tbody.innerHTML = "";
+          let netStockValue = 0;
+          const filter = (document.getElementById("stockSearchInput").value || "").toUpperCase();
+          for (const itemId in itemsMap) {
+            const item = itemsMap[itemId];
+            if (
+              (item.code || "").toUpperCase().indexOf(filter) > -1 ||
+              (item.description || "").toUpperCase().indexOf(filter) > -1 ||
+              (item.ctnSize || "").toUpperCase().indexOf(filter) > -1
+            ) {
+              const stockAgg = stockAggregation[itemId] || { ctns: 0, boxes: 0, pcs: 0 };
+              const saleAgg = saleAggregation[itemId] || { ctns: 0, boxes: 0, pcs: 0 };
+              // Calculate net available = stock minus sales
+              const netCTNs = stockAgg.ctns - saleAgg.ctns;
+              const netBoxes = stockAgg.boxes - saleAgg.boxes;
+              // Calculate total value based on net quantities
+              const totalValueForItem =
+                netCTNs * item.ctnPrice +
+                ((netBoxes / item.boxesPerCtn) * item.ctnPrice);
+              netStockValue += totalValueForItem;
+              let row = `<tr>
+                <td>${item.code}</td>
+                <td>${item.description}</td>
+                <td>${item.ctnSize}</td>
+                <td>${netCTNs}</td>
+                <td>${netBoxes}</td>
+                <td>Rs. ${parseFloat(item.ctnPrice).toFixed(2)}</td>
+                <td>Rs. ${totalValueForItem.toFixed(2)}</td>
+              </tr>`;
+              tbody.innerHTML += row;
+            }
+          }
+          if (tbody.innerHTML === "") {
+            tbody.innerHTML = "<tr><td colspan='7'>No data available</td></tr>";
+          }
+          document.getElementById("netStockValue").textContent =
+            "Rs. " + netStockValue.toFixed(2);
+        } catch (error) {
+          console.error("Error fetching stock, sales or saved items:", error);
+        }
+      }
+      async function deleteItem(itemId) {
+        try {
+          await db.collection("items").doc(itemId).delete();
+          alert("Item deleted successfully");
+          updateSavedItemsTable();
+          updateStockReportTable();
+        } catch (error) {
+          console.error("Error deleting item:", error);
+          alert("Error deleting item.");
+        }
+      }
       async function openEditModal(itemId) {
         try {
           const docRef = db.collection("items").doc(itemId);
@@ -526,7 +641,7 @@
               description: desc,
               ctnSize: size,
               ctnPrice: price,
-              boxesPerCtn: boxes,
+              boxesPerCtn: boxes
             });
             alert("Item updated successfully!");
             closeModal("editItemModal");
@@ -540,100 +655,6 @@
           alert("Please fill in all fields correctly.");
         }
       }
-      /* ========================================================================= */
-      /*                    Functions for "Add New Stock" Modal                    */
-      /* ========================================================================= */
-      async function populateStockItemSelect() {
-        try {
-          const itemsMap = await getSavedItems();
-          const select = document.getElementById("stockItemSelect");
-          select.innerHTML = "<option value=''>Select an item</option>";
-          for (const id in itemsMap) {
-            const item = itemsMap[id];
-            select.innerHTML += `<option value="${id}">${item.code} - ${item.description}</option>`;
-          }
-        } catch (error) {
-          console.error("Error populating stock items:", error);
-        }
-      }
-      function openAddStockModal() {
-        console.log("openAddStockModal called");
-        document.getElementById("addStockModal").style.display = "block";
-        populateStockItemSelect();
-      }
-      async function saveNewStock() {
-        const itemId = document.getElementById("stockItemSelect").value;
-        const ctns = parseInt(document.getElementById("stockCtns").value) || 0;
-        const boxes = parseInt(document.getElementById("stockBoxes").value) || 0;
-        if (!itemId) {
-          alert("Please select an item.");
-          return;
-        }
-        try {
-          await db.collection("stock").add({
-            itemId: itemId,
-            ctns: ctns,
-            boxes: boxes,
-            date: new Date().toISOString(),
-          });
-          alert("Stock added successfully!");
-          document.getElementById("stockCtns").value = "0";
-          document.getElementById("stockBoxes").value = "0";
-          closeModal("addStockModal");
-          updateStockReportTable();
-        } catch (error) {
-          console.error("Error adding stock:", error);
-          alert("Error adding stock.");
-        }
-      }
-      /* ========================================================================= */
-      /*                   Functions for "Update Sale" Modal                       */
-      /* ========================================================================= */
-      async function populateSaleItemSelect() {
-        try {
-          const itemsMap = await getSavedItems();
-          const select = document.getElementById("saleItemSelect");
-          select.innerHTML = "<option value=''>Select an item</option>";
-          for (const id in itemsMap) {
-            const item = itemsMap[id];
-            select.innerHTML += `<option value="${id}">${item.code} - ${item.description}</option>`;
-          }
-        } catch (error) {
-          console.error("Error populating sale items:", error);
-        }
-      }
-      function openUpdateSaleModal() {
-        document.getElementById("updateSaleModal").style.display = "block";
-        populateSaleItemSelect();
-      }
-      async function saveSale() {
-        const itemId = document.getElementById("saleItemSelect").value;
-        const ctns = parseInt(document.getElementById("saleCtns").value) || 0;
-        const boxes = parseInt(document.getElementById("saleBoxes").value) || 0;
-        if (!itemId) {
-          alert("Please select an item.");
-          return;
-        }
-        try {
-          await db.collection("sales").add({
-            itemId: itemId,
-            ctns: ctns,
-            boxes: boxes,
-            date: new Date().toISOString(),
-          });
-          alert("Sale updated successfully!");
-          document.getElementById("saleCtns").value = "0";
-          document.getElementById("saleBoxes").value = "0";
-          closeModal("updateSaleModal");
-          updateStockReportTable();
-        } catch (error) {
-          console.error("Error updating sale:", error);
-          alert("Error updating sale.");
-        }
-      }
-      /* ========================================================================= */
-      /*                   Functions for "Sale Summary" Section                    */
-      /* ========================================================================= */
       async function updateSaleSummaryTable() {
         try {
           const querySnapshot = await db.collection("billing").get();
@@ -686,9 +707,6 @@
         }
         document.getElementById("netTotal").textContent = "Rs. " + total.toFixed(2);
       }
-      /* ========================================================================= */
-      /*                   Functions for "View Saved Items" Section                */
-      /* ========================================================================= */
       function filterViewSavedItems() {
         let filter = (document.getElementById("viewSavedSearch").value || "").toUpperCase();
         let table = document.getElementById("savedItemsTable");
@@ -705,98 +723,66 @@
           trs[i].style.display = show ? "" : "none";
         }
       }
-      /* ========================================================================= */
-      /*                   Functions for "Stock Report" Section                    */
-      /* ========================================================================= */
-      async function updateStockReportTable() {
+      // ---------------------- Sale Functions ----------------------
+      function openUpdateSaleModal() {
+        document.getElementById("updateSaleModal").style.display = "block";
+        populateSaleItemSelect();
+      }
+      async function populateSaleItemSelect() {
         try {
           const itemsMap = await getSavedItems();
-          // Aggregate stock entries
-          const stockSnapshot = await db.collection("stock").get();
-          const stockAggregation = {};
-          stockSnapshot.forEach((doc) => {
-            const stockEntry = doc.data();
-            const itemId = stockEntry.itemId;
-            if (!stockAggregation[itemId]) {
-              stockAggregation[itemId] = { ctns: 0, boxes: 0, pcs: 0 };
-            }
-            stockAggregation[itemId].ctns += stockEntry.ctns;
-            stockAggregation[itemId].boxes += stockEntry.boxes;
-            stockAggregation[itemId].pcs += stockEntry.pcs;
-          });
-          // Aggregate sale entries
-          const saleSnapshot = await db.collection("sales").get();
-          const saleAggregation = {};
-          saleSnapshot.forEach((doc) => {
-            const saleEntry = doc.data();
-            const itemId = saleEntry.itemId;
-            if (!saleAggregation[itemId]) {
-              saleAggregation[itemId] = { ctns: 0, boxes: 0, pcs: 0 };
-            }
-            saleAggregation[itemId].ctns += saleEntry.ctns;
-            saleAggregation[itemId].boxes += saleEntry.boxes;
-            saleAggregation[itemId].pcs += saleEntry.pcs;
-          });
-
-          const tbody = document.getElementById("stockTableBody");
-          tbody.innerHTML = "";
-          let netStockValue = 0;
-          const filter = (document.getElementById("stockSearchInput").value || "").toUpperCase();
-          for (const itemId in itemsMap) {
-            const item = itemsMap[itemId];
-            if (
-              (item.code || "").toUpperCase().indexOf(filter) > -1 ||
-              (item.description || "").toUpperCase().indexOf(filter) > -1 ||
-              (item.ctnSize || "").toUpperCase().indexOf(filter) > -1
-            ) {
-              const stockAgg = stockAggregation[itemId] || { ctns: 0, boxes: 0, pcs: 0 };
-              const saleAgg = saleAggregation[itemId] || { ctns: 0, boxes: 0, pcs: 0 };
-              // Net available = stock minus sales
-              const netCTNs = stockAgg.ctns - saleAgg.ctns;
-              const netBoxes = stockAgg.boxes - saleAgg.boxes;
-              // Total value based on net quantities:
-              const totalValueForItem =
-                netCTNs * item.ctnPrice +
-                ((netBoxes / item.boxesPerCtn) * item.ctnPrice);
-              netStockValue += totalValueForItem;
-              let row = `<tr>
-                <td>${item.code}</td>
-                <td>${item.description}</td>
-                <td>${item.ctnSize}</td>
-                <td>${netCTNs}</td>
-                <td>${netBoxes}</td>
-                <td>Rs. ${parseFloat(item.ctnPrice).toFixed(2)}</td>
-                <td>Rs. ${totalValueForItem.toFixed(2)}</td>
-              </tr>`;
-              tbody.innerHTML += row;
-            }
+          const select = document.getElementById("saleItemSelect");
+          select.innerHTML = "<option value=''>Select an item</option>";
+          for (const id in itemsMap) {
+            const item = itemsMap[id];
+            select.innerHTML += `<option value="${id}">${item.code} - ${item.description}</option>`;
           }
-          if (tbody.innerHTML === "") {
-            tbody.innerHTML = "<tr><td colspan='7'>No data available</td></tr>";
-          }
-          document.getElementById("netStockValue").textContent =
-            "Rs. " + netStockValue.toFixed(2);
         } catch (error) {
-          console.error("Error fetching stock, sales or saved items:", error);
+          console.error("Error populating sale items:", error);
         }
       }
-      /* ========================================================================= */
-      /*                             Global Deletion Function                      */
-      /* ========================================================================= */
-      async function deleteItem(itemId) {
+      async function saveSale() {
+        const itemId = document.getElementById("saleItemSelect").value;
+        const ctns = parseInt(document.getElementById("saleCtns").value) || 0;
+        const boxes = parseInt(document.getElementById("saleBoxes").value) || 0;
+        if (!itemId) {
+          alert("Please select an item.");
+          return;
+        }
         try {
-          await db.collection("items").doc(itemId).delete();
-          alert("Item deleted successfully");
-          updateSavedItemsTable();
+          await db.collection("sales").add({
+            itemId,
+            ctns,
+            boxes,
+            date: new Date().toISOString()
+          });
+          alert("Sale updated successfully!");
+          document.getElementById("saleCtns").value = "0";
+          document.getElementById("saleBoxes").value = "0";
+          closeModal("updateSaleModal");
           updateStockReportTable();
         } catch (error) {
-          console.error("Error deleting item:", error);
-          alert("Error deleting item.");
+          console.error("Error updating sale:", error);
+          alert("Error updating sale.");
         }
       }
-      /* ========================================================================= */
-      /*                       Global Function Attachment                        */
-      /* ========================================================================= */
+      function showSection(sectionId) {
+        const sections = document.getElementsByClassName("section");
+        for (let i = 0; i < sections.length; i++) {
+          sections[i].style.display = "none";
+        }
+        document.getElementById(sectionId).style.display = "block";
+        if (sectionId === "saleSummary") {
+          updateSaleSummaryTable();
+        }
+        if (sectionId === "stockReport") {
+          updateStockReportTable();
+        }
+        if (sectionId === "viewSavedItemsSection") {
+          updateSavedItemsTable();
+        }
+      }
+      // ---------------------- Global Function Attachment ----------------------
       function attachGlobals() {
         window.openAddItemModal = openAddItemModal;
         window.closeModal = closeModal;
@@ -816,15 +802,12 @@
         window.updateSaleSummaryTable = updateSaleSummaryTable;
         console.log("Global functions attached");
       }
-      // Attach globals (using defer, so DOM is ready)
+      // Attach globals immediately (we’re using compat libraries so code is in global scope)
       attachGlobals();
-      // Initialize home section
+      // Initialize by showing the home section.
       showSection("home");
-      // Update stock report on search input
+      // Update stock report when search input changes.
       document.getElementById("stockSearchInput").addEventListener("input", updateStockReportTable);
     </script>
-    <!-- ===================================================================== -->
-    <!--                        End of Full Dashboard Code                      -->
-    <!-- ===================================================================== -->
   </body>
 </html>
