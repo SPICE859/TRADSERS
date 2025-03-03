@@ -215,18 +215,16 @@
     <div id="home" class="section">
       <div class="header-large home-header">AHYAN TRADERS</div>
       <div class="gallery">
-        <img src="file:///System/1.png" alt="Image 1">
-        <img src="file:///C:/Users/samad/Desktop/System/2.png" alt="Image 2">
-        <img src="file:///C:/Users/samad/Desktop/System/3.png" alt="Image 3">
-        <img src="file:///C:/Users/samad/Desktop/System/4.png" alt="Image 4">
-        <img src="file:///C:/Users/samad/Desktop/System/5.png" alt="Image 5">
-        <img src="file:///C:/Users/samad/Desktop/System/6.png" alt="Image 6">
-        <img src="file:///C:/Users/samad/Desktop/System/7.png" alt="Image 7">
-        <img src="file:///C:/Users/samad/Desktop/System/8.png" alt="Image 8">
-        <img src="file:///C:/Users/samad/Desktop/System/9.png" alt="Image 9">
-        <img src="file:///C:/Users/samad/Desktop/System/10.png" alt="Image 10">
-        <img src="file:///C:/Users/samad/Desktop/System/12.png" alt="Image 12">
-        <img src="file:///C:/Users/samad/Desktop/System/13.png" alt="Image 13">
+        <img src="https://via.placeholder.com/300x200?text=Image+1" alt="Image 1">
+        <img src="https://via.placeholder.com/300x200?text=Image+2" alt="Image 2">
+        <img src="https://via.placeholder.com/300x200?text=Image+3" alt="Image 3">
+        <img src="https://via.placeholder.com/300x200?text=Image+4" alt="Image 4">
+        <img src="https://via.placeholder.com/300x200?text=Image+5" alt="Image 5">
+        <img src="https://via.placeholder.com/300x200?text=Image+6" alt="Image 6">
+        <img src="https://via.placeholder.com/300x200?text=Image+7" alt="Image 7">
+        <img src="https://via.placeholder.com/300x200?text=Image+8" alt="Image 8">
+        <img src="https://via.placeholder.com/300x200?text=Image+9" alt="Image 9">
+        <img src="https://via.placeholder.com/300x200?text=Image+10" alt="Image 10">
       </div>
     </div>
     
@@ -419,9 +417,9 @@
     };
     
     // Initialize Firebase and Firestore
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const db = getFirestore(app);
+    const appFirebase = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(appFirebase);
+    const db = getFirestore(appFirebase);
     
     // Helper: Get saved items (used for both "View Saved Items" and "Stock Report")
     async function getSavedItems() {
@@ -550,7 +548,7 @@
             // Calculate net available: subtract sales from stock
             const netCTNs = stockAgg.ctns - saleAgg.ctns;
             const netBoxes = stockAgg.boxes - saleAgg.boxes;
-            // Total value based on net quantities:
+            // Calculate total value based on net quantities:
             const totalValueForItem = (netCTNs * item.ctnPrice) + ((netBoxes / item.boxesPerCtn) * item.ctnPrice);
             netStockValue += totalValueForItem;
             let row = `<tr>
@@ -775,7 +773,8 @@
       window.updateSaleSummaryTable = updateSaleSummaryTable;
       console.log("Global functions attached");
     }
-    // Check if DOM is already loaded; if so, attach immediately.
+    
+    // Attach global functions once the DOM is ready
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", attachGlobals);
     } else {
