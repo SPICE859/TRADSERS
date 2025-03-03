@@ -223,7 +223,7 @@
     <div id="home" class="section">
       <div class="header-large home-header">AHYAN TRADERS</div>
       <div class="gallery">
-        <img src="https://github.com/SPICE859/TRADSERS/blob/main/1.png" alt="Image 1">
+        <img src="file:///System/1.png" alt="Image 1">
         <img src="file:///C:/Users/samad/Desktop/System/2.png" alt="Image 2">
         <img src="file:///C:/Users/samad/Desktop/System/3.png" alt="Image 3">
         <img src="file:///C:/Users/samad/Desktop/System/4.png" alt="Image 4">
@@ -275,7 +275,7 @@
       <div class="search-container">
         <input type="text" id="stockSearchInput" placeholder="Search by Product ID, Name, or CTN Size...">
       </div>
-      <!-- New Buttons for Adding Stock and Updating Sale -->
+      <!-- Buttons for Adding Stock and Updating Sale -->
       <div style="text-align: center; margin-bottom: 10px;">
         <button onclick="openAddStockModal()">Add New Stock</button>
         <button onclick="openUpdateSaleModal()">Update Sale</button>
@@ -292,7 +292,7 @@
           </tr>
         </thead>
         <tbody id="stockTableBody">
-          <!-- Dynamically generated rows using saved items and stock entries -->
+          <!-- Data will be aggregated from saved items and stock entries -->
         </tbody>
         <tfoot>
           <tr>
@@ -322,7 +322,7 @@
             </tr>
           </thead>
           <tbody id="savedItemsTableBody">
-            <!-- Dynamically generated rows -->
+            <!-- Saved items will be populated here -->
           </tbody>
         </table>
       </div>
@@ -361,7 +361,7 @@
     <button onclick="closeModal('editItemModal')">Close</button>
   </div>
   
-  <!-- New Modal for Adding Stock -->
+  <!-- Modal for Adding Stock -->
   <div id="addStockModal" class="modal no-print">
     <h3>Add New Stock</h3>
     <label for="stockItemSelect">Select Item:</label>
@@ -383,7 +383,7 @@
     <button onclick="closeModal('addStockModal')">Close</button>
   </div>
   
-  <!-- New Modal for Updating Sale -->
+  <!-- Modal for Updating Sale -->
   <div id="updateSaleModal" class="modal no-print">
     <h3>Update Sale</h3>
     <label for="saleItemSelect">Select Item:</label>
@@ -436,12 +436,11 @@
     const analytics = getAnalytics(app);
     const db = getFirestore(app);
     
-    // Helper function: Get saved items from Firestore (used in view saved items and stock report)
+    // Helper: Fetch saved items (used by both View Saved Items and Stock Report)
     async function getSavedItems() {
       const itemsSnapshot = await getDocs(collection(db, "items"));
       const itemsMap = {};
       itemsSnapshot.forEach((docSnap) => {
-        // Ensure each field has a fallback value if undefined
         const data = docSnap.data();
         itemsMap[docSnap.id] = {
           code: data.code || "",
@@ -462,7 +461,7 @@
       document.getElementById(id).style.display = "none";
     }
     
-    // Save new item to Firestore
+    // Save New Item
     async function saveNewItemFromModal() {
       const code = document.getElementById("newItemCodeModal").value.trim();
       const desc = document.getElementById("newItemDescModal").value.trim();
@@ -490,7 +489,7 @@
       }
     }
     
-    // Update the View Saved Items table (used in that section)
+    // Update View Saved Items Table
     async function updateSavedItemsTable() {
       try {
         const itemsMap = await getSavedItems();
@@ -517,13 +516,10 @@
       }
     }
     
-    // Updated Stock Report Table: Get saved items and aggregate stock entries from DB
+    // Update Stock Report Table using saved items and stock entries
     async function updateStockReportTable() {
       try {
-        // Get saved items from Firestore (same as used in view saved items)
         const itemsMap = await getSavedItems();
-    
-        // Fetch stock entries and aggregate by itemId
         const stockSnapshot = await getDocs(collection(db, "stock"));
         const stockAggregation = {};
         stockSnapshot.forEach((docSnap) => {
@@ -537,26 +533,19 @@
           stockAggregation[itemId].pcs += stockEntry.pcs;
         });
     
-        // (Optional) Fetch sale entries if you wish to subtract sold quantities – not shown here.
-        // For now, we simply show the stock added from the database.
-    
-        // Build the table using saved items and stock entries
         const tbody = document.getElementById("stockTableBody");
         tbody.innerHTML = "";
         let netStockValue = 0;
         const filter = (document.getElementById("stockSearchInput").value || "").toUpperCase();
         for (const itemId in itemsMap) {
           const item = itemsMap[itemId];
-          // Apply filter using fallbacks for each field
           if (
             (item.code || "").toUpperCase().indexOf(filter) > -1 ||
             (item.description || "").toUpperCase().indexOf(filter) > -1 ||
             (item.ctnSize || "").toUpperCase().indexOf(filter) > -1
           ) {
             const stockAgg = stockAggregation[itemId] || { ctns: 0, boxes: 0, pcs: 0 };
-            // Calculate available boxes: (CTNs * boxesPerCtn) + Boxes
             const availableBoxes = (stockAgg.ctns * item.boxesPerCtn) + stockAgg.boxes;
-            // Calculate total value based on CTNs and Boxes (ignoring pcs)
             const totalValueForItem = (stockAgg.ctns * item.ctnPrice) + ((stockAgg.boxes / item.boxesPerCtn) * item.ctnPrice);
             netStockValue += totalValueForItem;
             let row = `<tr>
@@ -579,7 +568,7 @@
       }
     }
     
-    // Delete item from Firestore
+    // Delete Item
     async function deleteItem(itemId) {
       try {
         await deleteDoc(doc(db, "items", itemId));
@@ -592,7 +581,7 @@
       }
     }
     
-    // Open edit modal and pre-fill data from Firestore
+    // Open Edit Modal
     async function openEditModal(itemId) {
       try {
         const docRef = doc(db, "items", itemId);
@@ -611,7 +600,7 @@
       }
     }
     
-    // Save edited item data to Firestore
+    // Save Edited Item
     async function saveEditedItem() {
       const itemId = document.getElementById("editItemId").value;
       const desc = document.getElementById("editDescription").value.trim();
@@ -635,7 +624,32 @@
       }
     }
     
-    // Sales filtering for Sale Summary page (unchanged)
+    // Sale Summary Update Function
+    async function updateSaleSummaryTable() {
+      try {
+        const querySnapshot = await getDocs(collection(db, "billing"));
+        const tbody = document.getElementById("salesTableBody");
+        tbody.innerHTML = "";
+        let total = 0;
+        querySnapshot.forEach((docSnap) => {
+          const bill = docSnap.data();
+          let netAmount = parseFloat(bill.netAmount);
+          total += netAmount;
+          let row = `<tr>
+            <td>${bill.date}</td>
+            <td>${bill.invoiceNo}</td>
+            <td>${bill.customer}</td>
+            <td>Rs. ${netAmount.toFixed(2)}</td>
+          </tr>`;
+          tbody.innerHTML += row;
+        });
+        document.getElementById("netTotal").textContent = "Rs. " + total.toFixed(2);
+      } catch (error) {
+        console.error("Error fetching billing data:", error);
+      }
+    }
+    
+    // Filter for Sale Summary
     function filterSales() {
       var startDate = document.getElementById("startDate").value;
       var endDate = document.getElementById("endDate").value;
@@ -677,7 +691,7 @@
       }
     }
     
-    // (Optional) Update Sale functions if you want to subtract sold quantities
+    // Update Sale Functions
     function openUpdateSaleModal() {
       document.getElementById("updateSaleModal").style.display = "block";
       populateSaleItemSelect();
@@ -726,7 +740,7 @@
       }
     }
     
-    // Section navigation
+    // Section Navigation
     function showSection(sectionId) {
       var sections = document.getElementsByClassName("section");
       for (var i = 0; i < sections.length; i++) {
@@ -734,7 +748,7 @@
       }
       document.getElementById(sectionId).style.display = "block";
       if (sectionId === "saleSummary") {
-        // updateSaleSummaryTable(); // If you use this function
+        updateSaleSummaryTable();
       }
       if (sectionId === "stockReport") {
         updateStockReportTable();
@@ -744,13 +758,13 @@
       }
     }
     
-    // Show Home by default on page load
+    // Initialize: Show Home by default
     showSection('home');
     
-    // Update stock report when search input changes
+    // Update Stock Report on search input change
     document.getElementById('stockSearchInput').addEventListener('input', updateStockReportTable);
     
-    // Expose functions to global scope for inline event handlers
+    // Expose functions to global scope
     window.openAddItemModal = openAddItemModal;
     window.closeModal = closeModal;
     window.saveNewItemFromModal = saveNewItemFromModal;
