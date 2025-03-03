@@ -278,7 +278,8 @@
             <th>Product ID</th>
             <th>Product Name</th>
             <th>CTN Size</th>
-            <th>Available Boxes<br>(CTNs, Boxes, Pcs)</th>
+            <th>Available CTNs</th>
+            <th>Available Boxes</th>
             <th>Unit Price (Rs.)</th>
             <th>Total Value (Rs.)</th>
           </tr>
@@ -288,7 +289,7 @@
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="5" style="text-align: right;">Net Total Stock Value (Rs.):</td>
+            <td colspan="6" style="text-align: right;">Net Total Stock Value (Rs.):</td>
             <td id="netStockValue">Rs. 0.00</td>
           </tr>
         </tfoot>
@@ -369,10 +370,6 @@
       <label for="stockBoxes">Boxes:</label>
       <input type="number" id="stockBoxes" placeholder="0" value="0">
     </div>
-    <div>
-      <label for="stockPcs">Pcs:</label>
-      <input type="number" id="stockPcs" placeholder="0" value="0">
-    </div>
     <button onclick="saveNewStock()">Save Stock</button>
     <button onclick="closeModal('addStockModal')">Close</button>
   </div>
@@ -390,10 +387,6 @@
     <div>
       <label for="saleBoxes">Boxes:</label>
       <input type="number" id="saleBoxes" placeholder="0" value="0">
-    </div>
-    <div>
-      <label for="salePcs">Pcs:</label>
-      <input type="number" id="salePcs" placeholder="0" value="0">
     </div>
     <button onclick="saveSale()">Save Sale</button>
     <button onclick="closeModal('updateSaleModal')">Close</button>
@@ -538,14 +531,18 @@
             (item.ctnSize || "").toUpperCase().indexOf(filter) > -1
           ) {
             const stockAgg = stockAggregation[itemId] || { ctns: 0, boxes: 0, pcs: 0 };
-            const availableBoxes = (stockAgg.ctns * item.boxesPerCtn) + stockAgg.boxes;
+            // Show available CTNs and available Boxes separately.
+            const availableCTNs = stockAgg.ctns;
+            const availableBoxes = stockAgg.boxes;
+            // Total value calculation remains as before:
             const totalValueForItem = (stockAgg.ctns * item.ctnPrice) + ((stockAgg.boxes / item.boxesPerCtn) * item.ctnPrice);
             netStockValue += totalValueForItem;
             let row = `<tr>
               <td>${item.code}</td>
               <td>${item.description}</td>
               <td>${item.ctnSize}</td>
-              <td>${availableBoxes} <br>(CTNs: ${stockAgg.ctns}, Boxes: ${stockAgg.boxes}, Pcs: ${stockAgg.pcs})</td>
+              <td>${availableCTNs}</td>
+              <td>${availableBoxes}</td>
               <td>Rs. ${parseFloat(item.ctnPrice).toFixed(2)}</td>
               <td>Rs. ${totalValueForItem.toFixed(2)}</td>
             </tr>`;
@@ -553,7 +550,7 @@
           }
         }
         if (tbody.innerHTML === "") {
-          tbody.innerHTML = "<tr><td colspan='6'>No data available</td></tr>";
+          tbody.innerHTML = "<tr><td colspan='7'>No data available</td></tr>";
         }
         document.getElementById("netStockValue").textContent = "Rs. " + netStockValue.toFixed(2);
       } catch (error) {
@@ -625,7 +622,7 @@
           let netAmount = parseFloat(bill.netAmount);
           total += netAmount;
           let row = `<tr>
-            <td>${bill.billdate}</td>
+            <td>${bill.date}</td>
             <td>${bill.invoiceNo}</td>
             <td>${bill.customer}</td>
             <td>Rs. ${netAmount.toFixed(2)}</td>
@@ -703,7 +700,6 @@
       const itemId = document.getElementById("stockItemSelect").value;
       const ctns = parseInt(document.getElementById("stockCtns").value) || 0;
       const boxes = parseInt(document.getElementById("stockBoxes").value) || 0;
-      const pcs = parseInt(document.getElementById("stockPcs").value) || 0;
       if (!itemId) {
         alert("Please select an item.");
         return;
@@ -713,13 +709,11 @@
           itemId, 
           ctns, 
           boxes, 
-          pcs, 
           date: new Date().toISOString() 
         });
         alert("Stock added successfully!");
         document.getElementById("stockCtns").value = "0";
         document.getElementById("stockBoxes").value = "0";
-        document.getElementById("stockPcs").value = "0";
         closeModal("addStockModal");
         updateStockReportTable();
       } catch (error) {
@@ -751,7 +745,6 @@
       const itemId = document.getElementById("saleItemSelect").value;
       const ctns = parseInt(document.getElementById("saleCtns").value) || 0;
       const boxes = parseInt(document.getElementById("saleBoxes").value) || 0;
-      const pcs = parseInt(document.getElementById("salePcs").value) || 0;
       if (!itemId) {
         alert("Please select an item.");
         return;
@@ -761,13 +754,11 @@
           itemId, 
           ctns, 
           boxes, 
-          pcs, 
           date: new Date().toISOString() 
         });
         alert("Sale updated successfully!");
         document.getElementById("saleCtns").value = "0";
         document.getElementById("saleBoxes").value = "0";
-        document.getElementById("salePcs").value = "0";
         closeModal("updateSaleModal");
         updateStockReportTable();
       } catch (error) {
@@ -795,7 +786,6 @@
     
     // ---------------------- Global Function Attachment ----------------------
     document.addEventListener('DOMContentLoaded', () => {
-      // Attach all functions to the global window object so inline onclick handlers can access them.
       window.openAddItemModal = openAddItemModal;
       window.closeModal = closeModal;
       window.saveNewItemFromModal = saveNewItemFromModal;
