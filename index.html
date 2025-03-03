@@ -723,6 +723,49 @@
           trs[i].style.display = show ? "" : "none";
         }
       }
+      // ---------------------- New Stock Modal Functions ----------------------
+      function openAddStockModal() {
+        document.getElementById("addStockModal").style.display = "block";
+        populateStockItemSelect();
+      }
+      async function populateStockItemSelect() {
+        try {
+          const itemsMap = await getSavedItems();
+          const select = document.getElementById("stockItemSelect");
+          select.innerHTML = "<option value=''>Select an item</option>";
+          for (const id in itemsMap) {
+            const item = itemsMap[id];
+            select.innerHTML += `<option value="${id}">${item.code} - ${item.description}</option>`;
+          }
+        } catch (error) {
+          console.error("Error populating stock items:", error);
+        }
+      }
+      async function saveNewStock() {
+        const itemId = document.getElementById("stockItemSelect").value;
+        const ctns = parseInt(document.getElementById("stockCtns").value) || 0;
+        const boxes = parseInt(document.getElementById("stockBoxes").value) || 0;
+        if (!itemId) {
+          alert("Please select an item.");
+          return;
+        }
+        try {
+          await db.collection("stock").add({
+            itemId,
+            ctns,
+            boxes,
+            pcs: 0  // Adjust as needed
+          });
+          alert("Stock added successfully!");
+          document.getElementById("stockCtns").value = "0";
+          document.getElementById("stockBoxes").value = "0";
+          closeModal("addStockModal");
+          updateStockReportTable();
+        } catch (error) {
+          console.error("Error adding stock:", error);
+          alert("Error adding stock.");
+        }
+      }
       // ---------------------- Sale Functions ----------------------
       function openUpdateSaleModal() {
         document.getElementById("updateSaleModal").style.display = "block";
