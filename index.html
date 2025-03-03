@@ -87,7 +87,7 @@
         font-size: 28px;
         font-weight: 500;
       }
-      /* Home section styles */
+      /* ---------- Home Section ---------- */
       #home {
         text-align: center;
       }
@@ -324,7 +324,7 @@
             </tr>
           </thead>
           <tbody id="stockTableBody">
-            <!-- Aggregated stock & sale data will appear here -->
+            <!-- Aggregated stock and sale data will appear here -->
           </tbody>
           <tfoot>
             <tr>
@@ -489,11 +489,9 @@
       function openAddItemModal() {
         document.getElementById("addItemModal").style.display = "block";
       }
-
       function closeModal(id) {
         document.getElementById(id).style.display = "none";
       }
-
       async function saveNewItemFromModal() {
         const code = document.getElementById("newItemCodeModal").value.trim();
         const desc = document.getElementById("newItemDescModal").value.trim();
@@ -526,7 +524,6 @@
           alert("Please fill in all fields correctly.");
         }
       }
-
       async function updateSavedItemsTable() {
         try {
           const itemsMap = await getSavedItems();
@@ -550,6 +547,94 @@
           }
         } catch (error) {
           console.error("Error fetching saved items:", error);
+        }
+      }
+
+      // ---------------------- Missing Stock Functions ----------------------
+      async function populateStockItemSelect() {
+        try {
+          const itemsMap = await getSavedItems();
+          const select = document.getElementById("stockItemSelect");
+          select.innerHTML = "<option value=''>Select an item</option>";
+          for (const id in itemsMap) {
+            const item = itemsMap[id];
+            select.innerHTML += `<option value="${id}">${item.code} - ${item.description}</option>`;
+          }
+        } catch (error) {
+          console.error("Error populating stock items:", error);
+        }
+      }
+      function openAddStockModal() {
+        document.getElementById("addStockModal").style.display = "block";
+        populateStockItemSelect();
+      }
+      async function saveNewStock() {
+        const itemId = document.getElementById("stockItemSelect").value;
+        const ctns = parseInt(document.getElementById("stockCtns").value) || 0;
+        const boxes = parseInt(document.getElementById("stockBoxes").value) || 0;
+        if (!itemId) {
+          alert("Please select an item.");
+          return;
+        }
+        try {
+          await addDoc(collection(db, "stock"), {
+            itemId,
+            ctns,
+            boxes,
+            date: new Date().toISOString()
+          });
+          alert("Stock added successfully!");
+          document.getElementById("stockCtns").value = "0";
+          document.getElementById("stockBoxes").value = "0";
+          closeModal("addStockModal");
+          updateStockReportTable();
+        } catch (error) {
+          console.error("Error adding stock:", error);
+          alert("Error adding stock.");
+        }
+      }
+
+      // ---------------------- Sale Functions ----------------------
+      function openUpdateSaleModal() {
+        document.getElementById("updateSaleModal").style.display = "block";
+        populateSaleItemSelect();
+      }
+      async function populateSaleItemSelect() {
+        try {
+          const itemsMap = await getSavedItems();
+          const select = document.getElementById("saleItemSelect");
+          select.innerHTML = "<option value=''>Select an item</option>";
+          for (const id in itemsMap) {
+            const item = itemsMap[id];
+            select.innerHTML += `<option value="${id}">${item.code} - ${item.description}</option>`;
+          }
+        } catch (error) {
+          console.error("Error populating sale items:", error);
+        }
+      }
+      async function saveSale() {
+        const itemId = document.getElementById("saleItemSelect").value;
+        const ctns = parseInt(document.getElementById("saleCtns").value) || 0;
+        const boxes = parseInt(document.getElementById("saleBoxes").value) || 0;
+        if (!itemId) {
+          alert("Please select an item.");
+          return;
+        }
+        try {
+          await addDoc(collection(db, "sales"), {
+            itemId,
+            ctns,
+            boxes,
+            date: new Date().toISOString()
+          });
+          alert("Sale updated successfully!");
+          document.getElementById("saleCtns").value = "0";
+          document.getElementById("saleBoxes").value = "0";
+          closeModal("updateSaleModal");
+          updateStockReportTable();
+        } catch (error) {
+          console.error("Error updating sale:", error);
+          alert("Error updating sale.");
         }
       }
 
@@ -600,7 +685,7 @@
               // Calculate net available = stock minus sales
               const netCTNs = stockAgg.ctns - saleAgg.ctns;
               const netBoxes = stockAgg.boxes - saleAgg.boxes;
-              // Total value based on net quantities:
+              // Calculate total value based on net quantities:
               const totalValueForItem =
                 netCTNs * item.ctnPrice +
                 ((netBoxes / item.boxesPerCtn) * item.ctnPrice);
@@ -618,7 +703,8 @@
             }
           }
           if (tbody.innerHTML === "") {
-            tbody.innerHTML = "<tr><td colspan='7'>No data available</td></tr>";
+            tbody.innerHTML =
+              "<tr><td colspan='7'>No data available</td></tr>";
           }
           document.getElementById("netStockValue").textContent =
             "Rs. " + netStockValue.toFixed(2);
@@ -759,67 +845,6 @@
         }
       }
 
-      /* ---------------------- Sale Functions ---------------------- */
-      function openUpdateSaleModal() {
-        document.getElementById("updateSaleModal").style.display = "block";
-        populateSaleItemSelect();
-      }
-      async function populateSaleItemSelect() {
-        try {
-          const itemsMap = await getSavedItems();
-          const select = document.getElementById("saleItemSelect");
-          select.innerHTML = "<option value=''>Select an item</option>";
-          for (const id in itemsMap) {
-            const item = itemsMap[id];
-            select.innerHTML += `<option value="${id}">${item.code} - ${item.description}</option>`;
-          }
-        } catch (error) {
-          console.error("Error populating sale items:", error);
-        }
-      }
-      async function saveSale() {
-        const itemId = document.getElementById("saleItemSelect").value;
-        const ctns = parseInt(document.getElementById("saleCtns").value) || 0;
-        const boxes = parseInt(document.getElementById("saleBoxes").value) || 0;
-        if (!itemId) {
-          alert("Please select an item.");
-          return;
-        }
-        try {
-          await addDoc(collection(db, "sales"), {
-            itemId,
-            ctns,
-            boxes,
-            date: new Date().toISOString()
-          });
-          alert("Sale updated successfully!");
-          document.getElementById("saleCtns").value = "0";
-          document.getElementById("saleBoxes").value = "0";
-          closeModal("updateSaleModal");
-          updateStockReportTable();
-        } catch (error) {
-          console.error("Error updating sale:", error);
-          alert("Error updating sale.");
-        }
-      }
-
-      function showSection(sectionId) {
-        const sections = document.getElementsByClassName("section");
-        for (let i = 0; i < sections.length; i++) {
-          sections[i].style.display = "none";
-        }
-        document.getElementById(sectionId).style.display = "block";
-        if (sectionId === "saleSummary") {
-          updateSaleSummaryTable();
-        }
-        if (sectionId === "stockReport") {
-          updateStockReportTable();
-        }
-        if (sectionId === "viewSavedItemsSection") {
-          updateSavedItemsTable();
-        }
-      }
-
       // ---------------------- Global Function Attachment ----------------------
       function attachGlobals() {
         window.openAddItemModal = openAddItemModal;
@@ -840,8 +865,7 @@
         window.updateSaleSummaryTable = updateSaleSummaryTable;
         console.log("Global functions attached");
       }
-
-      // Directly attach globals (script is at end of body so DOM is ready)
+      // Attach globals immediately (script is at end of body)
       attachGlobals();
 
       // Initialize by showing the home section.
