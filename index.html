@@ -87,14 +87,14 @@
         font-size: 28px;
         font-weight: 500;
       }
-      /* Home section: center title and gallery */
+      /* Home section styles */
       #home {
         text-align: center;
       }
       .home-title {
-        margin-bottom: 20px;
         font-size: 36px;
         font-weight: 700;
+        margin-bottom: 20px;
       }
       .gallery {
         display: flex;
@@ -254,10 +254,10 @@
     <!-- ---------- Main Content ---------- -->
     <div class="main-content">
       <!-- Home Section -->
-      <div id="home" class="section" style="display: block;">
+      <div id="home" class="section">
         <div class="home-title">AHYAN TRADERS</div>
         <div class="gallery">
-          <!-- Replace these with your actual image URLs -->
+          <!-- Replace these placeholder URLs with your actual image URLs -->
           <img src="https://via.placeholder.com/300x200?text=Image+1" alt="Image 1" />
           <img src="https://via.placeholder.com/300x200?text=Image+2" alt="Image 2" />
           <img src="https://via.placeholder.com/300x200?text=Image+3" alt="Image 3" />
@@ -468,7 +468,7 @@
       const analytics = getAnalytics(appFirebase);
       const db = getFirestore(appFirebase);
 
-      // Helper: Get saved items (used in "View Saved Items" and "Stock Report")
+      // Helper: Get saved items (used for both "View Saved Items" and "Stock Report")
       async function getSavedItems() {
         const itemsSnapshot = await getDocs(collection(db, "items"));
         const itemsMap = {};
@@ -489,9 +489,11 @@
       function openAddItemModal() {
         document.getElementById("addItemModal").style.display = "block";
       }
+
       function closeModal(id) {
         document.getElementById(id).style.display = "none";
       }
+
       async function saveNewItemFromModal() {
         const code = document.getElementById("newItemCodeModal").value.trim();
         const desc = document.getElementById("newItemDescModal").value.trim();
@@ -524,6 +526,7 @@
           alert("Please fill in all fields correctly.");
         }
       }
+
       async function updateSavedItemsTable() {
         try {
           const itemsMap = await getSavedItems();
@@ -594,10 +597,10 @@
             ) {
               const stockAgg = stockAggregation[itemId] || { ctns: 0, boxes: 0, pcs: 0 };
               const saleAgg = saleAggregation[itemId] || { ctns: 0, boxes: 0, pcs: 0 };
-              // Net available = stock minus sales
+              // Calculate net available = stock minus sales
               const netCTNs = stockAgg.ctns - saleAgg.ctns;
               const netBoxes = stockAgg.boxes - saleAgg.boxes;
-              // Calculate total value based on net quantities:
+              // Total value based on net quantities:
               const totalValueForItem =
                 netCTNs * item.ctnPrice +
                 ((netBoxes / item.boxesPerCtn) * item.ctnPrice);
@@ -615,8 +618,7 @@
             }
           }
           if (tbody.innerHTML === "") {
-            tbody.innerHTML =
-              "<tr><td colspan='7'>No data available</td></tr>";
+            tbody.innerHTML = "<tr><td colspan='7'>No data available</td></tr>";
           }
           document.getElementById("netStockValue").textContent =
             "Rs. " + netStockValue.toFixed(2);
@@ -839,7 +841,7 @@
         console.log("Global functions attached");
       }
 
-      // Since this script is at the end of the body, the DOM is already loaded.
+      // Directly attach globals (script is at end of body so DOM is ready)
       attachGlobals();
 
       // Initialize by showing the home section.
