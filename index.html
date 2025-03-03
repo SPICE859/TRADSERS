@@ -780,6 +780,26 @@
     window.saveNewStock = saveNewStock;
     window.openUpdateSaleModal = openUpdateSaleModal;
     window.saveSale = saveSale;
+    document.addEventListener('DOMContentLoaded', () => {
+  console.log("Module loaded, attaching global functions");
+  window.openAddItemModal = openAddItemModal;
+  window.closeModal = closeModal;
+  window.saveNewItemFromModal = saveNewItemFromModal;
+  window.updateSavedItemsTable = updateSavedItemsTable;
+  window.updateStockReportTable = updateStockReportTable;
+  window.deleteItem = deleteItem;
+  window.openEditModal = openEditModal;
+  window.saveEditedItem = saveEditedItem;
+  window.filterSales = filterSales;
+  window.filterViewSavedItems = filterViewSavedItems;
+  window.showSection = showSection;
+  window.openAddStockModal = openAddStockModal;
+  window.saveNewStock = saveNewStock;
+  window.openUpdateSaleModal = openUpdateSaleModal;
+  window.saveSale = saveSale;
+  console.log("Global functions attached");
+});
+
   </script>
 </body>
 </html>
