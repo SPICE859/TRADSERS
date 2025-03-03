@@ -12,6 +12,23 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <style>
+    /* Fixed Back to Dashboard button */
+    #backToDashboard {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 10000;
+      padding: 8px 12px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #backToDashboard:hover {
+      background: #0056b3;
+    }
+
     /* Basic styles for Login */
     .login-container {
       width: 300px;
@@ -64,6 +81,7 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       border-radius: 10px;
       text-align: center;
+      position: relative;
     }
     h1 {
       background: #007bff;
@@ -71,15 +89,29 @@
       padding: 10px;
       border-radius: 10px;
     }
-    .header-details {
+    /* Flex container for header details */
+    .header-details-container {
       display: flex;
-      flex-direction: column;
+      justify-content: space-between;
       align-items: flex-start;
       margin-top: 10px;
     }
-    .header-details div { margin-bottom: 10px; }
-    .header-details label { margin-right: 5px; font-weight: bold; }
-    .header-details input { padding: 5px; }
+    .header-details-left div,
+    .header-details-right div {
+      margin-bottom: 10px;
+    }
+    .header-details-left label,
+    .header-details-right label {
+      margin-right: 5px;
+      font-weight: bold;
+    }
+    .header-details-left input,
+    .header-details-right input {
+      padding: 5px;
+    }
+    .header-details-right {
+      text-align: right;
+    }
     .item-entry { margin-top: 20px; }
     .item-entry label { margin-right: 5px; }
     #item { padding: 5px; width: 250px; }
@@ -128,14 +160,24 @@
     /* Print styles */
     @media print {
       body { color: black; background: white; }
+      /* Hide the back button on print */
+      #backToDashboard { display: none; }
       .no-print:not(#billTable .no-print) { display: none; }
       #billTable .no-print { display: table-cell !important; }
+      /* Hide the last column (Action column) in the bill table */
+      #billTable tr th:last-child,
+      #billTable tr td:last-child {
+        display: none;
+      }
       table, th, td { border: 1px solid black; }
       td:empty::after { content: "0.00"; }
     }
   </style>
 </head>
 <body>
+  <!-- Back to Dashboard Button -->
+  <button id="backToDashboard" onclick="window.history.back()">Back to Dashboard</button>
+
   <!-- Login Screen -->
   <div class="login-container" id="loginContainer">
     <h2>Login</h2>
@@ -149,18 +191,31 @@
   <div class="billing-system" id="billingSystem">
     <div class="container">
       <h1>AHYAN TRADERS</h1>
-      <!-- Customer details -->
-      <div class="header-details">
-        <div>
-          <label for="customerName">Customer:</label>
-          <input type="text" id="customerName" value="John Doe" />
+      
+      <!-- Customer details and extra info -->
+      <div class="header-details-container">
+        <div class="header-details-left">
+          <div>
+            <label for="customerName">Customer:</label>
+            <input type="text" id="customerName" value="John Doe" />
+          </div>
+          <div>
+            <label for="route">Route:</label>
+            <input type="text" id="route" value="Default Route" />
+          </div>
         </div>
-        <div>
-          <label for="route">Route:</label>
-          <input type="text" id="route" value="Default Route" />
+        <div class="header-details-right">
+          <div>
+            <label for="billDate">Date:</label>
+            <input type="date" id="billDate" />
+          </div>
+          <div>
+            <label for="dsrName">DSR Name:</label>
+            <input type="text" id="dsrName" placeholder="Enter DSR Name" />
+          </div>
         </div>
       </div>
-     
+      
       <!-- Item Entry Section -->
       <div class="item-entry no-print">
         <label for="item">Product Code:</label>
@@ -221,6 +276,8 @@
     <input type="number" id="newCtnPrice" placeholder="Price per CTN" />
     <label for="newBoxesPerCtn">Boxes per CTN:</label>
     <input type="number" id="newBoxesPerCtn" placeholder="Number of boxes in one CTN" />
+    <label for="newPcsPerBox">Pcs per Box:</label>
+    <input type="number" id="newPcsPerBox" placeholder="Enter pcs per box (default = Boxes per CTN)" />
     <button onclick="saveNewItem()">Save Item</button>
     <button onclick="closeModal('newItemModal')">Close</button>
   </div>
@@ -237,6 +294,8 @@
     <input type="number" id="editCtnPrice" />
     <label for="editBoxesPerCtn">Boxes per CTN:</label>
     <input type="number" id="editBoxesPerCtn" />
+    <label for="editPcsPerBox">Pcs per Box:</label>
+    <input type="number" id="editPcsPerBox" placeholder="Enter pcs per box (default = Boxes per CTN)" />
     <button onclick="saveEditedItem()">Save Changes</button>
     <button onclick="closeModal('editItemModal')">Close</button>
   </div>
@@ -353,7 +412,14 @@
       let pcs = parseFloat(row.querySelector(".pcs").value) || 0;
       let tradeOffer = parseFloat(row.querySelector(".tradeOffer").value) || 0;
       let salesTaxPercent = parseFloat(row.querySelector(".salesTax").value) || 0;
-      let gross = (ctns * product.ctnPrice) + (boxes * (product.ctnPrice / product.boxesPerCtn)) + (pcs * (product.ctnPrice / (product.boxesPerCtn * 10)));
+      
+      // Use the product's pcsPerBox value
+      let pcsPerBox = product.pcsPerBox;
+      let perPiecePrice = 0;
+      if (pcsPerBox > 0) {
+        perPiecePrice = product.ctnPrice / (product.boxesPerCtn * pcsPerBox);
+      }
+      let gross = (ctns * product.ctnPrice) + (boxes * (product.ctnPrice / product.boxesPerCtn)) + (pcs * perPiecePrice);
       row.querySelector(".gross").textContent = gross.toFixed(2);
       let salesTaxValue = (salesTaxPercent / 100) * gross;
       let net = gross - tradeOffer + salesTaxValue;
@@ -390,8 +456,17 @@
       let size = document.getElementById("newCtnSize").value.trim();
       let price = parseFloat(document.getElementById("newCtnPrice").value);
       let boxes = parseFloat(document.getElementById("newBoxesPerCtn").value);
+      let pcsInput = document.getElementById("newPcsPerBox").value;
+      // Default pcs per box to the value of boxes per CTN if not entered
+      let pcsPerBox = (pcsInput === "" ? boxes : parseFloat(pcsInput));
       if (code && desc && size && price && boxes) {
-        let newItem = { description: desc, ctnSize: size, ctnPrice: price, boxesPerCtn: boxes };
+        let newItem = { 
+          description: desc, 
+          ctnSize: size, 
+          ctnPrice: price, 
+          boxesPerCtn: boxes,
+          pcsPerBox: pcsPerBox
+        };
         db.collection("items").doc(code).set(newItem)
           .then(() => {
             alert("New item added successfully!");
@@ -402,6 +477,7 @@
             document.getElementById("newCtnSize").value = "";
             document.getElementById("newCtnPrice").value = "";
             document.getElementById("newBoxesPerCtn").value = "";
+            document.getElementById("newPcsPerBox").value = "";
             closeModal("newItemModal");
           })
           .catch((error) => {
@@ -422,15 +498,21 @@
       document.getElementById("editCtnSize").value = item.ctnSize;
       document.getElementById("editCtnPrice").value = item.ctnPrice;
       document.getElementById("editBoxesPerCtn").value = item.boxesPerCtn;
+      // Default pcs per box to the item's boxesPerCtn if pcsPerBox is falsy or 0
+      document.getElementById("editPcsPerBox").value = (parseFloat(item.pcsPerBox) > 0 ? item.pcsPerBox : item.boxesPerCtn);
       document.getElementById("editItemModal").style.display = "block";
     }
     function saveEditedItem() {
       let code = document.getElementById("editProductCode").value;
+      let pcsVal = document.getElementById("editPcsPerBox").value;
+      let editBoxesVal = parseFloat(document.getElementById("editBoxesPerCtn").value);
+      let pcsPerBox = (pcsVal === "" ? editBoxesVal : parseFloat(pcsVal));
       let updatedItem = {
         description: document.getElementById("editDescription").value,
         ctnSize: document.getElementById("editCtnSize").value,
         ctnPrice: parseFloat(document.getElementById("editCtnPrice").value),
-        boxesPerCtn: parseFloat(document.getElementById("editBoxesPerCtn").value)
+        boxesPerCtn: editBoxesVal,
+        pcsPerBox: pcsPerBox
       };
       db.collection("items").doc(code).update(updatedItem)
         .then(() => {
@@ -450,9 +532,14 @@
       listDiv.innerHTML = "";
       for (let code in items) {
         let item = items[code];
+        let displayPcs = (item.pcsPerBox && item.pcsPerBox > 0 ? item.pcsPerBox : item.boxesPerCtn);
         let para = document.createElement("p");
         para.style.cursor = "pointer";
-        para.textContent = code + " - " + item.description + ", CTN Size: " + item.ctnSize + ", Price: " + item.ctnPrice + ", Boxes/CTN: " + item.boxesPerCtn;
+        para.textContent = code + " - " + item.description + 
+                           ", CTN Size: " + item.ctnSize + 
+                           ", Price: " + item.ctnPrice + 
+                           ", Boxes/CTN: " + item.boxesPerCtn +
+                           ", Pcs/Box: " + displayPcs;
         para.onclick = () => openEditModal(code);
         listDiv.appendChild(para);
       }
@@ -465,9 +552,14 @@
       for (let code in items) {
         let item = items[code];
         if (code.toLowerCase().includes(searchVal) || item.description.toLowerCase().includes(searchVal)) {
+          let displayPcs = (item.pcsPerBox && item.pcsPerBox > 0 ? item.pcsPerBox : item.boxesPerCtn);
           let para = document.createElement("p");
           para.style.cursor = "pointer";
-          para.textContent = code + " - " + item.description + ", CTN Size: " + item.ctnSize + ", Price: " + item.ctnPrice + ", Boxes/CTN: " + item.boxesPerCtn;
+          para.textContent = code + " - " + item.description + 
+                             ", CTN Size: " + item.ctnSize + 
+                             ", Price: " + item.ctnPrice + 
+                             ", Boxes/CTN: " + item.boxesPerCtn +
+                             ", Pcs/Box: " + displayPcs;
           para.onclick = () => openEditModal(code);
           listDiv.appendChild(para);
         }
@@ -514,7 +606,9 @@
               description: row[1] ? row[1].toString() : "",
               ctnSize: row[2] ? row[2].toString() : "",
               ctnPrice: row[3] ? parseFloat(row[3]) : 0,
-              boxesPerCtn: row[4] ? parseFloat(row[4]) : 0
+              boxesPerCtn: row[4] ? parseFloat(row[4]) : 0,
+              // If pcs value is not provided, default it to boxes value
+              pcsPerBox: row[5] ? parseFloat(row[5]) : (row[4] ? parseFloat(row[4]) : 0)
             };
             let docRef = db.collection("items").doc(code);
             batch.set(docRef, newItem);
@@ -556,7 +650,8 @@
     function nextBill() {
       let invoiceNo = "INV-" + Date.now();
       let customer = document.getElementById("customerName").value;
-      let billDate = new Date().toISOString();
+      let billDate = document.getElementById("billDate").value;
+      let dsrName = document.getElementById("dsrName").value;
       let netAmountText = document.getElementById("grandTotal").textContent;
       let netAmount = parseFloat(netAmountText.replace('Rs ', '')) || 0;
       
@@ -564,6 +659,7 @@
         invoiceNo: invoiceNo,
         customer: customer,
         billDate: billDate,
+        dsrName: dsrName,
         netAmount: netAmount
       };
 
