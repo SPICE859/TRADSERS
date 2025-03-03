@@ -3,12 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AHYAN TRADERS Dashboard</title>
+    <title>AHYAN TRADERS</title>
     <!-- Google Fonts -->
     <link
       href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
     <style>
       /* ---------- CSS Variables & Global Styles ---------- */
       :root {
@@ -25,14 +29,97 @@
         padding: 0;
         box-sizing: border-box;
       }
+      /* ---------- Login Page Styles ---------- */
       body,
       html {
         font-family: "Roboto", sans-serif;
+        height: 100%;
+        background: var(--white);
+      }
+      .login-container {
+        display: flex;
+        height: 100vh;
+      }
+      .login-left,
+      .login-right {
+        flex: 1;
+      }
+      .login-left {
+        position: relative;
+        background: var(--white);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      .login-left img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: opacity var(--transition) ease-in-out;
+      }
+      .login-right {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--white);
+      }
+      .login-box {
+        background: var(--white);
+        padding: 40px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        width: 100%;
+        max-width: 350px;
+        text-align: center;
+      }
+      .login-box h1 {
+        margin-bottom: 20px;
+        font-size: 28px;
+        color: var(--primary);
+      }
+      .login-box form {
+        display: flex;
+        flex-direction: column;
+      }
+      .login-box input[type="text"],
+      .login-box input[type="password"] {
+        padding: 12px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 16px;
+      }
+      .login-box button {
+        padding: 12px;
+        background: var(--primary);
+        color: var(--white);
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background var(--transition);
+      }
+      .login-box button:hover {
+        background: var(--accent);
+      }
+      @media (max-width: 768px) {
+        .login-container {
+          flex-direction: column;
+        }
+        .login-left,
+        .login-right {
+          flex: none;
+          height: 50vh;
+        }
+      }
+      /* ---------- Dashboard Styles ---------- */
+      body,
+      html {
         background: var(--light);
         color: var(--primary);
         min-height: 100vh;
       }
-      /* ---------- Sidebar ---------- */
       .sidebar {
         position: fixed;
         top: 0;
@@ -64,7 +151,6 @@
       .sidebar button:hover {
         background: var(--accent);
       }
-      /* ---------- Main Content ---------- */
       .main-content {
         margin-left: 270px;
         padding: 20px;
@@ -87,7 +173,7 @@
         font-size: 28px;
         font-weight: 500;
       }
-      /* ---------- Home Section ---------- */
+      /* Home Section */
       #home {
         text-align: center;
       }
@@ -107,7 +193,7 @@
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
       }
-      /* ---------- Form & Table Styles ---------- */
+      /* Form & Table Styles */
       .filter-container,
       .search-container {
         text-align: center;
@@ -179,7 +265,7 @@
         border-radius: 8px;
         text-align: center;
       }
-      /* ---------- Modal Styles ---------- */
+      /* Modal Styles */
       .modal {
         display: none;
         position: fixed;
@@ -219,7 +305,7 @@
       .modal button:hover {
         background: var(--accent);
       }
-      /* ---------- Print Styles ---------- */
+      /* Print Styles */
       @media print {
         body {
           color: black;
@@ -240,198 +326,267 @@
     </style>
   </head>
   <body>
-    <!-- ---------- Sidebar ---------- -->
-    <div class="sidebar">
-      <h2>AHYAN TRADERS</h2>
-      <button onclick="showSection('home')">Home</button>
-      <button onclick="showSection('saleSummary')">Sale Summary</button>
-      <button onclick="showSection('stockReport')">Stock Report</button>
-      <button onclick="openAddItemModal()">Add New Item</button>
-      <button onclick="showSection('viewSavedItemsSection')">View Saved Items</button>
-      <button onclick="window.location.href='billing.html'">Billing System</button>
+    <!-- ---------- Login Section ---------- -->
+    <div id="loginPage">
+      <div class="login-container">
+        <!-- Left side with slideshow -->
+        <div class="login-left">
+          <img
+            id="slideshow"
+            src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/3.png"
+            alt="Slideshow Image"
+          />
+        </div>
+        <!-- Right side with login form -->
+        <div class="login-right">
+          <div class="login-box">
+            <h1>AHYAN TRADERS</h1>
+            <form id="loginForm">
+              <input type="text" id="username" placeholder="Username" required />
+              <input
+                type="password"
+                id="password"
+                placeholder="Password"
+                required
+              />
+              <button type="submit">Login</button>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- ---------- Main Content ---------- -->
-    <div class="main-content">
-      <!-- Home Section -->
-      <div id="home" class="section">
-        <div class="home-title">AHYAN TRADERS</div>
-        <div class="gallery">
-          <!-- Replace these URLs with your actual image URLs -->
-          <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/3.png" alt="Image 1" />
-          <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/2.png" alt="Image 2" />
-          <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/4.png" alt="Image 3" />
-          <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/5.png" alt="Image 4" />
-          <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/7.png" alt="Image 5" />
-        </div>
+    <!-- ---------- Dashboard Section ---------- -->
+    <div id="dashboard" style="display: none;">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <h2>AHYAN TRADERS</h2>
+        <button onclick="showSection('home')">Home</button>
+        <button onclick="showSection('saleSummary')">Sale Summary</button>
+        <button onclick="showSection('stockReport')">Stock Report</button>
+        <button onclick="openAddItemModal()">Add New Item</button>
+        <button onclick="showSection('viewSavedItemsSection')">View Saved Items</button>
+        <button onclick="window.location.href='billing.html'">Billing System</button>
       </div>
 
-      <!-- Sale Summary Section -->
-      <div id="saleSummary" class="section">
-        <div class="header-large">Sale Summary</div>
-        <div class="filter-container">
-          <label for="startDate">Initial Date:</label>
-          <input type="date" id="startDate" />
-          <label for="endDate">Current Date:</label>
-          <input type="date" id="endDate" />
-          <button onclick="filterSales()">Filter</button>
-        </div>
-        <table id="salesTable">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Invoice No</th>
-              <th>Customer</th>
-              <th>Net Amount (Rs.)</th>
-            </tr>
-          </thead>
-          <tbody id="salesTableBody">
-            <!-- Billing data will be inserted here -->
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colspan="3" style="text-align: right;">Net Total Sale (Rs.):</td>
-              <td id="netTotal">Rs. 0.00</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-
-      <!-- Stock Report Section -->
-      <div id="stockReport" class="section">
-        <div class="header-large">Stock Report</div>
-        <div class="search-container">
-          <input type="text" id="stockSearchInput" placeholder="Search by Product ID, Name, or CTN Size..." />
-        </div>
-        <div style="text-align: center; margin-bottom: 10px;">
-          <button onclick="openAddStockModal()">Add New Stock</button>
-          <button onclick="openUpdateSaleModal()">Update Sale</button>
-        </div>
-        <table id="stockTable">
-          <thead>
-            <tr>
-              <th>Product ID</th>
-              <th>Description</th>
-              <th>CTN Size</th>
-              <th>Available CTNs</th>
-              <th>Available Boxes</th>
-              <th>Unit Price (Rs.)</th>
-              <th>Total Value (Rs.)</th>
-            </tr>
-          </thead>
-          <tbody id="stockTableBody">
-            <!-- Aggregated stock and sale data will appear here -->
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colspan="6" style="text-align: right;">Net Total Stock Value (Rs.):</td>
-              <td id="netStockValue">Rs. 0.00</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-
-      <!-- View Saved Items Section -->
-      <div id="viewSavedItemsSection" class="section">
-        <div class="header-large">View Saved Items</div>
-        <div class="container">
-          <div class="search-container">
-            <input type="text" id="viewSavedSearch" placeholder="Search items..." oninput="filterViewSavedItems()" />
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Home Section -->
+        <div id="home" class="section">
+          <div class="home-title">AHYAN TRADERS</div>
+          <div class="gallery">
+            <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/3.png" alt="Image 1" />
+            <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/2.png" alt="Image 2" />
+            <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/4.png" alt="Image 3" />
+            <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/5.png" alt="Image 4" />
+            <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/7.png" alt="Image 5" />
           </div>
-          <table id="savedItemsTable">
+        </div>
+
+        <!-- Sale Summary Section -->
+        <div id="saleSummary" class="section">
+          <div class="header-large">Sale Summary</div>
+          <div class="filter-container">
+            <label for="startDate">Initial Date:</label>
+            <input type="date" id="startDate" />
+            <label for="endDate">Current Date:</label>
+            <input type="date" id="endDate" />
+            <button onclick="filterSales()">Filter</button>
+          </div>
+          <table id="salesTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Invoice No</th>
+                <th>Customer</th>
+                <th>Net Amount (Rs.)</th>
+              </tr>
+            </thead>
+            <tbody id="salesTableBody">
+              <!-- Billing data will be inserted here -->
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="text-align: right;">Net Total Sale (Rs.):</td>
+                <td id="netTotal">Rs. 0.00</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- Stock Report Section -->
+        <div id="stockReport" class="section">
+          <div class="header-large">Stock Report</div>
+          <div class="search-container">
+            <input type="text" id="stockSearchInput" placeholder="Search by Product ID, Name, or CTN Size..." />
+          </div>
+          <div style="text-align: center; margin-bottom: 10px;">
+            <button onclick="openAddStockModal()">Add New Stock</button>
+            <button onclick="openUpdateSaleModal()">Update Sale</button>
+          </div>
+          <table id="stockTable">
             <thead>
               <tr>
                 <th>Product ID</th>
                 <th>Description</th>
                 <th>CTN Size</th>
-                <th>Boxes per CTN</th>
-                <th>CTN Price</th>
-                <th>Actions</th>
+                <th>Available CTNs</th>
+                <th>Available Boxes</th>
+                <th>Unit Price (Rs.)</th>
+                <th>Total Value (Rs.)</th>
               </tr>
             </thead>
-            <tbody id="savedItemsTableBody">
-              <!-- Saved items will be populated here -->
+            <tbody id="stockTableBody">
+              <!-- Aggregated stock and sale data will appear here -->
             </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="6" style="text-align: right;">Net Total Stock Value (Rs.):</td>
+                <td id="netStockValue">Rs. 0.00</td>
+              </tr>
+            </tfoot>
           </table>
         </div>
+
+        <!-- View Saved Items Section -->
+        <div id="viewSavedItemsSection" class="section">
+          <div class="header-large">View Saved Items</div>
+          <div class="container">
+            <div class="search-container">
+              <input type="text" id="viewSavedSearch" placeholder="Search items..." oninput="filterViewSavedItems()" />
+            </div>
+            <table id="savedItemsTable">
+              <thead>
+                <tr>
+                  <th>Product ID</th>
+                  <th>Description</th>
+                  <th>CTN Size</th>
+                  <th>Boxes per CTN</th>
+                  <th>CTN Price</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="savedItemsTableBody">
+                <!-- Saved items will be populated here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- Modals ---------- -->
+      <!-- Add New Item Modal -->
+      <div id="addItemModal" class="modal no-print">
+        <h3>Add New Item</h3>
+        <label for="newItemCodeModal">Product Code:</label>
+        <input type="text" id="newItemCodeModal" required />
+        <label for="newItemDescModal">Description:</label>
+        <input type="text" id="newItemDescModal" required />
+        <label for="newItemCtnSizeModal">CTN Size:</label>
+        <input type="text" id="newItemCtnSizeModal" required />
+        <label for="newItemBoxesModal">Boxes per CTN:</label>
+        <input type="number" id="newItemBoxesModal" required />
+        <label for="newItemCtnPriceModal">CTN Price:</label>
+        <input type="number" id="newItemCtnPriceModal" step="0.01" required />
+        <button onclick="saveNewItemFromModal()">Save Item</button>
+        <button onclick="closeModal('addItemModal')">Close</button>
+      </div>
+
+      <!-- Edit Item Modal -->
+      <div id="editItemModal" class="modal no-print">
+        <h3>Edit Item</h3>
+        <input type="hidden" id="editItemId" />
+        <label for="editDescription">Description:</label>
+        <input type="text" id="editDescription" />
+        <label for="editCtnSize">CTN Size:</label>
+        <input type="text" id="editCtnSize" />
+        <label for="editCtnPrice">CTN Price:</label>
+        <input type="number" id="editCtnPrice" />
+        <label for="editBoxesPerCtn">Boxes per CTN:</label>
+        <input type="number" id="editBoxesPerCtn" />
+        <button onclick="saveEditedItem()">Save Changes</button>
+        <button onclick="closeModal('editItemModal')">Close</button>
+      </div>
+
+      <!-- Add New Stock Modal -->
+      <div id="addStockModal" class="modal no-print">
+        <h3>Add New Stock</h3>
+        <label for="stockItemSelect">Select Item:</label>
+        <select id="stockItemSelect"></select>
+        <label>Add Qty:</label>
+        <div>
+          <label for="stockCtns">CTNs:</label>
+          <input type="number" id="stockCtns" placeholder="0" value="0" />
+        </div>
+        <div>
+          <label for="stockBoxes">Boxes:</label>
+          <input type="number" id="stockBoxes" placeholder="0" value="0" />
+        </div>
+        <button onclick="saveNewStock()">Save Stock</button>
+        <button onclick="closeModal('addStockModal')">Close</button>
+      </div>
+
+      <!-- Update Sale Modal -->
+      <div id="updateSaleModal" class="modal no-print">
+        <h3>Update Sale</h3>
+        <label for="saleItemSelect">Select Item:</label>
+        <select id="saleItemSelect"></select>
+        <label>Sale Qty:</label>
+        <div>
+          <label for="saleCtns">CTNs:</label>
+          <input type="number" id="saleCtns" placeholder="0" value="0" />
+        </div>
+        <div>
+          <label for="saleBoxes">Boxes:</label>
+          <input type="number" id="saleBoxes" placeholder="0" value="0" />
+        </div>
+        <button onclick="saveSale()">Save Sale</button>
+        <button onclick="closeModal('updateSaleModal')">Close</button>
       </div>
     </div>
 
-    <!-- ---------- Modals ---------- -->
-    <!-- Add New Item Modal -->
-    <div id="addItemModal" class="modal no-print">
-      <h3>Add New Item</h3>
-      <label for="newItemCodeModal">Product Code:</label>
-      <input type="text" id="newItemCodeModal" required />
-      <label for="newItemDescModal">Description:</label>
-      <input type="text" id="newItemDescModal" required />
-      <label for="newItemCtnSizeModal">CTN Size:</label>
-      <input type="text" id="newItemCtnSizeModal" required />
-      <label for="newItemBoxesModal">Boxes per CTN:</label>
-      <input type="number" id="newItemBoxesModal" required />
-      <label for="newItemCtnPriceModal">CTN Price:</label>
-      <input type="number" id="newItemCtnPriceModal" step="0.01" required />
-      <button onclick="saveNewItemFromModal()">Save Item</button>
-      <button onclick="closeModal('addItemModal')">Close</button>
-    </div>
-
-    <!-- Edit Item Modal -->
-    <div id="editItemModal" class="modal no-print">
-      <h3>Edit Item</h3>
-      <input type="hidden" id="editItemId" />
-      <label for="editDescription">Description:</label>
-      <input type="text" id="editDescription" />
-      <label for="editCtnSize">CTN Size:</label>
-      <input type="text" id="editCtnSize" />
-      <label for="editCtnPrice">CTN Price:</label>
-      <input type="number" id="editCtnPrice" />
-      <label for="editBoxesPerCtn">Boxes per CTN:</label>
-      <input type="number" id="editBoxesPerCtn" />
-      <button onclick="saveEditedItem()">Save Changes</button>
-      <button onclick="closeModal('editItemModal')">Close</button>
-    </div>
-
-    <!-- Add New Stock Modal -->
-    <div id="addStockModal" class="modal no-print">
-      <h3>Add New Stock</h3>
-      <label for="stockItemSelect">Select Item:</label>
-      <select id="stockItemSelect"></select>
-      <label>Add Qty:</label>
-      <div>
-        <label for="stockCtns">CTNs:</label>
-        <input type="number" id="stockCtns" placeholder="0" value="0" />
-      </div>
-      <div>
-        <label for="stockBoxes">Boxes:</label>
-        <input type="number" id="stockBoxes" placeholder="0" value="0" />
-      </div>
-      <button onclick="saveNewStock()">Save Stock</button>
-      <button onclick="closeModal('addStockModal')">Close</button>
-    </div>
-
-    <!-- Update Sale Modal -->
-    <div id="updateSaleModal" class="modal no-print">
-      <h3>Update Sale</h3>
-      <label for="saleItemSelect">Select Item:</label>
-      <select id="saleItemSelect"></select>
-      <label>Sale Qty:</label>
-      <div>
-        <label for="saleCtns">CTNs:</label>
-        <input type="number" id="saleCtns" placeholder="0" value="0" />
-      </div>
-      <div>
-        <label for="saleBoxes">Boxes:</label>
-        <input type="number" id="saleBoxes" placeholder="0" value="0" />
-      </div>
-      <button onclick="saveSale()">Save Sale</button>
-      <button onclick="closeModal('updateSaleModal')">Close</button>
-    </div>
-
-    <!-- ---------- Firebase & Firestore (Compat) Scripts ---------- -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <!-- ---------- Scripts ---------- -->
     <script>
+      /***********************
+       * Login Page Scripts
+       ***********************/
+      // Slideshow functionality for login page
+      const images = [
+        "https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/3.png",
+        "https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/2.png",
+        "https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/4.png",
+        "https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/5.png",
+        "https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/7.png"
+      ];
+      let currentIndex = 0;
+      const slideshowImage = document.getElementById("slideshow");
+      function nextImage() {
+        currentIndex = (currentIndex + 1) % images.length;
+        slideshowImage.style.opacity = 0;
+        setTimeout(() => {
+          slideshowImage.src = images[currentIndex];
+          slideshowImage.style.opacity = 1;
+        }, 300);
+      }
+      setInterval(nextImage, 3000);
+
+      // Dummy login logic – replace with real authentication as needed
+      document.getElementById("loginForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        if (username === "admin" && password === "admin") {
+          // Directly transition to the dashboard without an alert
+          document.getElementById("loginPage").style.display = "none";
+          document.getElementById("dashboard").style.display = "block";
+        } else {
+          alert("Invalid credentials. Please try again.");
+        }
+      });
+
+      /***********************
+       * Dashboard Scripts
+       ***********************/
       // Initialize Firebase using compat libraries
       const firebaseConfig = {
         apiKey: "AIzaSyD_ojS20opjpxmwHxIHATC52ncABe_fkuk",
@@ -446,7 +601,7 @@
       firebase.analytics();
       const db = firebase.firestore();
 
-      // Helper: Get saved items
+      // Helper: Get saved items from Firestore
       async function getSavedItems() {
         const itemsSnapshot = await db.collection("items").get();
         const itemsMap = {};
@@ -463,7 +618,7 @@
         return itemsMap;
       }
 
-      /* ---------------------- Modal and Utility Functions ---------------------- */
+      // Modal and Utility Functions for Dashboard
       function openAddItemModal() {
         document.getElementById("addItemModal").style.display = "block";
       }
@@ -527,12 +682,9 @@
           console.error("Error fetching saved items:", error);
         }
       }
-
-      /* ---------------------- Stock Report Functions ---------------------- */
       async function updateStockReportTable() {
         try {
           const itemsMap = await getSavedItems();
-          // Aggregate stock entries
           const stockSnapshot = await db.collection("stock").get();
           const stockAggregation = {};
           stockSnapshot.forEach((doc) => {
@@ -545,7 +697,6 @@
             stockAggregation[itemId].boxes += stockEntry.boxes;
             stockAggregation[itemId].pcs += stockEntry.pcs;
           });
-          // Aggregate sale entries
           const saleSnapshot = await db.collection("sales").get();
           const saleAggregation = {};
           saleSnapshot.forEach((doc) => {
@@ -572,10 +723,8 @@
             ) {
               const stockAgg = stockAggregation[itemId] || { ctns: 0, boxes: 0, pcs: 0 };
               const saleAgg = saleAggregation[itemId] || { ctns: 0, boxes: 0, pcs: 0 };
-              // Calculate net available = stock minus sales
               const netCTNs = stockAgg.ctns - saleAgg.ctns;
               const netBoxes = stockAgg.boxes - saleAgg.boxes;
-              // Calculate total value based on net quantities
               const totalValueForItem =
                 netCTNs * item.ctnPrice +
                 ((netBoxes / item.boxesPerCtn) * item.ctnPrice);
@@ -665,7 +814,6 @@
             const bill = doc.data();
             let netAmount = parseFloat(bill.netAmount);
             total += netAmount;
-            // Convert the ISO string date to "YYYY-MM-DD" format
             let dateStr = "N/A";
             if (bill.billDate) {
               dateStr = new Date(bill.billDate).toISOString().split("T")[0];
@@ -728,7 +876,6 @@
           trs[i].style.display = show ? "" : "none";
         }
       }
-      // ---------------------- New Stock Modal Functions ----------------------
       function openAddStockModal() {
         document.getElementById("addStockModal").style.display = "block";
         populateStockItemSelect();
@@ -759,7 +906,7 @@
             itemId,
             ctns,
             boxes,
-            pcs: 0  // Adjust as needed
+            pcs: 0
           });
           alert("Stock added successfully!");
           document.getElementById("stockCtns").value = "0";
@@ -771,7 +918,6 @@
           alert("Error adding stock.");
         }
       }
-      // ---------------------- Sale Functions ----------------------
       function openUpdateSaleModal() {
         document.getElementById("updateSaleModal").style.display = "block";
         populateSaleItemSelect();
@@ -830,7 +976,6 @@
           updateSavedItemsTable();
         }
       }
-      // ---------------------- Global Function Attachment ----------------------
       function attachGlobals() {
         window.openAddItemModal = openAddItemModal;
         window.closeModal = closeModal;
@@ -850,11 +995,8 @@
         window.updateSaleSummaryTable = updateSaleSummaryTable;
         console.log("Global functions attached");
       }
-      // Attach globals immediately (we’re using compat libraries so code is in global scope)
       attachGlobals();
-      // Initialize by showing the home section.
       showSection("home");
-      // Update stock report when search input changes.
       document.getElementById("stockSearchInput").addEventListener("input", updateStockReportTable);
     </script>
   </body>
