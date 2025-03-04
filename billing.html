@@ -128,7 +128,8 @@
       border: 1px solid #888;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.25);
-      width: 300px;
+      width: 80%;
+      max-width: 800px;
       text-align: left;
     }
     #editItemModal { z-index: 1100; }
@@ -235,7 +236,7 @@
   <input type="file" id="priceListInput" accept=".pdf" style="display:none" onchange="loadPriceListFromFile(this)" />
   <!-- Modal for Viewing Price List -->
   <div id="priceListModal" class="modal no-print">
-    <h3>Price List</h3>
+    <h3>Price List (PDF View)</h3>
     <div id="priceListContent"></div>
     <button onclick="closeModal('priceListModal')">Close</button>
   </div>
@@ -307,6 +308,8 @@
     // Global objects for products and price list
     let items = {};
     let priceList = {};
+    // Global variable to store PDF blob URL of the price list
+    let priceListPDFUrl = "";
     
     /* Login Functionality */
     function login() {
@@ -356,7 +359,7 @@
         return;
       }
       let product = items[productCode];
-      // Use product description as key for price list lookup
+      // If a matching price list entry exists, update trade price and trade offer
       if (priceList[product.description]) {
         product.ctnPrice = parseFloat(priceList[product.description].tradePrice) || product.ctnPrice;
       }
@@ -607,6 +610,8 @@
         alert("Please upload a PDF file.");
         return;
       }
+      // Store the PDF blob URL so we can display it later
+      priceListPDFUrl = URL.createObjectURL(file);
       let fileReader = new FileReader();
       fileReader.onload = function() {
         let typedarray = new Uint8Array(this.result);
@@ -680,48 +685,20 @@
       document.getElementById('priceListInput').click();
     }
     
-    /* Show the Price List in a modal */
+    /* Updated Show Price List Modal: displays PDF view if available */
     function showPriceListModal() {
       let modal = document.getElementById("priceListModal");
       let content = document.getElementById("priceListContent");
       content.innerHTML = "";
-      if (Object.keys(priceList).length === 0) {
-        content.innerHTML = "<p>No price list loaded.</p>";
+      if (priceListPDFUrl) {
+        // Create an iframe to display the PDF file
+        let iframe = document.createElement("iframe");
+        iframe.src = priceListPDFUrl;
+        iframe.style.width = "100%";
+        iframe.style.height = "500px";
+        content.appendChild(iframe);
       } else {
-        let table = document.createElement("table");
-        table.style.width = "100%";
-        table.style.borderCollapse = "collapse";
-        let headerRow = document.createElement("tr");
-        let th1 = document.createElement("th");
-        th1.textContent = "Product Name";
-        th1.style.border = "1px solid #ddd";
-        let th2 = document.createElement("th");
-        th2.textContent = "Trade Price";
-        th2.style.border = "1px solid #ddd";
-        let th3 = document.createElement("th");
-        th3.textContent = "Trade Offer (%)";
-        th3.style.border = "1px solid #ddd";
-        headerRow.appendChild(th1);
-        headerRow.appendChild(th2);
-        headerRow.appendChild(th3);
-        table.appendChild(headerRow);
-        for (let name in priceList) {
-          let row = document.createElement("tr");
-          let cellName = document.createElement("td");
-          cellName.textContent = name;
-          cellName.style.border = "1px solid #ddd";
-          let cellPrice = document.createElement("td");
-          cellPrice.textContent = priceList[name].tradePrice;
-          cellPrice.style.border = "1px solid #ddd";
-          let cellOffer = document.createElement("td");
-          cellOffer.textContent = priceList[name].tradeOffer;
-          cellOffer.style.border = "1px solid #ddd";
-          row.appendChild(cellName);
-          row.appendChild(cellPrice);
-          row.appendChild(cellOffer);
-          table.appendChild(row);
-        }
-        content.appendChild(table);
+        content.innerHTML = "<p>No price list loaded.</p>";
       }
       modal.style.display = "block";
     }
