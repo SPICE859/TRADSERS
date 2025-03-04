@@ -599,7 +599,7 @@
       reader.readAsBinaryString(file);
     }
     
-    /* Load Price List from PDF */
+    /* Updated Load Price List from PDF */
     function loadPriceListFromFile(inputElem) {
       let file = inputElem.files[0];
       if (!file) return;
@@ -610,6 +610,8 @@
       let fileReader = new FileReader();
       fileReader.onload = function() {
         let typedarray = new Uint8Array(this.result);
+        // Set the PDF.js worker source (this is required)
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.js';
         pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
           let numPages = pdf.numPages;
           let promises = [];
@@ -636,33 +638,27 @@
       fileReader.readAsArrayBuffer(file);
     }
     
-    /* Parse PDF text into priceList.
-       For each row starting with a serial number, if the last token is "N/A"
-       the trade offer is set to "0%"; otherwise it uses the token containing "%".
-       For rows with 11 tokens (e.g., those with '4 Flavors'), product name is tokens[1]–tokens[6].
-       For rows with 9 tokens, product name is tokens[1]–tokens[4].
-    */
+    /* Updated Parse Price List from Text */
     function parsePriceListFromText(allText) {
-      let rows = allText.split("\n").filter(line => line.trim() !== "");
+      // Try a regex approach first:
+      // This pattern assumes rows like: "1 ProductName 100.50 5%" or with "N/A" instead of a percentage.
+      let pattern = /^(\d+)\s+(.+?)\s+([\d,.]+)\s+([\d,.]+%|N\/A)$/;
       priceList = {};
-      for (let i = 0; i < rows.length; i++) {
-        let tokens = rows[i].trim().split(/\s+/);
-        if (!/^\d+$/.test(tokens[0])) continue; // skip if first token isn't a serial number
-        let tradeOffer, tradePrice, productName;
-        if (tokens[tokens.length - 1] === "N/A") {
-          tradeOffer = "0%";
-          if (tokens.length === 9) {
-            productName = tokens.slice(1, tokens.length - 5).join(" ");
-            tradePrice = tokens[tokens.length - 5];
-          } else if (tokens.length === 11) {
-            productName = tokens.slice(1, 6).join(" ");
-            tradePrice = tokens[6];
-          } else {
-            productName = tokens.slice(1, tokens.length - 5).join(" ");
-            tradePrice = tokens[tokens.length - 5];
-          }
+      let rows = allText.split("\n").filter(line => line.trim() !== "");
+      
+      rows.forEach(row => {
+        let match = row.match(pattern);
+        if (match) {
+          let productName = match[2].trim();
+          let tradePrice = match[3].replace(/,/g, '');
+          let tradeOffer = (match[4] === "N/A") ? "0%" : match[4];
+          priceList[productName] = { tradePrice, tradeOffer };
         } else {
-          tradeOffer = tokens[tokens.length - 1];
+          // Fallback: use original token-based parsing
+          let tokens = row.trim().split(/\s+/);
+          if (!/^\d+$/.test(tokens[0]) || tokens.length < 5) return;
+          let tradeOffer = tokens[tokens.length - 1] === "N/A" ? "0%" : tokens[tokens.length - 1];
+          let tradePrice, productName;
           if (tokens.length === 9) {
             productName = tokens.slice(1, tokens.length - 5).join(" ");
             tradePrice = tokens[tokens.length - 5];
@@ -673,9 +669,9 @@
             productName = tokens.slice(1, tokens.length - 5).join(" ");
             tradePrice = tokens[tokens.length - 5];
           }
+          priceList[productName] = { tradePrice, tradeOffer };
         }
-        priceList[productName] = { tradePrice, tradeOffer };
-      }
+      });
       console.log("Parsed Price List:", priceList);
     }
     
