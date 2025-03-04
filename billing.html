@@ -335,7 +335,7 @@
       });
     }
     
-    /* Populate product datalist for search */
+    /* Populate product datalist */
     function populateItems() {
       let dataList = document.getElementById("productList");
       dataList.innerHTML = "";
@@ -375,7 +375,7 @@
       if (priceList[product.description]) {
         tradeOfferValue = priceList[product.description].tradeOffer;
       }
-      // Trade Offer input as text (showing "%" symbol)
+      // Trade offer as text input (always showing "%" symbol)
       let cellTrade = row.insertCell();
       cellTrade.className = "no-print";
       cellTrade.innerHTML = '<input type="text" class="tradeOffer" value="'+tradeOfferValue+'" style="width:70px;" />';
@@ -395,7 +395,7 @@
       let ctns = parseFloat(row.querySelector(".ctns").value) || 0;
       let boxes = parseFloat(row.querySelector(".boxes").value) || 0;
       let pcs = parseFloat(row.querySelector(".pcs").value) || 0;
-      // Parse trade offer percentage (e.g. "4%" => 4)
+      // Parse the trade offer percentage (e.g. "4%" => 4)
       let tradeOfferPct = parseFloat(row.querySelector(".tradeOffer").value) || 0;
       let salesTaxPercent = parseFloat(row.querySelector(".salesTax").value) || 0;
       let pcsPerBox = product.pcsPerBox;
@@ -403,7 +403,7 @@
       let gross = (ctns * product.ctnPrice) + (boxes * (product.ctnPrice / product.boxesPerCtn)) + (pcs * perPiecePrice);
       row.querySelector(".gross").textContent = gross.toFixed(2);
       let salesTaxValue = (salesTaxPercent / 100) * gross;
-      // Calculate discount as percentage of gross
+      // Calculate discount based on percentage
       let discount = gross * (tradeOfferPct / 100);
       let net = gross - discount + salesTaxValue;
       row.querySelector(".net").textContent = net.toFixed(2);
@@ -599,9 +599,7 @@
       reader.readAsBinaryString(file);
     }
     
-    /* Load Price List from PDF.
-       This function uses PDF.js to extract text and then parses it to update the global priceList object.
-    */
+    /* Load Price List from PDF */
     function loadPriceListFromFile(inputElem) {
       let file = inputElem.files[0];
       if (!file) return;
@@ -639,10 +637,10 @@
     }
     
     /* Parse PDF text into priceList.
-       This parser first looks for a token containing "%" (the common case).
-       If found, it uses that token's index to determine product name and trade price.
-       Otherwise, if the last token is "N/A", it applies a heuristic—
-       and converts trade offer to "0%".
+       For each row starting with a serial number, if the last token is "N/A"
+       the trade offer is set to "0%"; otherwise it uses the token containing "%".
+       For rows with 11 tokens (e.g., those with '4 Flavors'), product name is tokens[1]–tokens[6].
+       For rows with 9 tokens, product name is tokens[1]–tokens[4].
     */
     function parsePriceListFromText(allText) {
       let rows = allText.split("\n").filter(line => line.trim() !== "");
@@ -650,37 +648,38 @@
       for (let i = 0; i < rows.length; i++) {
         let tokens = rows[i].trim().split(/\s+/);
         if (!/^\d+$/.test(tokens[0])) continue; // skip if first token isn't a serial number
-        let tradeOfferIndex = tokens.findIndex(token => token.includes("%"));
-        if (tradeOfferIndex !== -1) {
-          // Use percentage token
-          let productName = tokens.slice(1, tradeOfferIndex - 4).join(" ");
-          let tradePrice = tokens[tradeOfferIndex - 4];
-          let tradeOffer = tokens[tradeOfferIndex];
-          priceList[productName] = { tradePrice, tradeOffer };
-        } else if (tokens[tokens.length - 1] === "N/A") {
-          // For rows with N/A trade offer, use heuristic:
-          // If tokens length >= 11 and second last token (tokens[tokens.length-2]) is less than 100, assume extra column exists.
-          if (tokens.length >= 11 && parseFloat(tokens[tokens.length - 2]) < 100) {
-            var productName = tokens.slice(1, tokens.length - 6).join(" ");
-            var tradePrice = tokens[tokens.length - 6];
+        let tradeOffer, tradePrice, productName;
+        if (tokens[tokens.length - 1] === "N/A") {
+          tradeOffer = "0%";
+          if (tokens.length === 9) {
+            productName = tokens.slice(1, tokens.length - 5).join(" ");
+            tradePrice = tokens[tokens.length - 5];
+          } else if (tokens.length === 11) {
+            productName = tokens.slice(1, 6).join(" ");
+            tradePrice = tokens[6];
           } else {
-            var productName = tokens.slice(1, tokens.length - 5).join(" ");
-            var tradePrice = tokens[tokens.length - 5];
+            productName = tokens.slice(1, tokens.length - 5).join(" ");
+            tradePrice = tokens[tokens.length - 5];
           }
-          let tradeOffer = "0%";
-          priceList[productName] = { tradePrice, tradeOffer };
         } else {
-          // Default fallback
-          let productName = tokens.slice(1, tokens.length - 5).join(" ");
-          let tradePrice = tokens[tokens.length - 5];
-          let tradeOffer = tokens[tokens.length - 1];
-          priceList[productName] = { tradePrice, tradeOffer };
+          tradeOffer = tokens[tokens.length - 1];
+          if (tokens.length === 9) {
+            productName = tokens.slice(1, tokens.length - 5).join(" ");
+            tradePrice = tokens[tokens.length - 5];
+          } else if (tokens.length === 11) {
+            productName = tokens.slice(1, 6).join(" ");
+            tradePrice = tokens[6];
+          } else {
+            productName = tokens.slice(1, tokens.length - 5).join(" ");
+            tradePrice = tokens[tokens.length - 5];
+          }
         }
+        priceList[productName] = { tradePrice, tradeOffer };
       }
       console.log("Parsed Price List:", priceList);
     }
     
-    /* Trigger the hidden price list file input */
+    /* Trigger the hidden file input for price list upload */
     function triggerPriceListUpload() {
       document.getElementById('priceListInput').click();
     }
