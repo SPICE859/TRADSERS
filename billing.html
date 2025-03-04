@@ -11,6 +11,8 @@
   <!-- Firebase libraries -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <!-- PDF.js library for PDF price list extraction -->
+  <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
   <style>
     /* Fixed Back to Dashboard button */
     #backToDashboard {
@@ -258,11 +260,23 @@
         <button onclick="generateExcel()">Generate Excel</button>
         <button onclick="window.print()">Print</button>
         <button onclick="showSavedItemsModal()">View Saved Items</button>
+        <button onclick="triggerPriceListUpload()">Add Price List</button>
+        <button onclick="showPriceListModal()">View Price List</button>
         <button onclick="nextBill()">Next Bill</button>
       </div>
     </div>
   </div>
  
+  <!-- Hidden File Input for Price List Upload (PDF only) -->
+  <input type="file" id="priceListInput" accept=".pdf" style="display:none" onchange="loadPriceListFromFile(this)" />
+  
+  <!-- Modal for Viewing Price List -->
+  <div id="priceListModal" class="modal no-print">
+    <h3>Price List</h3>
+    <div id="priceListContent"></div>
+    <button onclick="closeModal('priceListModal')">Close</button>
+  </div>
+  
   <!-- Modal for Adding New Item -->
   <div id="newItemModal" class="modal no-print">
     <h3>Add New Item</h3>
@@ -331,12 +345,16 @@
     
     console.log("Firebase App:", firebase.app());
     console.log("Firestore instance:", db);
-  </script>
- 
-  <script>
-    /* Global items object to hold products loaded from Firestore "items" collection */
+    
+    // Define which columns to use from the PDF (0-based indexes)
+    const PRODUCT_CODE_COL = 0;
+    const TRADE_PRICE_COL = 2;  // adjust as needed
+    const TRADE_OFFER_COL = 3;  // adjust as needed
+    
+    /* Global objects to hold products and price list data */
     let items = {};
-
+    let priceList = {};
+    
     /* Login Functionality */
     function login() {
       const username = document.getElementById("username").value;
@@ -385,6 +403,10 @@
         return; 
       }
       let product = items[productCode];
+      // If a price list is loaded and contains this product, override trade price and trade offer
+      if (priceList[productCode]) {
+        product.ctnPrice = parseFloat(priceList[productCode].tradePrice) || product.ctnPrice;
+      }
       let tableBody = document.getElementById("billTable").querySelector("tbody");
       let row = tableBody.insertRow();
       row.setAttribute("data-product", JSON.stringify(product));
@@ -392,11 +414,16 @@
       let cellDesc = row.insertCell(); cellDesc.textContent = product.description;
       let cellCtnSize = row.insertCell(); cellCtnSize.textContent = product.ctnSize;
       let cellRate = row.insertCell(); cellRate.textContent = product.ctnPrice.toFixed(2);
-      let cellCtns = row.insertCell(); cellCtns.innerHTML = '<input type="number" class="ctns" value="1" style="width:50px;" />';
+      let cellCtns = row.insertCell(); cellCtns.innerHTML = '<input type="number" class="ctns" value="0" style="width:50px;" />';
       let cellBoxes = row.insertCell(); cellBoxes.innerHTML = '<input type="number" class="boxes" value="0" style="width:50px;" />';
       let cellPcs = row.insertCell(); cellPcs.innerHTML = '<input type="number" class="pcs" value="0" style="width:50px;" />';
       let cellGross = row.insertCell(); cellGross.className = "gross"; cellGross.textContent = "0.00";
-      let cellTrade = row.insertCell(); cellTrade.className = "no-print"; cellTrade.innerHTML = '<input type="number" class="tradeOffer" value="0" style="width:70px;" />';
+      // Set default trade offer based on the loaded price list (if available)
+      let tradeOfferValue = 0;
+      if (priceList[productCode]) {
+        tradeOfferValue = parseFloat(priceList[productCode].tradeOffer) || 0;
+      }
+      let cellTrade = row.insertCell(); cellTrade.className = "no-print"; cellTrade.innerHTML = '<input type="number" class="tradeOffer" value="'+tradeOfferValue+'" style="width:70px;" />';
       let cellTax = row.insertCell(); cellTax.className = "no-print"; cellTax.innerHTML = '<input type="number" class="salesTax" value="0" style="width:70px;" />';
       let cellNet = row.insertCell(); cellNet.className = "net"; cellNet.textContent = "0.00";
       let cellAction = row.insertCell(); cellAction.className = "no-print"; cellAction.innerHTML = '<button onclick="removeRow(this)">Remove</button>';
@@ -624,6 +651,122 @@
         });
       };
       reader.readAsBinaryString(file);
+    }
+   
+    /* Load Price List from PDF file.
+       This function uses PDF.js to extract text from the PDF and then
+       parses the text to update the global priceList object.
+    */
+    function loadPriceListFromFile(inputElem) {
+      let file = inputElem.files[0];
+      if (!file) return;
+      if (file.type !== "application/pdf") {
+        alert("Please upload a PDF file.");
+        return;
+      }
+      let fileReader = new FileReader();
+      fileReader.onload = function() {
+        let typedarray = new Uint8Array(this.result);
+        pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+          let numPages = pdf.numPages;
+          let promises = [];
+          for (let i = 1; i <= numPages; i++) {
+            promises.push(
+              pdf.getPage(i).then(page => {
+                return page.getTextContent().then(textContent => {
+                  let pageText = textContent.items.map(item => item.str).join(" ");
+                  return pageText;
+                });
+              })
+            );
+          }
+          Promise.all(promises).then(function(pagesText) {
+            let allText = pagesText.join("\n");
+            parsePriceListFromText(allText);
+            alert("Price list loaded successfully from PDF!");
+          });
+        }).catch(function(error) {
+          console.error("Error processing PDF:", error);
+          alert("Error processing PDF file.");
+        });
+      };
+      fileReader.readAsArrayBuffer(file);
+    }
+    
+    /* Parse the extracted PDF text into the priceList object.
+       Assumes that each row is separated by a newline and columns by whitespace.
+       Adjust PRODUCT_CODE_COL, TRADE_PRICE_COL, and TRADE_OFFER_COL as needed.
+    */
+    function parsePriceListFromText(allText) {
+      let rows = allText.split("\n");
+      priceList = {}; // reset current price list
+      // Assuming first row is header; start at index 1
+      for (let i = 1; i < rows.length; i++) {
+        let row = rows[i].trim();
+        if (!row) continue;
+        let cols = row.split(/\s+/);
+        if (cols.length < (TRADE_OFFER_COL + 1)) continue;
+        let code = cols[PRODUCT_CODE_COL];
+        let tradePrice = parseFloat(cols[TRADE_PRICE_COL]);
+        let tradeOffer = parseFloat(cols[TRADE_OFFER_COL]);
+        if (!isNaN(tradePrice) && !isNaN(tradeOffer)) {
+          priceList[code] = {
+            tradePrice: tradePrice,
+            tradeOffer: tradeOffer
+          };
+        }
+      }
+    }
+   
+    /* Trigger the hidden price list file input */
+    function triggerPriceListUpload() {
+      document.getElementById('priceListInput').click();
+    }
+   
+    /* Show the Price List in a modal */
+    function showPriceListModal() {
+      let modal = document.getElementById("priceListModal");
+      let content = document.getElementById("priceListContent");
+      content.innerHTML = "";
+      if (Object.keys(priceList).length === 0) {
+        content.innerHTML = "<p>No price list loaded.</p>";
+      } else {
+        let table = document.createElement("table");
+        table.style.width = "100%";
+        table.style.borderCollapse = "collapse";
+        let headerRow = document.createElement("tr");
+        let th1 = document.createElement("th");
+        th1.textContent = "Product Code";
+        th1.style.border = "1px solid #ddd";
+        let th2 = document.createElement("th");
+        th2.textContent = "Trade Price";
+        th2.style.border = "1px solid #ddd";
+        let th3 = document.createElement("th");
+        th3.textContent = "Trade Offer";
+        th3.style.border = "1px solid #ddd";
+        headerRow.appendChild(th1);
+        headerRow.appendChild(th2);
+        headerRow.appendChild(th3);
+        table.appendChild(headerRow);
+        for (let code in priceList) {
+          let row = document.createElement("tr");
+          let cellCode = document.createElement("td");
+          cellCode.textContent = code;
+          cellCode.style.border = "1px solid #ddd";
+          let cellPrice = document.createElement("td");
+          cellPrice.textContent = priceList[code].tradePrice;
+          cellPrice.style.border = "1px solid #ddd";
+          let cellOffer = document.createElement("td");
+          cellOffer.textContent = priceList[code].tradeOffer;
+          cellOffer.style.border = "1px solid #ddd";
+          row.appendChild(cellCode);
+          row.appendChild(cellPrice);
+          row.appendChild(cellOffer);
+          table.appendChild(row);
+        }
+        content.appendChild(table);
+      }
+      modal.style.display = "block";
     }
    
     /* Generate Excel Export for the bill */
