@@ -30,7 +30,6 @@
     #backToDashboard:hover {
       background: #0056b3;
     }
-
     /* Basic styles for Login */
     .login-container {
       width: 300px;
@@ -72,7 +71,6 @@
       margin-bottom: 10px;
       font-size: 0.9em;
     }
-   
     /* Billing System Styles */
     .billing-system { display: none; }
     .container {
@@ -137,7 +135,6 @@
       margin: 5px;
     }
     button:hover { background: #0056b3; }
-   
     /* Modal styles */
     .modal {
       display: none;
@@ -158,19 +155,14 @@
     .modal h3 { margin-top: 0; }
     .modal input { width: 100%; padding: 5px; margin: 5px 0 10px 0; }
     .modal button { margin-top: 10px; }
-   
     /* Print styles */
     @media print {
       body { color: black; background: white; }
-      /* Hide the back button on print */
       #backToDashboard { display: none; }
       .no-print:not(#billTable .no-print) { display: none; }
       #billTable .no-print { display: table-cell !important; }
-      /* Hide the last column (Action column) in the bill table */
       #billTable tr th:last-child,
-      #billTable tr td:last-child {
-        display: none;
-      }
+      #billTable tr td:last-child { display: none; }
       table, th, td { border: 1px solid black; }
       td:empty::after { content: "0.00"; }
     }
@@ -179,7 +171,6 @@
 <body>
   <!-- Back to Dashboard Button -->
   <button id="backToDashboard" onclick="window.history.back()">Back to Dashboard</button>
-
   <!-- Login Screen -->
   <div class="login-container" id="loginContainer">
     <h2>Login</h2>
@@ -188,12 +179,10 @@
     <input type="password" id="password" placeholder="Password" />
     <button onclick="login()">Login</button>
   </div>
-
   <!-- Billing System (initially hidden) -->
   <div class="billing-system" id="billingSystem">
     <div class="container">
       <h1>AHYAN TRADERS</h1>
-      
       <!-- Customer details and extra info -->
       <div class="header-details-container">
         <div class="header-details-left">
@@ -217,7 +206,6 @@
           </div>
         </div>
       </div>
-      
       <!-- Item Entry Section -->
       <div class="item-entry no-print">
         <label for="item">Product Code:</label>
@@ -226,7 +214,6 @@
         <button onclick="addItem()">Add to Bill</button>
         <button onclick="showNewItemModal()">Add New Item</button>
       </div>
-     
       <!-- Bill Table -->
       <table id="billTable">
         <thead>
@@ -252,9 +239,7 @@
           <!-- Rows added dynamically -->
         </tbody>
       </table>
-     
       <div class="total-container">Grand Total: <span id="grandTotal">Rs 0.00</span></div>
-     
       <!-- Action Buttons -->
       <div class="no-print">
         <button onclick="generateExcel()">Generate Excel</button>
@@ -266,17 +251,14 @@
       </div>
     </div>
   </div>
- 
   <!-- Hidden File Input for Price List Upload (PDF only) -->
   <input type="file" id="priceListInput" accept=".pdf" style="display:none" onchange="loadPriceListFromFile(this)" />
-  
   <!-- Modal for Viewing Price List -->
   <div id="priceListModal" class="modal no-print">
     <h3>Price List</h3>
     <div id="priceListContent"></div>
     <button onclick="closeModal('priceListModal')">Close</button>
   </div>
-  
   <!-- Modal for Adding New Item -->
   <div id="newItemModal" class="modal no-print">
     <h3>Add New Item</h3>
@@ -295,7 +277,6 @@
     <button onclick="saveNewItem()">Save Item</button>
     <button onclick="closeModal('newItemModal')">Close</button>
   </div>
- 
   <!-- Modal for Editing Item -->
   <div id="editItemModal" class="modal no-print">
     <h3>Edit Item</h3>
@@ -313,7 +294,6 @@
     <button onclick="saveEditedItem()">Save Changes</button>
     <button onclick="closeModal('editItemModal')">Close</button>
   </div>
- 
   <!-- Modal for Viewing Items -->
   <div id="savedItemsModal" class="modal no-print">
     <h3>Saved Items</h3>
@@ -327,10 +307,8 @@
     <button onclick="deleteItem()">Delete Item</button>
     <button onclick="closeModal('savedItemsModal')">Close</button>
   </div>
- 
   <!-- Firebase Initialization -->
   <script>
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
     const firebaseConfig = {
       apiKey: "AIzaSyD_ojS20opjpxmwHxIHATC52ncABe_fkuk",
       authDomain: "ahyan-traders.firebaseapp.com",
@@ -346,12 +324,7 @@
     console.log("Firebase App:", firebase.app());
     console.log("Firestore instance:", db);
     
-    // Define which columns to use from the PDF (0-based indexes)
-    const PRODUCT_CODE_COL = 0;
-    const TRADE_PRICE_COL = 2;  // adjust as needed
-    const TRADE_OFFER_COL = 3;  // adjust as needed
-    
-    /* Global objects to hold products and price list data */
+    // Global objects for products and price list
     let items = {};
     let priceList = {};
     
@@ -368,8 +341,8 @@
         errorMsg.textContent = "Invalid username or password!";
       }
     }
-   
-    /* Load products from Firestore collection "items" */
+    
+    /* Load products from Firestore "items" collection */
     function loadItemsFromFirestore() {
       db.collection("items").get().then((querySnapshot) => {
         items = {};
@@ -381,7 +354,7 @@
         console.error("Error loading items: ", error);
       });
     }
-   
+    
     /* Populate the product datalist for search */
     function populateItems() {
       let dataList = document.getElementById("productList");
@@ -392,8 +365,8 @@
         dataList.appendChild(option);
       }
     }
-   
-    /* Add product to bill (retrieved from Firestore "items" collection) */
+    
+    /* Add product to bill */
     function addItem() {
       let inputVal = document.getElementById("item").value;
       if (!inputVal) return;
@@ -403,9 +376,9 @@
         return; 
       }
       let product = items[productCode];
-      // If a price list is loaded and contains this product, override trade price and trade offer
-      if (priceList[productCode]) {
-        product.ctnPrice = parseFloat(priceList[productCode].tradePrice) || product.ctnPrice;
+      // Use product description as key for price list lookup
+      if (priceList[product.description]) {
+        product.ctnPrice = parseFloat(priceList[product.description].tradePrice) || product.ctnPrice;
       }
       let tableBody = document.getElementById("billTable").querySelector("tbody");
       let row = tableBody.insertRow();
@@ -418,12 +391,14 @@
       let cellBoxes = row.insertCell(); cellBoxes.innerHTML = '<input type="number" class="boxes" value="0" style="width:50px;" />';
       let cellPcs = row.insertCell(); cellPcs.innerHTML = '<input type="number" class="pcs" value="0" style="width:50px;" />';
       let cellGross = row.insertCell(); cellGross.className = "gross"; cellGross.textContent = "0.00";
-      // Set default trade offer based on the loaded price list (if available)
-      let tradeOfferValue = 0;
-      if (priceList[productCode]) {
-        tradeOfferValue = parseFloat(priceList[productCode].tradeOffer) || 0;
+      let tradeOfferValue = "0%";
+      if (priceList[product.description]) {
+        tradeOfferValue = priceList[product.description].tradeOffer;
       }
-      let cellTrade = row.insertCell(); cellTrade.className = "no-print"; cellTrade.innerHTML = '<input type="number" class="tradeOffer" value="'+tradeOfferValue+'" style="width:70px;" />';
+      // Use text input to display trade offer as percentage (e.g., "4%")
+      let cellTrade = row.insertCell(); 
+      cellTrade.className = "no-print"; 
+      cellTrade.innerHTML = '<input type="text" class="tradeOffer" value="'+tradeOfferValue+'" style="width:70px;" />';
       let cellTax = row.insertCell(); cellTax.className = "no-print"; cellTax.innerHTML = '<input type="number" class="salesTax" value="0" style="width:70px;" />';
       let cellNet = row.insertCell(); cellNet.className = "net"; cellNet.textContent = "0.00";
       let cellAction = row.insertCell(); cellAction.className = "no-print"; cellAction.innerHTML = '<button onclick="removeRow(this)">Remove</button>';
@@ -431,21 +406,17 @@
       inputs.forEach(input => input.addEventListener("input", () => updateRow(row)));
       updateRow(row);
     }
-   
+    
     function updateRow(row) {
       let product = JSON.parse(row.getAttribute("data-product"));
       let ctns = parseFloat(row.querySelector(".ctns").value) || 0;
       let boxes = parseFloat(row.querySelector(".boxes").value) || 0;
       let pcs = parseFloat(row.querySelector(".pcs").value) || 0;
+      // parseFloat works on "4%" (returns 4)
       let tradeOffer = parseFloat(row.querySelector(".tradeOffer").value) || 0;
       let salesTaxPercent = parseFloat(row.querySelector(".salesTax").value) || 0;
-      
-      // Use the product's pcsPerBox value
       let pcsPerBox = product.pcsPerBox;
-      let perPiecePrice = 0;
-      if (pcsPerBox > 0) {
-        perPiecePrice = product.ctnPrice / (product.boxesPerCtn * pcsPerBox);
-      }
+      let perPiecePrice = (pcsPerBox > 0) ? product.ctnPrice / (product.boxesPerCtn * pcsPerBox) : 0;
       let gross = (ctns * product.ctnPrice) + (boxes * (product.ctnPrice / product.boxesPerCtn)) + (pcs * perPiecePrice);
       row.querySelector(".gross").textContent = gross.toFixed(2);
       let salesTaxValue = (salesTaxPercent / 100) * gross;
@@ -453,7 +424,7 @@
       row.querySelector(".net").textContent = net.toFixed(2);
       recalcGrandTotal();
     }
-   
+    
     function recalcGrandTotal() {
       let rows = document.getElementById("billTable").querySelector("tbody").rows;
       let grandTotal = 0;
@@ -463,20 +434,21 @@
       }
       document.getElementById("grandTotal").textContent = "Rs " + grandTotal.toFixed(2);
     }
-   
+    
     function removeRow(btn) {
       let row = btn.parentNode.parentNode;
       row.parentNode.removeChild(row);
       recalcGrandTotal();
     }
-   
-    /* New Item Modal functions (save, edit, delete) now operate on the Firestore "items" collection */
+    
     function showNewItemModal() {
       document.getElementById("newItemModal").style.display = "block";
     }
+    
     function closeModal(id) {
       document.getElementById(id).style.display = "none";
     }
+    
     function saveNewItem() {
       let code = document.getElementById("newProductCode").value.trim();
       let desc = document.getElementById("newDescription").value.trim();
@@ -484,7 +456,6 @@
       let price = parseFloat(document.getElementById("newCtnPrice").value);
       let boxes = parseFloat(document.getElementById("newBoxesPerCtn").value);
       let pcsInput = document.getElementById("newPcsPerBox").value;
-      // Default pcs per box to the value of boxes per CTN if not entered
       let pcsPerBox = (pcsInput === "" ? boxes : parseFloat(pcsInput));
       if (code && desc && size && price && boxes) {
         let newItem = { 
@@ -515,7 +486,7 @@
         alert("Please fill in all fields correctly.");
       }
     }
-   
+    
     function openEditModal(code) {
       closeModal('savedItemsModal');
       let item = items[code];
@@ -525,10 +496,10 @@
       document.getElementById("editCtnSize").value = item.ctnSize;
       document.getElementById("editCtnPrice").value = item.ctnPrice;
       document.getElementById("editBoxesPerCtn").value = item.boxesPerCtn;
-      // Default pcs per box to the item's boxesPerCtn if pcsPerBox is falsy or 0
       document.getElementById("editPcsPerBox").value = (parseFloat(item.pcsPerBox) > 0 ? item.pcsPerBox : item.boxesPerCtn);
       document.getElementById("editItemModal").style.display = "block";
     }
+    
     function saveEditedItem() {
       let code = document.getElementById("editProductCode").value;
       let pcsVal = document.getElementById("editPcsPerBox").value;
@@ -553,7 +524,7 @@
           alert("Error updating item: " + error.message);
         });
     }
-   
+    
     function showSavedItemsModal() {
       let listDiv = document.getElementById("savedItemsList");
       listDiv.innerHTML = "";
@@ -572,6 +543,7 @@
       }
       document.getElementById("savedItemsModal").style.display = "block";
     }
+    
     function filterSavedItems() {
       let searchVal = document.getElementById("savedSearch").value.toLowerCase();
       let listDiv = document.getElementById("savedItemsList");
@@ -592,7 +564,7 @@
         }
       }
     }
-   
+    
     function deleteItem() {
       let code = prompt("Enter the product code to delete:");
       if (!code || !items[code]) { alert("Product code not found!"); return; }
@@ -613,8 +585,8 @@
         alert("Incorrect password!");
       }
     }
-   
-    /* Load Items from Excel into Firestore "items" collection */
+    
+    /* Load Items from Excel */
     function loadItemsFromExcel(inputElem) {
       let file = inputElem.files[0];
       if (!file) return;
@@ -634,7 +606,6 @@
               ctnSize: row[2] ? row[2].toString() : "",
               ctnPrice: row[3] ? parseFloat(row[3]) : 0,
               boxesPerCtn: row[4] ? parseFloat(row[4]) : 0,
-              // If pcs value is not provided, default it to boxes value
               pcsPerBox: row[5] ? parseFloat(row[5]) : (row[4] ? parseFloat(row[4]) : 0)
             };
             let docRef = db.collection("items").doc(code);
@@ -652,8 +623,8 @@
       };
       reader.readAsBinaryString(file);
     }
-   
-    /* Load Price List from PDF file.
+    
+    /* Load Price List from PDF.
        This function uses PDF.js to extract text from the PDF and then
        parses the text to update the global priceList object.
     */
@@ -693,36 +664,43 @@
       fileReader.readAsArrayBuffer(file);
     }
     
-    /* Parse the extracted PDF text into the priceList object.
-       Assumes that each row is separated by a newline and columns by whitespace.
-       Adjust PRODUCT_CODE_COL, TRADE_PRICE_COL, and TRADE_OFFER_COL as needed.
+    /* Parse PDF text into priceList.
+       This parser splits each non-empty line and, if the line begins with a serial number,
+       it uses token count to decide which columns to extract.
+       The product name (description) is used as key.
+       Trade offer is kept as a string with the "%" symbol.
     */
     function parsePriceListFromText(allText) {
-      let rows = allText.split("\n");
-      priceList = {}; // reset current price list
-      // Assuming first row is header; start at index 1
-      for (let i = 1; i < rows.length; i++) {
-        let row = rows[i].trim();
-        if (!row) continue;
-        let cols = row.split(/\s+/);
-        if (cols.length < (TRADE_OFFER_COL + 1)) continue;
-        let code = cols[PRODUCT_CODE_COL];
-        let tradePrice = parseFloat(cols[TRADE_PRICE_COL]);
-        let tradeOffer = parseFloat(cols[TRADE_OFFER_COL]);
-        if (!isNaN(tradePrice) && !isNaN(tradeOffer)) {
-          priceList[code] = {
-            tradePrice: tradePrice,
-            tradeOffer: tradeOffer
-          };
+      let rows = allText.split("\n").filter(line => line.trim() !== "");
+      priceList = {};
+      for (let i = 0; i < rows.length; i++) {
+        let tokens = rows[i].trim().split(/\s+/);
+        // Check if first token is a serial number
+        if (!/^\d+$/.test(tokens[0])) continue;
+        if (tokens.length === 9) {
+          // Expected: [serial, ...productNameTokens..., tradePrice, qty, pricePerCarton, retailPrice, tradeOffer]
+          let productName = tokens.slice(1, tokens.length - 5).join(" ");
+          let tradePrice = tokens[tokens.length - 5];
+          let tradeOffer = tokens[tokens.length - 1]; // e.g. "4%"
+          priceList[productName] = { tradePrice, tradeOffer };
+        } else if (tokens.length === 11) {
+          // Expected (with extra packaging detail): [serial, productName tokens(4 tokens), tradePrice, qty, extra, pricePerCarton, retailPrice, tradeOffer]
+          let productName = tokens.slice(1, 5).join(" ");
+          let tradePrice = tokens[5];
+          let tradeOffer = tokens[10];
+          priceList[productName] = { tradePrice, tradeOffer };
+        } else {
+          console.log("Skipping unexpected line:", tokens);
         }
       }
+      console.log("Parsed Price List:", priceList);
     }
-   
+    
     /* Trigger the hidden price list file input */
     function triggerPriceListUpload() {
       document.getElementById('priceListInput').click();
     }
-   
+    
     /* Show the Price List in a modal */
     function showPriceListModal() {
       let modal = document.getElementById("priceListModal");
@@ -736,7 +714,7 @@
         table.style.borderCollapse = "collapse";
         let headerRow = document.createElement("tr");
         let th1 = document.createElement("th");
-        th1.textContent = "Product Code";
+        th1.textContent = "Product Name";
         th1.style.border = "1px solid #ddd";
         let th2 = document.createElement("th");
         th2.textContent = "Trade Price";
@@ -748,18 +726,18 @@
         headerRow.appendChild(th2);
         headerRow.appendChild(th3);
         table.appendChild(headerRow);
-        for (let code in priceList) {
+        for (let name in priceList) {
           let row = document.createElement("tr");
-          let cellCode = document.createElement("td");
-          cellCode.textContent = code;
-          cellCode.style.border = "1px solid #ddd";
+          let cellName = document.createElement("td");
+          cellName.textContent = name;
+          cellName.style.border = "1px solid #ddd";
           let cellPrice = document.createElement("td");
-          cellPrice.textContent = priceList[code].tradePrice;
+          cellPrice.textContent = priceList[name].tradePrice;
           cellPrice.style.border = "1px solid #ddd";
           let cellOffer = document.createElement("td");
-          cellOffer.textContent = priceList[code].tradeOffer;
+          cellOffer.textContent = priceList[name].tradeOffer;
           cellOffer.style.border = "1px solid #ddd";
-          row.appendChild(cellCode);
+          row.appendChild(cellName);
           row.appendChild(cellPrice);
           row.appendChild(cellOffer);
           table.appendChild(row);
@@ -768,8 +746,7 @@
       }
       modal.style.display = "block";
     }
-   
-    /* Generate Excel Export for the bill */
+    
     function generateExcel() {
       let origTable = document.getElementById("billTable");
       let clone = origTable.cloneNode(true);
@@ -788,8 +765,7 @@
       XLSX.utils.book_append_sheet(wb, ws, "Bill");
       XLSX.writeFile(wb, "bill.xlsx");
     }
-   
-    /* Next Bill: Save invoice data (from bill table and customer info) to Firestore "billing" collection */
+    
     function nextBill() {
       let invoiceNo = "INV-" + Date.now();
       let customer = document.getElementById("customerName").value;
@@ -797,17 +773,8 @@
       let dsrName = document.getElementById("dsrName").value;
       let netAmountText = document.getElementById("grandTotal").textContent;
       let netAmount = parseFloat(netAmountText.replace('Rs ', '')) || 0;
-      
-      let billData = {
-        invoiceNo: invoiceNo,
-        customer: customer,
-        billDate: billDate,
-        dsrName: dsrName,
-        netAmount: netAmount
-      };
-
+      let billData = { invoiceNo, customer, billDate, dsrName, netAmount };
       console.log("Saving bill data:", billData);
-
       db.collection("billing").doc(invoiceNo).set(billData)
         .then(() => {
           console.log("Bill data saved successfully");
