@@ -27,9 +27,7 @@
       border-radius: 5px;
       cursor: pointer;
     }
-    #backToDashboard:hover {
-      background: #0056b3;
-    }
+    #backToDashboard:hover { background: #0056b3; }
     /* Basic styles for Login */
     .login-container {
       width: 300px;
@@ -40,10 +38,7 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       text-align: center;
     }
-    .login-container h2 {
-      color: #007bff;
-      margin-bottom: 20px;
-    }
+    .login-container h2 { color: #007bff; margin-bottom: 20px; }
     .login-container input[type="text"],
     .login-container input[type="password"] {
       width: 100%;
@@ -63,14 +58,8 @@
       font-size: 1em;
       cursor: pointer;
     }
-    .login-container button:hover {
-      background: #0056b3;
-    }
-    .error {
-      color: red;
-      margin-bottom: 10px;
-      font-size: 0.9em;
-    }
+    .login-container button:hover { background: #0056b3; }
+    .error { color: red; margin-bottom: 10px; font-size: 0.9em; }
     /* Billing System Styles */
     .billing-system { display: none; }
     .container {
@@ -97,21 +86,12 @@
       margin-top: 10px;
     }
     .header-details-left div,
-    .header-details-right div {
-      margin-bottom: 10px;
-    }
+    .header-details-right div { margin-bottom: 10px; }
     .header-details-left label,
-    .header-details-right label {
-      margin-right: 5px;
-      font-weight: bold;
-    }
+    .header-details-right label { margin-right: 5px; font-weight: bold; }
     .header-details-left input,
-    .header-details-right input {
-      padding: 5px;
-    }
-    .header-details-right {
-      text-align: right;
-    }
+    .header-details-right input { padding: 5px; }
+    .header-details-right { text-align: right; }
     .item-entry { margin-top: 20px; }
     .item-entry label { margin-right: 5px; }
     #item { padding: 5px; width: 250px; }
@@ -224,7 +204,7 @@
             <th rowspan="2">Trade Price</th>
             <th colspan="3">Sale Qty</th>
             <th rowspan="2">Gross Amount</th>
-            <th rowspan="2" class="no-print">Trade Offer</th>
+            <th rowspan="2" class="no-print">Trade Offer (%)</th>
             <th rowspan="2" class="no-print">Sales Tax (%)</th>
             <th rowspan="2">Net Amount</th>
             <th rowspan="2" class="no-print">Action</th>
@@ -355,7 +335,7 @@
       });
     }
     
-    /* Populate the product datalist for search */
+    /* Populate product datalist for search */
     function populateItems() {
       let dataList = document.getElementById("productList");
       dataList.innerHTML = "";
@@ -371,9 +351,9 @@
       let inputVal = document.getElementById("item").value;
       if (!inputVal) return;
       let productCode = inputVal.split(" - ")[0];
-      if (!items[productCode]) { 
-        alert("Invalid product code."); 
-        return; 
+      if (!items[productCode]) {
+        alert("Invalid product code.");
+        return;
       }
       let product = items[productCode];
       // Use product description as key for price list lookup
@@ -395,13 +375,16 @@
       if (priceList[product.description]) {
         tradeOfferValue = priceList[product.description].tradeOffer;
       }
-      // Use text input to display trade offer as percentage (e.g., "4%")
-      let cellTrade = row.insertCell(); 
-      cellTrade.className = "no-print"; 
+      // Trade Offer input as text (showing "%" symbol)
+      let cellTrade = row.insertCell();
+      cellTrade.className = "no-print";
       cellTrade.innerHTML = '<input type="text" class="tradeOffer" value="'+tradeOfferValue+'" style="width:70px;" />';
-      let cellTax = row.insertCell(); cellTax.className = "no-print"; cellTax.innerHTML = '<input type="number" class="salesTax" value="0" style="width:70px;" />';
+      let cellTax = row.insertCell();
+      cellTax.className = "no-print";
+      cellTax.innerHTML = '<input type="number" class="salesTax" value="0" style="width:70px;" />';
       let cellNet = row.insertCell(); cellNet.className = "net"; cellNet.textContent = "0.00";
-      let cellAction = row.insertCell(); cellAction.className = "no-print"; cellAction.innerHTML = '<button onclick="removeRow(this)">Remove</button>';
+      let cellAction = row.insertCell(); cellAction.className = "no-print";
+      cellAction.innerHTML = '<button onclick="removeRow(this)">Remove</button>';
       let inputs = row.querySelectorAll("input");
       inputs.forEach(input => input.addEventListener("input", () => updateRow(row)));
       updateRow(row);
@@ -412,15 +395,17 @@
       let ctns = parseFloat(row.querySelector(".ctns").value) || 0;
       let boxes = parseFloat(row.querySelector(".boxes").value) || 0;
       let pcs = parseFloat(row.querySelector(".pcs").value) || 0;
-      // parseFloat works on "4%" (returns 4)
-      let tradeOffer = parseFloat(row.querySelector(".tradeOffer").value) || 0;
+      // Parse trade offer percentage (e.g. "4%" => 4)
+      let tradeOfferPct = parseFloat(row.querySelector(".tradeOffer").value) || 0;
       let salesTaxPercent = parseFloat(row.querySelector(".salesTax").value) || 0;
       let pcsPerBox = product.pcsPerBox;
       let perPiecePrice = (pcsPerBox > 0) ? product.ctnPrice / (product.boxesPerCtn * pcsPerBox) : 0;
       let gross = (ctns * product.ctnPrice) + (boxes * (product.ctnPrice / product.boxesPerCtn)) + (pcs * perPiecePrice);
       row.querySelector(".gross").textContent = gross.toFixed(2);
       let salesTaxValue = (salesTaxPercent / 100) * gross;
-      let net = gross - tradeOffer + salesTaxValue;
+      // Calculate discount as percentage of gross
+      let discount = gross * (tradeOfferPct / 100);
+      let net = gross - discount + salesTaxValue;
       row.querySelector(".net").textContent = net.toFixed(2);
       recalcGrandTotal();
     }
@@ -458,13 +443,7 @@
       let pcsInput = document.getElementById("newPcsPerBox").value;
       let pcsPerBox = (pcsInput === "" ? boxes : parseFloat(pcsInput));
       if (code && desc && size && price && boxes) {
-        let newItem = { 
-          description: desc, 
-          ctnSize: size, 
-          ctnPrice: price, 
-          boxesPerCtn: boxes,
-          pcsPerBox: pcsPerBox
-        };
+        let newItem = { description: desc, ctnSize: size, ctnPrice: price, boxesPerCtn: boxes, pcsPerBox: pcsPerBox };
         db.collection("items").doc(code).set(newItem)
           .then(() => {
             alert("New item added successfully!");
@@ -533,10 +512,8 @@
         let displayPcs = (item.pcsPerBox && item.pcsPerBox > 0 ? item.pcsPerBox : item.boxesPerCtn);
         let para = document.createElement("p");
         para.style.cursor = "pointer";
-        para.textContent = code + " - " + item.description + 
-                           ", CTN Size: " + item.ctnSize + 
-                           ", Price: " + item.ctnPrice + 
-                           ", Boxes/CTN: " + item.boxesPerCtn +
+        para.textContent = code + " - " + item.description + ", CTN Size: " + item.ctnSize +
+                           ", Price: " + item.ctnPrice + ", Boxes/CTN: " + item.boxesPerCtn +
                            ", Pcs/Box: " + displayPcs;
         para.onclick = () => openEditModal(code);
         listDiv.appendChild(para);
@@ -554,10 +531,8 @@
           let displayPcs = (item.pcsPerBox && item.pcsPerBox > 0 ? item.pcsPerBox : item.boxesPerCtn);
           let para = document.createElement("p");
           para.style.cursor = "pointer";
-          para.textContent = code + " - " + item.description + 
-                             ", CTN Size: " + item.ctnSize + 
-                             ", Price: " + item.ctnPrice + 
-                             ", Boxes/CTN: " + item.boxesPerCtn +
+          para.textContent = code + " - " + item.description + ", CTN Size: " + item.ctnSize +
+                             ", Price: " + item.ctnPrice + ", Boxes/CTN: " + item.boxesPerCtn +
                              ", Pcs/Box: " + displayPcs;
           para.onclick = () => openEditModal(code);
           listDiv.appendChild(para);
@@ -625,8 +600,7 @@
     }
     
     /* Load Price List from PDF.
-       This function uses PDF.js to extract text from the PDF and then
-       parses the text to update the global priceList object.
+       This function uses PDF.js to extract text and then parses it to update the global priceList object.
     */
     function loadPriceListFromFile(inputElem) {
       let file = inputElem.files[0];
@@ -654,7 +628,7 @@
           Promise.all(promises).then(function(pagesText) {
             let allText = pagesText.join("\n");
             parsePriceListFromText(allText);
-            alert("Price list loaded successfully from PDF!");
+            alert("Price list saved successfully!");
           });
         }).catch(function(error) {
           console.error("Error processing PDF:", error);
@@ -665,32 +639,42 @@
     }
     
     /* Parse PDF text into priceList.
-       This parser splits each non-empty line and, if the line begins with a serial number,
-       it uses token count to decide which columns to extract.
-       The product name (description) is used as key.
-       Trade offer is kept as a string with the "%" symbol.
+       This parser first looks for a token containing "%" (the common case).
+       If found, it uses that token's index to determine product name and trade price.
+       Otherwise, if the last token is "N/A", it applies a heuristic—
+       and converts trade offer to "0%".
     */
     function parsePriceListFromText(allText) {
       let rows = allText.split("\n").filter(line => line.trim() !== "");
       priceList = {};
       for (let i = 0; i < rows.length; i++) {
         let tokens = rows[i].trim().split(/\s+/);
-        // Check if first token is a serial number
-        if (!/^\d+$/.test(tokens[0])) continue;
-        if (tokens.length === 9) {
-          // Expected: [serial, ...productNameTokens..., tradePrice, qty, pricePerCarton, retailPrice, tradeOffer]
-          let productName = tokens.slice(1, tokens.length - 5).join(" ");
-          let tradePrice = tokens[tokens.length - 5];
-          let tradeOffer = tokens[tokens.length - 1]; // e.g. "4%"
+        if (!/^\d+$/.test(tokens[0])) continue; // skip if first token isn't a serial number
+        let tradeOfferIndex = tokens.findIndex(token => token.includes("%"));
+        if (tradeOfferIndex !== -1) {
+          // Use percentage token
+          let productName = tokens.slice(1, tradeOfferIndex - 4).join(" ");
+          let tradePrice = tokens[tradeOfferIndex - 4];
+          let tradeOffer = tokens[tradeOfferIndex];
           priceList[productName] = { tradePrice, tradeOffer };
-        } else if (tokens.length === 11) {
-          // Expected (with extra packaging detail): [serial, productName tokens(4 tokens), tradePrice, qty, extra, pricePerCarton, retailPrice, tradeOffer]
-          let productName = tokens.slice(1, 5).join(" ");
-          let tradePrice = tokens[5];
-          let tradeOffer = tokens[10];
+        } else if (tokens[tokens.length - 1] === "N/A") {
+          // For rows with N/A trade offer, use heuristic:
+          // If tokens length >= 11 and second last token (tokens[tokens.length-2]) is less than 100, assume extra column exists.
+          if (tokens.length >= 11 && parseFloat(tokens[tokens.length - 2]) < 100) {
+            var productName = tokens.slice(1, tokens.length - 6).join(" ");
+            var tradePrice = tokens[tokens.length - 6];
+          } else {
+            var productName = tokens.slice(1, tokens.length - 5).join(" ");
+            var tradePrice = tokens[tokens.length - 5];
+          }
+          let tradeOffer = "0%";
           priceList[productName] = { tradePrice, tradeOffer };
         } else {
-          console.log("Skipping unexpected line:", tokens);
+          // Default fallback
+          let productName = tokens.slice(1, tokens.length - 5).join(" ");
+          let tradePrice = tokens[tokens.length - 5];
+          let tradeOffer = tokens[tokens.length - 1];
+          priceList[productName] = { tradePrice, tradeOffer };
         }
       }
       console.log("Parsed Price List:", priceList);
@@ -720,7 +704,7 @@
         th2.textContent = "Trade Price";
         th2.style.border = "1px solid #ddd";
         let th3 = document.createElement("th");
-        th3.textContent = "Trade Offer";
+        th3.textContent = "Trade Offer (%)";
         th3.style.border = "1px solid #ddd";
         headerRow.appendChild(th1);
         headerRow.appendChild(th2);
