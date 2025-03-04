@@ -550,6 +550,12 @@
       /***********************
        * Login Page Scripts
        ***********************/
+      // Check sessionStorage to see if the user is already logged in
+      if (sessionStorage.getItem("loggedIn") === "true") {
+        document.getElementById("loginPage").style.display = "none";
+        document.getElementById("dashboard").style.display = "block";
+      }
+
       // Slideshow functionality for login page
       const images = [
         "https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/3.png",
@@ -576,7 +582,8 @@
         const username = document.getElementById("username").value;
         const password = document.getElementById("password").value;
         if (username === "admin" && password === "admin") {
-          // Directly transition to the dashboard without an alert
+          // Save login state in sessionStorage so the dashboard persists for the session
+          sessionStorage.setItem("loggedIn", "true");
           document.getElementById("loginPage").style.display = "none";
           document.getElementById("dashboard").style.display = "block";
         } else {
