@@ -11,7 +11,7 @@
   <!-- Firebase libraries -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <!-- PDF.js library for PDF price list extraction from a reliable CDN -->
+  <!-- PDF.js library for PDF price list extraction -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
   <style>
     /* Fixed Back to Dashboard button */
@@ -205,7 +205,7 @@
             <th rowspan="2">Trade Price</th>
             <th colspan="3">Sale Qty</th>
             <th rowspan="2">Gross Amount</th>
-            <th rowspan="2" class="no-print">Trade Offer (%)</th>
+            <th rowspan="2">Trade Offer (%)</th>
             <th rowspan="2" class="no-print">Sales Tax (%)</th>
             <th rowspan="2">Net Amount</th>
             <th rowspan="2" class="no-print">Action</th>
@@ -288,7 +288,7 @@
     <button onclick="deleteItem()">Delete Item</button>
     <button onclick="closeModal('savedItemsModal')">Close</button>
   </div>
-  <!-- Firebase Initialization -->
+  <!-- Firebase Initialization and Main Scripts -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyD_ojS20opjpxmwHxIHATC52ncABe_fkuk",
@@ -359,35 +359,51 @@
         return;
       }
       let product = items[productCode];
-      // If a matching price list entry exists, update trade price and trade offer
+      // Update trade price from priceList if available
       if (priceList[product.description]) {
         product.ctnPrice = parseFloat(priceList[product.description].tradePrice) || product.ctnPrice;
       }
       let tableBody = document.getElementById("billTable").querySelector("tbody");
       let row = tableBody.insertRow();
       row.setAttribute("data-product", JSON.stringify(product));
-      let cellCode = row.insertCell(); cellCode.textContent = productCode;
-      let cellDesc = row.insertCell(); cellDesc.textContent = product.description;
-      let cellCtnSize = row.insertCell(); cellCtnSize.textContent = product.ctnSize;
-      let cellRate = row.insertCell(); cellRate.textContent = product.ctnPrice.toFixed(2);
-      let cellCtns = row.insertCell(); cellCtns.innerHTML = '<input type="number" class="ctns" value="0" style="width:50px;" />';
-      let cellBoxes = row.insertCell(); cellBoxes.innerHTML = '<input type="number" class="boxes" value="0" style="width:50px;" />';
-      let cellPcs = row.insertCell(); cellPcs.innerHTML = '<input type="number" class="pcs" value="0" style="width:50px;" />';
-      let cellGross = row.insertCell(); cellGross.className = "gross"; cellGross.textContent = "0.00";
+      
+      let cellCode = row.insertCell(); 
+      cellCode.textContent = productCode;
+      let cellDesc = row.insertCell(); 
+      cellDesc.textContent = product.description;
+      let cellCtnSize = row.insertCell(); 
+      cellCtnSize.textContent = product.ctnSize;
+      let cellRate = row.insertCell(); 
+      cellRate.textContent = product.ctnPrice.toFixed(2);
+      let cellCtns = row.insertCell(); 
+      cellCtns.innerHTML = '<input type="number" class="ctns" value="0" style="width:50px;" />';
+      let cellBoxes = row.insertCell(); 
+      cellBoxes.innerHTML = '<input type="number" class="boxes" value="0" style="width:50px;" />';
+      let cellPcs = row.insertCell(); 
+      cellPcs.innerHTML = '<input type="number" class="pcs" value="0" style="width:50px;" />';
+      let cellGross = row.insertCell(); 
+      cellGross.className = "gross"; 
+      cellGross.textContent = "0.00";
+      
+      // Copy trade offer percentage from priceList if available, else default to "0%"
       let tradeOfferValue = "0%";
       if (priceList[product.description]) {
         tradeOfferValue = priceList[product.description].tradeOffer;
       }
-      // Trade offer as text input (always showing "%" symbol)
       let cellTrade = row.insertCell();
-      cellTrade.className = "no-print";
-      cellTrade.innerHTML = '<input type="text" class="tradeOffer" value="'+tradeOfferValue+'" style="width:70px;" />';
+      cellTrade.textContent = tradeOfferValue;
+      
       let cellTax = row.insertCell();
       cellTax.className = "no-print";
       cellTax.innerHTML = '<input type="number" class="salesTax" value="0" style="width:70px;" />';
-      let cellNet = row.insertCell(); cellNet.className = "net"; cellNet.textContent = "0.00";
-      let cellAction = row.insertCell(); cellAction.className = "no-print";
+      let cellNet = row.insertCell(); 
+      cellNet.className = "net"; 
+      cellNet.textContent = "0.00";
+      let cellAction = row.insertCell(); 
+      cellAction.className = "no-print";
       cellAction.innerHTML = '<button onclick="removeRow(this)">Remove</button>';
+      
+      // Add event listeners for quantity and sales tax changes to recalc totals
       let inputs = row.querySelectorAll("input");
       inputs.forEach(input => input.addEventListener("input", () => updateRow(row)));
       updateRow(row);
@@ -398,15 +414,18 @@
       let ctns = parseFloat(row.querySelector(".ctns").value) || 0;
       let boxes = parseFloat(row.querySelector(".boxes").value) || 0;
       let pcs = parseFloat(row.querySelector(".pcs").value) || 0;
-      // Parse the trade offer percentage (e.g. "4%" => 4)
-      let tradeOfferPct = parseFloat(row.querySelector(".tradeOffer").value) || 0;
+      
+      // Read static trade offer value (remove "%" sign)
+      let tradeOfferCell = row.cells[8];
+      let tradeOfferPct = parseFloat(tradeOfferCell.textContent.replace('%','')) || 0;
+      
       let salesTaxPercent = parseFloat(row.querySelector(".salesTax").value) || 0;
       let pcsPerBox = product.pcsPerBox;
       let perPiecePrice = (pcsPerBox > 0) ? product.ctnPrice / (product.boxesPerCtn * pcsPerBox) : 0;
       let gross = (ctns * product.ctnPrice) + (boxes * (product.ctnPrice / product.boxesPerCtn)) + (pcs * perPiecePrice);
       row.querySelector(".gross").textContent = gross.toFixed(2);
+      
       let salesTaxValue = (salesTaxPercent / 100) * gross;
-      // Calculate discount based on percentage
       let discount = gross * (tradeOfferPct / 100);
       let net = gross - discount + salesTaxValue;
       row.querySelector(".net").textContent = net.toFixed(2);
@@ -602,7 +621,7 @@
       reader.readAsBinaryString(file);
     }
     
-    /* Updated Load Price List from PDF */
+    /* Load Price List from PDF and scan trade offers */
     function loadPriceListFromFile(inputElem) {
       let file = inputElem.files[0];
       if (!file) return;
@@ -610,12 +629,10 @@
         alert("Please upload a PDF file.");
         return;
       }
-      // Store the PDF blob URL so we can display it later
       priceListPDFUrl = URL.createObjectURL(file);
       let fileReader = new FileReader();
       fileReader.onload = function() {
         let typedarray = new Uint8Array(this.result);
-        // Set the PDF.js worker source using the CDN URL
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js';
         pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
           let numPages = pdf.numPages;
@@ -643,14 +660,11 @@
       fileReader.readAsArrayBuffer(file);
     }
     
-    /* Updated Parse Price List from Text */
+    /* Parse Price List Text to extract trade offers */
     function parsePriceListFromText(allText) {
-      // Try a regex approach first:
-      // This pattern assumes rows like: "1 ProductName 100.50 5%" or with "N/A" instead of a percentage.
       let pattern = /^(\d+)\s+(.+?)\s+([\d,.]+)\s+([\d,.]+%|N\/A)$/;
       priceList = {};
       let rows = allText.split("\n").filter(line => line.trim() !== "");
-      
       rows.forEach(row => {
         let match = row.match(pattern);
         if (match) {
@@ -659,7 +673,6 @@
           let tradeOffer = (match[4] === "N/A") ? "0%" : match[4];
           priceList[productName] = { tradePrice, tradeOffer };
         } else {
-          // Fallback: use original token-based parsing
           let tokens = row.trim().split(/\s+/);
           if (!/^\d+$/.test(tokens[0]) || tokens.length < 5) return;
           let tradeOffer = tokens[tokens.length - 1] === "N/A" ? "0%" : tokens[tokens.length - 1];
@@ -680,18 +693,17 @@
       console.log("Parsed Price List:", priceList);
     }
     
-    /* Trigger the hidden file input for price list upload */
+    /* Trigger hidden price list file input */
     function triggerPriceListUpload() {
       document.getElementById('priceListInput').click();
     }
     
-    /* Updated Show Price List Modal: displays PDF view if available */
+    /* Show Price List Modal */
     function showPriceListModal() {
       let modal = document.getElementById("priceListModal");
       let content = document.getElementById("priceListContent");
       content.innerHTML = "";
       if (priceListPDFUrl) {
-        // Create an iframe to display the PDF file
         let iframe = document.createElement("iframe");
         iframe.src = priceListPDFUrl;
         iframe.style.width = "100%";
