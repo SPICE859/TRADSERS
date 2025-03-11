@@ -16,12 +16,12 @@
     <style>
       /* ---------- CSS Variables & Global Styles ---------- */
       :root {
-        --primary: #34495e;
-        --secondary: #2c3e50;
-        --accent: #007bff;
-        --light: #f4f4f4;
+        --primary: #5a67d8;
+        --secondary: #4a5568;
+        --accent: #38b2ac;
+        --light: #f7fafc;
         --white: #ffffff;
-        --error: #e74c3c;
+        --error: #e53e3e;
         --transition: 0.3s;
       }
       * {
@@ -29,54 +29,57 @@
         padding: 0;
         box-sizing: border-box;
       }
-      /* ---------- Login Page Styles ---------- */
       body,
       html {
         font-family: "Roboto", sans-serif;
         height: 100%;
-        background: var(--white);
+        background: var(--light);
+        color: var(--secondary);
       }
-      .login-container {
+      /* ---------- Login Page Styles ---------- */
+      #loginPage {
         display: flex;
         height: 100vh;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        align-items: center;
+        justify-content: center;
+      }
+      .login-container {
+        background: var(--white);
+        border-radius: 10px;
+        overflow: hidden;
+        width: 90%;
+        max-width: 800px;
+        display: flex;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
       }
       .login-left,
       .login-right {
         flex: 1;
+        position: relative;
       }
       .login-left {
-        position: relative;
-        background: var(--white);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
+        display: none;
       }
       .login-left img {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: opacity var(--transition) ease-in-out;
       }
       .login-right {
         display: flex;
         align-items: center;
         justify-content: center;
-        background: var(--white);
+        padding: 40px;
       }
       .login-box {
-        background: var(--white);
-        padding: 40px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         width: 100%;
-        max-width: 350px;
-        text-align: center;
       }
       .login-box h1 {
         margin-bottom: 20px;
-        font-size: 28px;
+        font-size: 32px;
         color: var(--primary);
+        text-align: center;
       }
       .login-box form {
         display: flex;
@@ -89,6 +92,12 @@
         border: 1px solid #ccc;
         border-radius: 4px;
         font-size: 16px;
+        transition: border var(--transition);
+      }
+      .login-box input[type="text"]:focus,
+      .login-box input[type="password"]:focus {
+        border-color: var(--primary);
+        outline: none;
       }
       .login-box button {
         padding: 12px;
@@ -103,38 +112,32 @@
       .login-box button:hover {
         background: var(--accent);
       }
-      @media (max-width: 768px) {
-        .login-container {
-          flex-direction: column;
-        }
-        .login-left,
-        .login-right {
-          flex: none;
-          height: 50vh;
+      @media (min-width: 768px) {
+        .login-left {
+          display: block;
         }
       }
       /* ---------- Dashboard Styles ---------- */
-      body,
-      html {
-        background: var(--light);
-        color: var(--primary);
-        min-height: 100vh;
+      #dashboard {
+        display: none;
       }
       .sidebar {
         position: fixed;
         top: 0;
         left: 0;
-        width: 250px;
+        width: 220px;
         height: 100%;
         background: var(--secondary);
         color: var(--white);
         padding: 20px;
         overflow-y: auto;
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
       }
       .sidebar h2 {
         text-align: center;
-        margin-bottom: 20px;
+        margin-bottom: 30px;
         font-weight: 700;
+        font-size: 24px;
       }
       .sidebar button {
         width: 100%;
@@ -152,7 +155,7 @@
         background: var(--accent);
       }
       .main-content {
-        margin-left: 270px;
+        margin-left: 240px;
         padding: 20px;
       }
       .section {
@@ -181,17 +184,22 @@
         font-size: 36px;
         font-weight: 700;
         margin-bottom: 20px;
+        color: var(--primary);
       }
       .gallery {
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
-        gap: 10px;
+        gap: 15px;
       }
       .gallery img {
-        width: 300px;
+        width: 280px;
         border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: transform var(--transition);
+      }
+      .gallery img:hover {
+        transform: scale(1.05);
       }
       /* Form & Table Styles */
       .filter-container,
@@ -211,6 +219,12 @@
         margin-right: 10px;
         border: 1px solid #ccc;
         border-radius: 4px;
+        transition: border var(--transition);
+      }
+      .filter-container input[type="date"]:focus,
+      .search-container input[type="text"]:focus {
+        border-color: var(--primary);
+        outline: none;
       }
       .filter-container button,
       button.form-btn {
@@ -265,6 +279,13 @@
         border-radius: 8px;
         text-align: center;
       }
+      /* Updated Stock Report Table Header */
+      #stockReport table {
+        margin-top: 20px;
+      }
+      #stockReport th:first-child {
+        text-align: left;
+      }
       /* Modal Styles */
       .modal {
         display: none;
@@ -277,25 +298,33 @@
         padding: 20px;
         border: 1px solid #888;
         border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
-        width: 300px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        width: 90%;
+        max-width: 400px;
         text-align: left;
       }
       .modal h3 {
         margin-top: 0;
+        color: var(--primary);
       }
       .modal input,
       .modal select {
         width: 100%;
-        padding: 5px;
+        padding: 8px;
         margin: 5px 0 10px 0;
         border: 1px solid #ccc;
         border-radius: 4px;
+        transition: border var(--transition);
+      }
+      .modal input:focus,
+      .modal select:focus {
+        border-color: var(--primary);
+        outline: none;
       }
       .modal button {
         margin-top: 10px;
         cursor: pointer;
-        padding: 8px 12px;
+        padding: 10px 14px;
         background: var(--primary);
         color: var(--white);
         border: none;
@@ -343,12 +372,7 @@
             <h1>AHYAN TRADERS</h1>
             <form id="loginForm">
               <input type="text" id="username" placeholder="Username" required />
-              <input
-                type="password"
-                id="password"
-                placeholder="Password"
-                required
-              />
+              <input type="password" id="password" placeholder="Password" required />
               <button type="submit">Login</button>
             </form>
           </div>
@@ -357,7 +381,7 @@
     </div>
 
     <!-- ---------- Dashboard Section ---------- -->
-    <div id="dashboard" style="display: none;">
+    <div id="dashboard">
       <!-- Sidebar -->
       <div class="sidebar">
         <h2>AHYAN TRADERS</h2>
@@ -418,17 +442,17 @@
         <div id="stockReport" class="section">
           <div class="header-large">Stock Report</div>
           <div class="search-container">
-            <input type="text" id="stockSearchInput" placeholder="Search by Product ID, Name, or CTN Size..." />
+            <input type="text" id="stockSearchInput" placeholder="Search by Product Name, CTN Size..." />
           </div>
           <div style="text-align: center; margin-bottom: 10px;">
             <button onclick="openAddStockModal()">Add New Stock</button>
             <button onclick="openUpdateSaleModal()">Update Sale</button>
           </div>
+          <!-- Updated Stock Report Table Header -->
           <table id="stockTable">
             <thead>
               <tr>
-                <th>Product ID</th>
-                <th>Description</th>
+                <th>Product Name</th>
                 <th>CTN Size</th>
                 <th>Available CTNs</th>
                 <th>Available Boxes</th>
@@ -441,7 +465,7 @@
             </tbody>
             <tfoot>
               <tr>
-                <td colspan="6" style="text-align: right;">Net Total Stock Value (Rs.):</td>
+                <td colspan="5" style="text-align: right;">Net Total Stock Value (Rs.):</td>
                 <td id="netStockValue">Rs. 0.00</td>
               </tr>
             </tfoot>
@@ -547,16 +571,11 @@
 
     <!-- ---------- Scripts ---------- -->
     <script>
-      /***********************
-       * Login Page Scripts
-       ***********************/
-      // Check sessionStorage to see if the user is already logged in
+      // Login Page Scripts
       if (sessionStorage.getItem("loggedIn") === "true") {
         document.getElementById("loginPage").style.display = "none";
         document.getElementById("dashboard").style.display = "block";
       }
-
-      // Slideshow functionality for login page
       const images = [
         "https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/3.png",
         "https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/2.png",
@@ -575,14 +594,11 @@
         }, 300);
       }
       setInterval(nextImage, 3000);
-
-      // Dummy login logic – replace with real authentication as needed
       document.getElementById("loginForm").addEventListener("submit", function (e) {
         e.preventDefault();
         const username = document.getElementById("username").value;
         const password = document.getElementById("password").value;
         if (username === "admin" && password === "admin") {
-          // Save login state in sessionStorage so the dashboard persists for the session
           sessionStorage.setItem("loggedIn", "true");
           document.getElementById("loginPage").style.display = "none";
           document.getElementById("dashboard").style.display = "block";
@@ -590,11 +606,7 @@
           alert("Invalid credentials. Please try again.");
         }
       });
-
-      /***********************
-       * Dashboard Scripts
-       ***********************/
-      // Initialize Firebase using compat libraries
+      // Dashboard Scripts
       const firebaseConfig = {
         apiKey: "AIzaSyD_ojS20opjpxmwHxIHATC52ncABe_fkuk",
         authDomain: "ahyan-traders.firebaseapp.com",
@@ -608,7 +620,7 @@
       firebase.analytics();
       const db = firebase.firestore();
 
-      // Helper: Get saved items from Firestore
+      // Fetch saved items from Firestore
       async function getSavedItems() {
         const itemsSnapshot = await db.collection("items").get();
         const itemsMap = {};
@@ -691,65 +703,70 @@
       }
       async function updateStockReportTable() {
         try {
-          const itemsMap = await getSavedItems();
+          // Aggregate stock records by productName
           const stockSnapshot = await db.collection("stock").get();
           const stockAggregation = {};
           stockSnapshot.forEach((doc) => {
             const stockEntry = doc.data();
-            const itemId = stockEntry.itemId;
-            if (!stockAggregation[itemId]) {
-              stockAggregation[itemId] = { ctns: 0, boxes: 0, pcs: 0 };
+            const productName = stockEntry.productName;
+            if (!stockAggregation[productName]) {
+              stockAggregation[productName] = { ctns: 0, boxes: 0, pcs: 0 };
             }
-            stockAggregation[itemId].ctns += stockEntry.ctns;
-            stockAggregation[itemId].boxes += stockEntry.boxes;
-            stockAggregation[itemId].pcs += stockEntry.pcs;
+            stockAggregation[productName].ctns += stockEntry.ctns;
+            stockAggregation[productName].boxes += stockEntry.boxes;
+            stockAggregation[productName].pcs += stockEntry.pcs;
           });
+          // Aggregate sales records by productName
           const saleSnapshot = await db.collection("sales").get();
           const saleAggregation = {};
           saleSnapshot.forEach((doc) => {
             const saleEntry = doc.data();
-            const itemId = saleEntry.itemId;
-            if (!saleAggregation[itemId]) {
-              saleAggregation[itemId] = { ctns: 0, boxes: 0, pcs: 0 };
+            const productName = saleEntry.productName;
+            if (!saleAggregation[productName]) {
+              saleAggregation[productName] = { ctns: 0, boxes: 0, pcs: 0 };
             }
-            saleAggregation[itemId].ctns += saleEntry.ctns;
-            saleAggregation[itemId].boxes += saleEntry.boxes;
-            saleAggregation[itemId].pcs += saleEntry.pcs;
+            saleAggregation[productName].ctns += saleEntry.ctns;
+            saleAggregation[productName].boxes += saleEntry.boxes;
+            saleAggregation[productName].pcs += saleEntry.pcs;
           });
-
+          // Get product details from items collection to fetch CTN size, boxes per CTN, and unit price
+          const itemsMap = await getSavedItems();
           const tbody = document.getElementById("stockTableBody");
           tbody.innerHTML = "";
           let netStockValue = 0;
           const filter = (document.getElementById("stockSearchInput").value || "").toUpperCase();
-          for (const itemId in itemsMap) {
-            const item = itemsMap[itemId];
-            if (
-              (itemId || "").toUpperCase().indexOf(filter) > -1 ||
-              (item.description || "").toUpperCase().indexOf(filter) > -1 ||
-              (item.ctnSize || "").toUpperCase().indexOf(filter) > -1
-            ) {
-              const stockAgg = stockAggregation[itemId] || { ctns: 0, boxes: 0, pcs: 0 };
-              const saleAgg = saleAggregation[itemId] || { ctns: 0, boxes: 0, pcs: 0 };
+          // Iterate over each productName key from the aggregated stock records
+          for (const productName in stockAggregation) {
+            if (productName.toUpperCase().indexOf(filter) > -1) {
+              const stockAgg = stockAggregation[productName] || { ctns: 0, boxes: 0, pcs: 0 };
+              const saleAgg = saleAggregation[productName] || { ctns: 0, boxes: 0, pcs: 0 };
               const netCTNs = stockAgg.ctns - saleAgg.ctns;
               const netBoxes = stockAgg.boxes - saleAgg.boxes;
-              const totalValueForItem =
-                netCTNs * item.ctnPrice +
-                ((netBoxes / item.boxesPerCtn) * item.ctnPrice);
+              // Find the matching product details based on the productName (description)
+              let itemDetails = null;
+              for (const key in itemsMap) {
+                if (itemsMap[key].description === productName) {
+                  itemDetails = itemsMap[key];
+                  break;
+                }
+              }
+              if (!itemDetails) continue;
+              const unitPrice = parseFloat(itemDetails.ctnPrice);
+              const totalValueForItem = netCTNs * unitPrice + ((netBoxes / itemDetails.boxesPerCtn) * unitPrice);
               netStockValue += totalValueForItem;
               let row = `<tr>
-                <td>${itemId}</td>
-                <td>${item.description}</td>
-                <td>${item.ctnSize}</td>
-                <td>${netCTNs}</td>
-                <td>${netBoxes}</td>
-                <td>Rs. ${parseFloat(item.ctnPrice).toFixed(2)}</td>
-                <td>Rs. ${totalValueForItem.toFixed(2)}</td>
+                  <td>${productName}</td>
+                  <td>${itemDetails.ctnSize}</td>
+                  <td>${netCTNs}</td>
+                  <td>${netBoxes}</td>
+                  <td>Rs. ${unitPrice.toFixed(2)}</td>
+                  <td>Rs. ${totalValueForItem.toFixed(2)}</td>
               </tr>`;
               tbody.innerHTML += row;
             }
           }
           if (tbody.innerHTML === "") {
-            tbody.innerHTML = "<tr><td colspan='7'>No data available</td></tr>";
+            tbody.innerHTML = "<tr><td colspan='6'>No data available</td></tr>";
           }
           document.getElementById("netStockValue").textContent =
             "Rs. " + netStockValue.toFixed(2);
@@ -900,6 +917,7 @@
           console.error("Error populating stock items:", error);
         }
       }
+      // Updated: Save new stock with productName instead of itemId
       async function saveNewStock() {
         const itemId = document.getElementById("stockItemSelect").value;
         const ctns = parseInt(document.getElementById("stockCtns").value) || 0;
@@ -908,9 +926,17 @@
           alert("Please select an item.");
           return;
         }
+        // Fetch the selected item's details and product name
+        const itemsMap = await getSavedItems();
+        const selectedItem = itemsMap[itemId];
+        if (!selectedItem) {
+          alert("Invalid item selected.");
+          return;
+        }
+        const productName = selectedItem.description;
         try {
           await db.collection("stock").add({
-            itemId,
+            productName,  // store product name
             ctns,
             boxes,
             pcs: 0
@@ -923,6 +949,39 @@
         } catch (error) {
           console.error("Error adding stock:", error);
           alert("Error adding stock.");
+        }
+      }
+      // Updated: Save sale with productName instead of itemId
+      async function saveSale() {
+        const itemId = document.getElementById("saleItemSelect").value;
+        const ctns = parseInt(document.getElementById("saleCtns").value) || 0;
+        const boxes = parseInt(document.getElementById("saleBoxes").value) || 0;
+        if (!itemId) {
+          alert("Please select an item.");
+          return;
+        }
+        const itemsMap = await getSavedItems();
+        const selectedItem = itemsMap[itemId];
+        if (!selectedItem) {
+          alert("Invalid item selected.");
+          return;
+        }
+        const productName = selectedItem.description;
+        try {
+          await db.collection("sales").add({
+            productName,  // store product name here as well
+            ctns,
+            boxes,
+            date: new Date().toISOString()
+          });
+          alert("Sale updated successfully!");
+          document.getElementById("saleCtns").value = "0";
+          document.getElementById("saleBoxes").value = "0";
+          closeModal("updateSaleModal");
+          updateStockReportTable();
+        } catch (error) {
+          console.error("Error updating sale:", error);
+          alert("Error updating sale.");
         }
       }
       function openUpdateSaleModal() {
@@ -940,31 +999,6 @@
           }
         } catch (error) {
           console.error("Error populating sale items:", error);
-        }
-      }
-      async function saveSale() {
-        const itemId = document.getElementById("saleItemSelect").value;
-        const ctns = parseInt(document.getElementById("saleCtns").value) || 0;
-        const boxes = parseInt(document.getElementById("saleBoxes").value) || 0;
-        if (!itemId) {
-          alert("Please select an item.");
-          return;
-        }
-        try {
-          await db.collection("sales").add({
-            itemId,
-            ctns,
-            boxes,
-            date: new Date().toISOString()
-          });
-          alert("Sale updated successfully!");
-          document.getElementById("saleCtns").value = "0";
-          document.getElementById("saleBoxes").value = "0";
-          closeModal("updateSaleModal");
-          updateStockReportTable();
-        } catch (error) {
-          console.error("Error updating sale:", error);
-          alert("Error updating sale.");
         }
       }
       function showSection(sectionId) {
