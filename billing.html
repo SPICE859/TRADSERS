@@ -419,11 +419,12 @@
       cellNet.textContent = "0.00";
       
       // New cell: Stock on Floor column.
-      // Stock data is stored in a separate collection "stock" where the document ID is the product description (item name).
+      // Use the item name (product description trimmed) to fetch the stock from the "stock" collection.
       let cellStock = row.insertCell();
       cellStock.className = "stock";
       cellStock.textContent = "Loading...";
-      db.collection("stock").doc(product.description).get().then(function(doc) {
+      let itemName = product.description.trim();
+      db.collection("stock").doc(itemName).get().then(function(doc) {
         if (doc.exists) {
           let stockData = doc.data();
           cellStock.textContent = (stockData.ctn || 0) + "-" + (stockData.box || 0) + "-" + (stockData.pcs || 0);
@@ -431,7 +432,7 @@
           cellStock.textContent = "0-0-0";
         }
       }).catch(function(error) {
-        console.error("Error fetching stock for product:", product.description, error);
+        console.error("Error fetching stock for product:", itemName, error);
         cellStock.textContent = "0-0-0";
       });
       
