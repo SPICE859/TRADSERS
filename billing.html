@@ -419,11 +419,11 @@
       cellNet.textContent = "0.00";
       
       // New cell: Stock on Floor column.
-      // Use the item name (product description trimmed) to fetch the stock from the "stock" collection.
+      // Use the item name (product description as is) to fetch the stock from the "stock" collection.
       let cellStock = row.insertCell();
       cellStock.className = "stock";
       cellStock.textContent = "Loading...";
-      let itemName = product.description.trim();
+      let itemName = product.description; // No trimming applied
       db.collection("stock").doc(itemName).get().then(function(doc) {
         if (doc.exists) {
           let stockData = doc.data();
