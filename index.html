@@ -703,31 +703,19 @@
       }
       async function updateStockReportTable() {
         try {
-          // Aggregate stock records by productName
+          // Get aggregated stock (each doc's id is the product name)
           const stockSnapshot = await db.collection("stock").get();
           const stockAggregation = {};
           stockSnapshot.forEach((doc) => {
-            const stockEntry = doc.data();
-            const productName = stockEntry.productName;
-            if (!stockAggregation[productName]) {
-              stockAggregation[productName] = { ctns: 0, boxes: 0, pcs: 0 };
-            }
-            stockAggregation[productName].ctns += stockEntry.ctns;
-            stockAggregation[productName].boxes += stockEntry.boxes;
-            stockAggregation[productName].pcs += stockEntry.pcs;
+            const productName = doc.id;
+            stockAggregation[productName] = doc.data();
           });
-          // Aggregate sales records by productName
+          // Get aggregated sales (each doc's id is the product name)
           const saleSnapshot = await db.collection("sales").get();
           const saleAggregation = {};
           saleSnapshot.forEach((doc) => {
-            const saleEntry = doc.data();
-            const productName = saleEntry.productName;
-            if (!saleAggregation[productName]) {
-              saleAggregation[productName] = { ctns: 0, boxes: 0, pcs: 0 };
-            }
-            saleAggregation[productName].ctns += saleEntry.ctns;
-            saleAggregation[productName].boxes += saleEntry.boxes;
-            saleAggregation[productName].pcs += saleEntry.pcs;
+            const productName = doc.id;
+            saleAggregation[productName] = doc.data();
           });
           // Get product details from items collection to fetch CTN size, boxes per CTN, and unit price
           const itemsMap = await getSavedItems();
@@ -735,14 +723,13 @@
           tbody.innerHTML = "";
           let netStockValue = 0;
           const filter = (document.getElementById("stockSearchInput").value || "").toUpperCase();
-          // Iterate over each productName key from the aggregated stock records
           for (const productName in stockAggregation) {
             if (productName.toUpperCase().indexOf(filter) > -1) {
-              const stockAgg = stockAggregation[productName] || { ctns: 0, boxes: 0, pcs: 0 };
-              const saleAgg = saleAggregation[productName] || { ctns: 0, boxes: 0, pcs: 0 };
-              const netCTNs = stockAgg.ctns - saleAgg.ctns;
-              const netBoxes = stockAgg.boxes - saleAgg.boxes;
-              // Find the matching product details based on the productName (description)
+              const stockData = stockAggregation[productName] || { ctns: 0, boxes: 0, pcs: 0 };
+              const saleData = saleAggregation[productName] || { ctns: 0, boxes: 0, pcs: 0 };
+              const netCTNs = stockData.ctns - saleData.ctns;
+              const netBoxes = stockData.boxes - saleData.boxes;
+              // Find matching product details based on product name (item description)
               let itemDetails = null;
               for (const key in itemsMap) {
                 if (itemsMap[key].description === productName) {
@@ -752,7 +739,8 @@
               }
               if (!itemDetails) continue;
               const unitPrice = parseFloat(itemDetails.ctnPrice);
-              const totalValueForItem = netCTNs * unitPrice + ((netBoxes / itemDetails.boxesPerCtn) * unitPrice);
+              const totalValueForItem =
+                netCTNs * unitPrice + ((netBoxes / itemDetails.boxesPerCtn) * unitPrice);
               netStockValue += totalValueForItem;
               let row = `<tr>
                   <td>${productName}</td>
@@ -917,7 +905,7 @@
           console.error("Error populating stock items:", error);
         }
       }
-      // Updated: Save new stock with productName instead of itemId
+      // Updated: Save new stock using the product name as document name
       async function saveNewStock() {
         const itemId = document.getElementById("stockItemSelect").value;
         const ctns = parseInt(document.getElementById("stockCtns").value) || 0;
@@ -926,7 +914,6 @@
           alert("Please select an item.");
           return;
         }
-        // Fetch the selected item's details and product name
         const itemsMap = await getSavedItems();
         const selectedItem = itemsMap[itemId];
         if (!selectedItem) {
@@ -934,13 +921,21 @@
           return;
         }
         const productName = selectedItem.description;
+        const stockRef = db.collection("stock").doc(productName);
         try {
-          await db.collection("stock").add({
-            productName,  // store product name
-            ctns,
-            boxes,
-            pcs: 0
-          });
+          const docSnap = await stockRef.get();
+          if (docSnap.exists) {
+            await stockRef.update({
+              ctns: firebase.firestore.FieldValue.increment(ctns),
+              boxes: firebase.firestore.FieldValue.increment(boxes)
+            });
+          } else {
+            await stockRef.set({
+              ctns: ctns,
+              boxes: boxes,
+              pcs: 0
+            });
+          }
           alert("Stock added successfully!");
           document.getElementById("stockCtns").value = "0";
           document.getElementById("stockBoxes").value = "0";
@@ -951,7 +946,7 @@
           alert("Error adding stock.");
         }
       }
-      // Updated: Save sale with productName instead of itemId
+      // Updated: Save sale using the product name as document name
       async function saveSale() {
         const itemId = document.getElementById("saleItemSelect").value;
         const ctns = parseInt(document.getElementById("saleCtns").value) || 0;
@@ -967,13 +962,22 @@
           return;
         }
         const productName = selectedItem.description;
+        const saleRef = db.collection("sales").doc(productName);
         try {
-          await db.collection("sales").add({
-            productName,  // store product name here as well
-            ctns,
-            boxes,
-            date: new Date().toISOString()
-          });
+          const docSnap = await saleRef.get();
+          if (docSnap.exists) {
+            await saleRef.update({
+              ctns: firebase.firestore.FieldValue.increment(ctns),
+              boxes: firebase.firestore.FieldValue.increment(boxes)
+            });
+          } else {
+            await saleRef.set({
+              ctns: ctns,
+              boxes: boxes,
+              pcs: 0,
+              date: new Date().toISOString()
+            });
+          }
           alert("Sale updated successfully!");
           document.getElementById("saleCtns").value = "0";
           document.getElementById("saleBoxes").value = "0";
