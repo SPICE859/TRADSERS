@@ -166,6 +166,25 @@
       var yyyy = today.getFullYear();
       document.getElementById("billDate").value = mm + '/' + dd + '/' + yyyy;
     };
+    
+    // Helper function to fetch the next invoice serial number using Firestore transaction.
+    function getNextInvoiceNumber() {
+      const counterRef = db.collection("counters").doc("invoiceCounter");
+      return db.runTransaction((transaction) => {
+        return transaction.get(counterRef).then((doc) => {
+          let newInvoiceNo;
+          if (!doc.exists) {
+            newInvoiceNo = 1;
+            transaction.set(counterRef, { current: newInvoiceNo });
+          } else {
+            let current = doc.data().current || 0;
+            newInvoiceNo = current + 1;
+            transaction.update(counterRef, { current: newInvoiceNo });
+          }
+          return newInvoiceNo;
+        });
+      });
+    }
   </script>
 </head>
 <body>
@@ -198,7 +217,7 @@
         <div class="header-details-right">
           <div>
             <label for="billDate">Date:</label>
-            <!-- Changed input type to text -->
+            <!-- Changed input type to text and made it readonly -->
             <input type="text" id="billDate" readonly />
           </div>
           <div>
@@ -702,52 +721,57 @@
       XLSX.writeFile(wb, "bill.xlsx");
     }
     
-    // Updated nextBill() function using html2canvas and jsPDF addImage
+    // Updated nextBill() function using html2canvas and jsPDF addImage with serial invoice number.
     function nextBill() {
-      let invoiceNo = "INV-" + Date.now();
-      let customer = document.getElementById("customerName").value;
-      let billDate = document.getElementById("billDate").value;
-      let dsrName = document.getElementById("dsrName").value;
-      let netAmountText = document.getElementById("grandTotal").textContent;
-      let netAmount = parseFloat(netAmountText.replace('Rs ', '')) || 0;
-      let billData = { invoiceNo, customer, billDate, dsrName, netAmount };
-      console.log("Saving bill data:", billData);
-      db.collection("billing").doc(invoiceNo).set(billData)
-        .then(() => {
-          console.log("Bill data saved successfully");
-          alert("Bill saved with Invoice No: " + invoiceNo);
-          // Clone the container for PDF generation
-          let container = document.querySelector('.container');
-          let clone = container.cloneNode(true);
-          // Remove no-print elements
-          let npElements = clone.querySelectorAll('.no-print');
-          npElements.forEach(el => el.parentNode.removeChild(el));
-          // Force grayscale on the clone for black & white output
-          clone.style.filter = 'grayscale(100%)';
-          // Position the clone off-screen
-          clone.style.position = 'absolute';
-          clone.style.top = '-9999px';
-          document.body.appendChild(clone);
-          
-          // Use html2canvas with higher scale for clarity
-          html2canvas(clone, { scale: 2 }).then(canvas => {
-            let imgData = canvas.toDataURL('image/png');
-            const { jsPDF } = window.jspdf;
-            let doc = new jsPDF('p', 'pt', 'a4');
-            // Calculate dimensions to fit the A4 page
-            let pdfWidth = doc.internal.pageSize.getWidth();
-            let pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-            doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            doc.save('bill.pdf');
-            document.body.removeChild(clone);
-            document.getElementById("billTable").querySelector("tbody").innerHTML = "";
-            document.getElementById("grandTotal").textContent = "Rs 0.00";
+      // First, get the next invoice serial number from Firestore.
+      getNextInvoiceNumber().then(serial => {
+        let invoiceNo = "INV-" + serial;
+        let customer = document.getElementById("customerName").value;
+        let billDate = document.getElementById("billDate").value;
+        let dsrName = document.getElementById("dsrName").value;
+        let netAmountText = document.getElementById("grandTotal").textContent;
+        let netAmount = parseFloat(netAmountText.replace('Rs ', '')) || 0;
+        let billData = { invoiceNo, customer, billDate, dsrName, netAmount };
+        console.log("Saving bill data:", billData);
+        db.collection("billing").doc(invoiceNo).set(billData)
+          .then(() => {
+            console.log("Bill data saved successfully");
+            alert("Bill saved with Invoice No: " + invoiceNo);
+            // Clone the container for PDF generation
+            let container = document.querySelector('.container');
+            let clone = container.cloneNode(true);
+            // Remove no-print elements
+            let npElements = clone.querySelectorAll('.no-print');
+            npElements.forEach(el => el.parentNode.removeChild(el));
+            // Force grayscale on the clone for black & white output
+            clone.style.filter = 'grayscale(100%)';
+            // Position the clone off-screen
+            clone.style.position = 'absolute';
+            clone.style.top = '-9999px';
+            document.body.appendChild(clone);
+            
+            // Use html2canvas with higher scale for clarity
+            html2canvas(clone, { scale: 2 }).then(canvas => {
+              let imgData = canvas.toDataURL('image/png');
+              const { jsPDF } = window.jspdf;
+              let doc = new jsPDF('p', 'pt', 'a4');
+              // Calculate dimensions to fit the A4 page
+              let pdfWidth = doc.internal.pageSize.getWidth();
+              let pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+              doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+              doc.save('bill.pdf');
+              document.body.removeChild(clone);
+              document.getElementById("billTable").querySelector("tbody").innerHTML = "";
+              document.getElementById("grandTotal").textContent = "Rs 0.00";
+            });
+          })
+          .catch(error => {
+            console.error("Error saving bill data:", error);
+            alert("Error saving bill data: " + error.message);
           });
-        })
-        .catch(error => {
-          console.error("Error saving bill data:", error);
-          alert("Error saving bill data: " + error.message);
-        });
+      }).catch(error => {
+        console.error("Error generating invoice number:", error);
+      });
     }
     
     /* Price List PDF Processing */
