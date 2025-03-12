@@ -153,6 +153,8 @@
       #billTable tr td:last-child { display: none; }
       /* Hide stock on floor column */
       th.stock, td.stock { display: none !important; }
+      /* Hide the action column (which has both no-print and action classes) */
+      th.action, td.action { display: none !important; }
       table, th, td { border: 1px solid black; }
       td:empty::after { content: "0.00"; }
     }
@@ -262,7 +264,7 @@
             <th rowspan="2" class="no-print">Sales Tax (%)</th>
             <th rowspan="2">Net Amount</th>
             <th rowspan="2" class="stock">Stock on Floor</th>
-            <th rowspan="2" class="no-print">Action</th>
+            <th rowspan="2" class="action no-print">Action</th>
           </tr>
           <tr>
             <th class="no-print">Ctns</th>
@@ -489,7 +491,7 @@
       });
       
       let cellAction = row.insertCell(); 
-      cellAction.className = "no-print";
+      cellAction.className = "action no-print";
       cellAction.innerHTML = '<button onclick="removeRow(this)">Remove</button>';
       
       let inputs = row.querySelectorAll("input");
