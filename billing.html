@@ -419,7 +419,7 @@
       cellNet.textContent = "0.00";
       
       // New cell: Stock on Floor column.
-      // Use the item name (product description as is) to fetch the stock from the "stock" collection.
+      // Use the product description (as is) to fetch the stock from the "stock" collection.
       let cellStock = row.insertCell();
       cellStock.className = "stock";
       cellStock.textContent = "Loading...";
@@ -427,7 +427,8 @@
       db.collection("stock").doc(itemName).get().then(function(doc) {
         if (doc.exists) {
           let stockData = doc.data();
-          cellStock.textContent = (stockData.ctn || 0) + "-" + (stockData.box || 0) + "-" + (stockData.pcs || 0);
+          // Now using the fields "ctns", "boxes", and "pcs"
+          cellStock.textContent = (stockData.ctns || 0) + "-" + (stockData.boxes || 0) + "-" + (stockData.pcs || 0);
         } else {
           cellStock.textContent = "0-0-0";
         }
