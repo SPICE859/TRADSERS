@@ -13,6 +13,8 @@
   <!-- Firebase libraries -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <!-- jsPDF Library for PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     /* Fixed Back to Dashboard button */
     #backToDashboard {
@@ -138,12 +140,19 @@
     .modal button { margin-top: 10px; }
     /* Print styles */
     @media print {
-      body { color: black; background: white; }
+      * {
+        filter: grayscale(100%) !important;
+        color: black !important;
+        background: white !important;
+      }
+      body { background: white; }
       #backToDashboard { display: none; }
       .no-print:not(#billTable .no-print) { display: none; }
       #billTable .no-print { display: table-cell !important; }
       #billTable tr th:last-child,
       #billTable tr td:last-child { display: none; }
+      /* Hide stock on floor column */
+      th.stock, td.stock { display: none !important; }
       table, th, td { border: 1px solid black; }
       td:empty::after { content: "0.00"; }
     }
@@ -208,7 +217,7 @@
             <th rowspan="2">Trade Offer (%)</th>
             <th rowspan="2" class="no-print">Sales Tax (%)</th>
             <th rowspan="2">Net Amount</th>
-            <th rowspan="2">Stock on Floor</th>
+            <th rowspan="2" class="stock">Stock on Floor</th>
             <th rowspan="2" class="no-print">Action</th>
           </tr>
           <tr>
@@ -419,15 +428,13 @@
       cellNet.textContent = "0.00";
       
       // New cell: Stock on Floor column.
-      // Use the product description (as is) to fetch the stock from the "stock" collection.
       let cellStock = row.insertCell();
       cellStock.className = "stock";
       cellStock.textContent = "Loading...";
-      let itemName = product.description; // No trimming applied
+      let itemName = product.description;
       db.collection("stock").doc(itemName).get().then(function(doc) {
         if (doc.exists) {
           let stockData = doc.data();
-          // Now using the fields "ctns", "boxes", and "pcs"
           cellStock.textContent = (stockData.ctns || 0) + "-" + (stockData.boxes || 0) + "-" + (stockData.pcs || 0);
         } else {
           cellStock.textContent = "0-0-0";
@@ -441,7 +448,6 @@
       cellAction.className = "no-print";
       cellAction.innerHTML = '<button onclick="removeRow(this)">Remove</button>';
       
-      // Attach event listeners to the input fields in this row (except the stock, which is read-only)
       let inputs = row.querySelectorAll("input");
       inputs.forEach(input => input.addEventListener("input", () => updateRow(row)));
       
@@ -504,7 +510,6 @@
       let pcsInput = document.getElementById("newPcsPerBox").value;
       let pcsPerBox = (pcsInput === "" ? boxes : parseFloat(pcsInput));
       if (code && desc && size && price && boxes) {
-        // When adding a new item, the stock is not set here.
         let newItem = { 
           description: desc, 
           ctnSize: size, 
@@ -686,6 +691,7 @@
       XLSX.writeFile(wb, "bill.xlsx");
     }
     
+    // Updated nextBill() function using html2canvas and jsPDF addImage
     function nextBill() {
       let invoiceNo = "INV-" + Date.now();
       let customer = document.getElementById("customerName").value;
@@ -699,18 +705,29 @@
         .then(() => {
           console.log("Bill data saved successfully");
           alert("Bill saved with Invoice No: " + invoiceNo);
+          // Clone the container for PDF generation
           let container = document.querySelector('.container');
           let clone = container.cloneNode(true);
+          // Remove no-print elements
           let npElements = clone.querySelectorAll('.no-print');
           npElements.forEach(el => el.parentNode.removeChild(el));
+          // Force grayscale on the clone for black & white output
+          clone.style.filter = 'grayscale(100%)';
+          // Position the clone off-screen
           clone.style.position = 'absolute';
           clone.style.top = '-9999px';
           document.body.appendChild(clone);
-          html2canvas(clone).then(function(canvas) {
-            let link = document.createElement('a');
-            link.download = 'bill.png';
-            link.href = canvas.toDataURL();
-            link.click();
+          
+          // Use html2canvas with higher scale for clarity
+          html2canvas(clone, { scale: 2 }).then(canvas => {
+            let imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            let doc = new jsPDF('p', 'pt', 'a4');
+            // Calculate dimensions to fit the A4 page
+            let pdfWidth = doc.internal.pageSize.getWidth();
+            let pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            doc.save('bill.pdf');
             document.body.removeChild(clone);
             document.getElementById("billTable").querySelector("tbody").innerHTML = "";
             document.getElementById("grandTotal").textContent = "Rs 0.00";
@@ -724,12 +741,10 @@
     
     /* Price List PDF Processing */
     function addPriceList() {
-      // Open the modal to upload a PDF for the price list
       document.getElementById("priceListModal").style.display = "block";
     }
     
     function viewPriceList() {
-      // Open the modal to view the processed price list data
       document.getElementById("viewPriceListModal").style.display = "block";
     }
     
@@ -758,8 +773,6 @@
             );
           }
           Promise.all(pagePromises).then(function() {
-            // Use regex to extract rows with the format:
-            // [S#] [Product Description] [col3] [col4] [col5] [col6] [Trade Offer]
             let regex = /(\d+)\s+([\w\s]+?)\s+\d+\s+\d+\s+\d+\s+\d+\s+((?:\d+%|N\/A))/g;
             let match;
             let extractedData = [];
@@ -769,13 +782,11 @@
                 tradeOffer: match[3].trim()
               });
             }
-            // Save extracted data in a global object using normalized keys.
             extractedPriceOffers = {};
             extractedData.forEach(item => {
               extractedPriceOffers[normalizeString(item.description)] = item.tradeOffer;
             });
             console.log("Extracted Price Offers:", extractedPriceOffers);
-            // Display the extracted data in the view price list modal.
             let container = document.getElementById("priceListsContainer");
             container.innerHTML = "";
             if (extractedData.length > 0) {
