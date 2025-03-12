@@ -157,6 +157,16 @@
       td:empty::after { content: "0.00"; }
     }
   </style>
+  <script>
+    // On window load, set the bill date field to current date in mm/dd/yyyy format.
+    window.onload = function() {
+      var today = new Date();
+      var mm = String(today.getMonth() + 1).padStart(2, '0');
+      var dd = String(today.getDate()).padStart(2, '0');
+      var yyyy = today.getFullYear();
+      document.getElementById("billDate").value = mm + '/' + dd + '/' + yyyy;
+    };
+  </script>
 </head>
 <body>
   <!-- Back to Dashboard Button -->
@@ -188,7 +198,8 @@
         <div class="header-details-right">
           <div>
             <label for="billDate">Date:</label>
-            <input type="date" id="billDate" />
+            <!-- Changed input type to text -->
+            <input type="text" id="billDate" readonly />
           </div>
           <div>
             <label for="dsrName">DSR Name:</label>
