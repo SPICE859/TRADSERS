@@ -356,7 +356,7 @@
       cellNet.className = "net"; 
       cellNet.textContent = "0.00";
       
-      // Stock on Floor column: fetch stock from "stock" collection using product.description
+      // Stock on Floor column: using product.description as the key.
       let cellStock = row.insertCell();
       cellStock.className = "stock";
       cellStock.textContent = "Loading...";
@@ -620,7 +620,7 @@
       XLSX.writeFile(wb, "bill.xlsx");
     }
     
-    // Modified nextBill() function: saves a black and white PDF of the bill.
+    // Modified nextBill() function to save a PDF of the printed bill.
     function nextBill() {
       let invoiceNo = "INV-" + Date.now();
       let customer = document.getElementById("customerName").value;
@@ -645,22 +645,9 @@
           clone.style.top = '-9999px';
           document.body.appendChild(clone);
           
-          // Convert the cloned container to a canvas.
+          // Use html2canvas to convert the cloned container to a canvas.
           html2canvas(clone).then(function(canvas) {
-            // Convert the canvas to grayscale.
-            let ctx = canvas.getContext("2d");
-            let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            let data = imageData.data;
-            for (let i = 0; i < data.length; i += 4) {
-              // Compute grayscale using luminance formula.
-              let gray = data[i] * 0.2126 + data[i+1] * 0.7152 + data[i+2] * 0.0722;
-              data[i] = gray;
-              data[i+1] = gray;
-              data[i+2] = gray;
-            }
-            ctx.putImageData(imageData, 0, 0);
-            
-            // Create a jsPDF instance and add the grayscale canvas image to the PDF.
+            // Create a jsPDF instance and add the canvas image to the PDF.
             const { jsPDF } = window.jspdf;
             let pdf = new jsPDF('p', 'pt', 'a4');
             let pdfWidth = pdf.internal.pageSize.getWidth();
