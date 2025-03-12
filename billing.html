@@ -10,8 +10,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <!-- PDF.js library for PDF processing -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-  <!-- jsPDF library for PDF generation -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <!-- Firebase libraries -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
@@ -138,11 +136,9 @@
     .modal h3 { margin-top: 0; }
     .modal input { width: 100%; padding: 5px; margin: 5px 0 10px 0; }
     .modal button { margin-top: 10px; }
-    /* Print styles for Black & White output */
+    /* Print styles */
     @media print {
       body { color: black; background: white; }
-      h1 { background: white !important; color: black !important; }
-      button { display: none; }
       #backToDashboard { display: none; }
       .no-print:not(#billTable .no-print) { display: none; }
       #billTable .no-print { display: table-cell !important; }
@@ -690,7 +686,6 @@
       XLSX.writeFile(wb, "bill.xlsx");
     }
     
-    // Modified Next Bill function using jsPDF to generate a PDF print-form
     function nextBill() {
       let invoiceNo = "INV-" + Date.now();
       let customer = document.getElementById("customerName").value;
@@ -706,22 +701,20 @@
           alert("Bill saved with Invoice No: " + invoiceNo);
           let container = document.querySelector('.container');
           let clone = container.cloneNode(true);
-          // Remove no-print elements from the cloned element
           let npElements = clone.querySelectorAll('.no-print');
           npElements.forEach(el => el.parentNode.removeChild(el));
-          // Use jsPDF to generate the PDF from the cloned element
-          var { jsPDF } = window.jspdf;
-          var doc = new jsPDF('p', 'pt', 'a4');
-          doc.html(clone, {
-              callback: function (doc) {
-                  doc.save('bill.pdf');
-              },
-              x: 10,
-              y: 10
+          clone.style.position = 'absolute';
+          clone.style.top = '-9999px';
+          document.body.appendChild(clone);
+          html2canvas(clone).then(function(canvas) {
+            let link = document.createElement('a');
+            link.download = 'bill.png';
+            link.href = canvas.toDataURL();
+            link.click();
+            document.body.removeChild(clone);
+            document.getElementById("billTable").querySelector("tbody").innerHTML = "";
+            document.getElementById("grandTotal").textContent = "Rs 0.00";
           });
-          // Clear the bill table and reset the grand total
-          document.getElementById("billTable").querySelector("tbody").innerHTML = "";
-          document.getElementById("grandTotal").textContent = "Rs 0.00";
         })
         .catch(error => {
           console.error("Error saving bill data:", error);
