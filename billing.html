@@ -210,7 +210,7 @@
             <th rowspan="2">Trade Offer (%)</th>
             <th rowspan="2" class="no-print">Sales Tax (%)</th>
             <th rowspan="2">Net Amount</th>
-            <th rowspan="2">Stock on Floor</th>
+            <th rowspan="2" class="no-print">Stock on Floor</th>
             <th rowspan="2" class="no-print">Action</th>
           </tr>
           <tr>
@@ -356,9 +356,9 @@
       cellNet.className = "net"; 
       cellNet.textContent = "0.00";
       
-      // Stock on Floor column: using product.description as the key.
+      // Stock on Floor column is now hidden in print and PDF.
       let cellStock = row.insertCell();
-      cellStock.className = "stock";
+      cellStock.className = "stock no-print";
       cellStock.textContent = "Loading...";
       let itemName = product.description;
       db.collection("stock").doc(itemName).get().then(function(doc) {
@@ -620,7 +620,7 @@
       XLSX.writeFile(wb, "bill.xlsx");
     }
     
-    // Modified nextBill() function to save a PDF of the printed bill.
+    // Modified nextBill() function to save a black and white PDF of the bill without the stock column.
     function nextBill() {
       let invoiceNo = "INV-" + Date.now();
       let customer = document.getElementById("customerName").value;
@@ -647,7 +647,19 @@
           
           // Use html2canvas to convert the cloned container to a canvas.
           html2canvas(clone).then(function(canvas) {
-            // Create a jsPDF instance and add the canvas image to the PDF.
+            // Convert the canvas to grayscale.
+            let ctx = canvas.getContext("2d");
+            let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            let data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+              let gray = data[i] * 0.2126 + data[i+1] * 0.7152 + data[i+2] * 0.0722;
+              data[i] = gray;
+              data[i+1] = gray;
+              data[i+2] = gray;
+            }
+            ctx.putImageData(imageData, 0, 0);
+            
+            // Create a jsPDF instance and add the grayscale canvas image to the PDF.
             const { jsPDF } = window.jspdf;
             let pdf = new jsPDF('p', 'pt', 'a4');
             let pdfWidth = pdf.internal.pageSize.getWidth();
