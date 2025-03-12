@@ -160,7 +160,7 @@
     }
   </style>
   <script>
-    // On window load, set the bill date field to current date in mm/dd/yyyy format.
+    // On window load, set the bill date field to current date in mm/dd/yyyy format and attach login events.
     window.onload = function() {
       var today = new Date();
       var mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -348,7 +348,7 @@
   <div id="viewPriceListModal" class="modal no-print">
     <h3>View Price Lists</h3>
     <div id="priceListsContainer">
-      <!-- Extracted product data will be displayed here -->
+      <!-- Price list data will be displayed here -->
       <p>No price list data available.</p>
     </div>
     <button onclick="closeModal('viewPriceListModal')">Close</button>
@@ -795,10 +795,7 @@
       document.getElementById("priceListModal").style.display = "block";
     }
     
-    function viewPriceList() {
-      document.getElementById("viewPriceListModal").style.display = "block";
-    }
-    
+    // Modified processPriceListPDF() now saves the price list data in Firestore.
     function processPriceListPDF() {
       let fileInput = document.getElementById("priceListFile");
       if (fileInput.files.length === 0) {
@@ -833,25 +830,50 @@
                 tradeOffer: match[3].trim()
               });
             }
-            extractedPriceOffers = {};
+            // Build an object mapping normalized descriptions to trade offers.
+            let newPriceData = {};
             extractedData.forEach(item => {
-              extractedPriceOffers[normalizeString(item.description)] = item.tradeOffer;
+              newPriceData[normalizeString(item.description)] = item.tradeOffer;
             });
-            console.log("Extracted Price Offers:", extractedPriceOffers);
-            let container = document.getElementById("priceListsContainer");
-            container.innerHTML = "";
-            if (extractedData.length > 0) {
-              extractedData.forEach(function(item) {
-                let para = document.createElement("p");
-                para.textContent = "Product: " + item.description + ", Trade Offer: " + item.tradeOffer;
-                container.appendChild(para);
-              });
-            } else {
-              container.innerHTML = "<p>No product data found in the PDF.</p>";
-            }
-            fileInput.value = "";
-            closeModal("priceListModal");
-            document.getElementById("viewPriceListModal").style.display = "block";
+            // Check if a price list already exists in the database.
+            db.collection("priceLists").doc("current").get().then(function(doc) {
+              if (doc.exists) {
+                if (confirm("A price list already exists. Do you want to change the price list?")) {
+                  // Update the price list document.
+                  db.collection("priceLists").doc("current").set({ priceData: newPriceData })
+                    .then(() => {
+                      alert("Price list updated in the database.");
+                      extractedPriceOffers = newPriceData;
+                      // Optionally, update the modal display.
+                      displayPriceList(newPriceData);
+                      closeModal("priceListModal");
+                    })
+                    .catch((error) => {
+                      console.error("Error updating price list:", error);
+                      alert("Error updating price list: " + error.message);
+                    });
+                } else {
+                  alert("Price list not updated.");
+                  closeModal("priceListModal");
+                }
+              } else {
+                // No existing price list; create one.
+                db.collection("priceLists").doc("current").set({ priceData: newPriceData })
+                  .then(() => {
+                    alert("Price list saved in the database.");
+                    extractedPriceOffers = newPriceData;
+                    displayPriceList(newPriceData);
+                    closeModal("priceListModal");
+                  })
+                  .catch((error) => {
+                    console.error("Error saving price list:", error);
+                    alert("Error saving price list: " + error.message);
+                  });
+              }
+            }).catch(function(error) {
+              console.error("Error checking price list existence:", error);
+              alert("Error checking price list: " + error.message);
+            });
           });
         }).catch(function(error) {
           console.error("Error processing PDF:", error);
@@ -860,6 +882,35 @@
       };
       fileReader.readAsArrayBuffer(file);
     }
+    
+    // Helper function to display price list data in the view modal.
+    function displayPriceList(priceData) {
+      let container = document.getElementById("priceListsContainer");
+      container.innerHTML = "";
+      for (let desc in priceData) {
+        let para = document.createElement("p");
+        para.textContent = "Product: " + desc + ", Trade Offer: " + priceData[desc];
+        container.appendChild(para);
+      }
+    }
+    
+    // Modified viewPriceList() retrieves the price list data from Firestore.
+    function viewPriceList() {
+      db.collection("priceLists").doc("current").get().then(function(doc) {
+        if (doc.exists) {
+          let data = doc.data();
+          extractedPriceOffers = data.priceData;
+          displayPriceList(data.priceData);
+          document.getElementById("viewPriceListModal").style.display = "block";
+        } else {
+          alert("No price list data available in the database.");
+        }
+      }).catch(function(error) {
+        console.error("Error fetching price list:", error);
+        alert("Error fetching price list: " + error.message);
+      });
+    }
+    
   </script>
 </body>
 </html>
