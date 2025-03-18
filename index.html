@@ -13,6 +13,18 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Bootstrap CSS (for layout and styling) -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
     <style>
       /* ---------- CSS Variables & Global Styles ---------- */
       :root {
@@ -21,7 +33,7 @@
         --accent: #38b2ac;
         --light: #f7fafc;
         --white: #ffffff;
-        --error: #e53e3e;
+        --bg: #eff2f7;
         --transition: 0.3s;
       }
       * {
@@ -29,11 +41,9 @@
         padding: 0;
         box-sizing: border-box;
       }
-      body,
-      html {
+      body, html {
         font-family: "Roboto", sans-serif;
-        height: 100%;
-        background: var(--light);
+        background: var(--bg);
         color: var(--secondary);
       }
       /* ---------- Login Page Styles ---------- */
@@ -51,10 +61,9 @@
         width: 90%;
         max-width: 800px;
         display: flex;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
       }
-      .login-left,
-      .login-right {
+      .login-left, .login-right {
         flex: 1;
         position: relative;
       }
@@ -94,8 +103,7 @@
         font-size: 16px;
         transition: border var(--transition);
       }
-      .login-box input[type="text"]:focus,
-      .login-box input[type="password"]:focus {
+      .login-box input:focus {
         border-color: var(--primary);
         outline: none;
       }
@@ -131,7 +139,7 @@
         color: var(--white);
         padding: 20px;
         overflow-y: auto;
-        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        box-shadow: 2px 0 5px rgba(0,0,0,0.15);
       }
       .sidebar h2 {
         text-align: center;
@@ -139,6 +147,7 @@
         font-weight: 700;
         font-size: 24px;
       }
+      /* Removed "Add New Item" button from sidebar */
       .sidebar button {
         width: 100%;
         padding: 12px 15px;
@@ -162,9 +171,9 @@
         display: none;
         background: var(--white);
         border-radius: 8px;
-        padding: 20px;
+        padding: 25px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        margin-bottom: 20px;
+        margin-bottom: 30px;
       }
       .header-large {
         text-align: center;
@@ -176,117 +185,56 @@
         font-size: 28px;
         font-weight: 500;
       }
-      /* Home Section */
-      #home {
-        text-align: center;
+      /* ---------- Overview Section ---------- */
+      #overviewHeader {
+        background: var(--white);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        border-radius: 4px;
       }
-      .home-title {
-        font-size: 36px;
-        font-weight: 700;
-        margin-bottom: 20px;
+      #overviewHeader h2 {
+        margin: 0;
         color: var(--primary);
       }
-      .gallery {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 15px;
-      }
-      .gallery img {
-        width: 280px;
+      .overview-cards .card {
+        border: none;
         border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         transition: transform var(--transition);
       }
-      .gallery img:hover {
-        transform: scale(1.05);
+      .overview-cards .card:hover {
+        transform: translateY(-5px);
       }
-      /* Form & Table Styles */
-      .filter-container,
-      .search-container {
-        text-align: center;
-        margin: 20px 0;
-      }
-      .filter-container label,
-      .search-container label {
-        font-size: 16px;
-        margin-right: 5px;
-      }
-      .filter-container input[type="date"],
-      .search-container input[type="text"] {
-        padding: 8px;
-        font-size: 16px;
-        margin-right: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        transition: border var(--transition);
-      }
-      .filter-container input[type="date"]:focus,
-      .search-container input[type="text"]:focus {
-        border-color: var(--primary);
-        outline: none;
-      }
-      .filter-container button,
-      button.form-btn {
-        padding: 8px 16px;
-        font-size: 16px;
-        border: none;
-        border-radius: 4px;
-        background: var(--primary);
-        color: var(--white);
-        cursor: pointer;
-        transition: background var(--transition);
-      }
-      .filter-container button:hover,
-      button.form-btn:hover {
-        background: var(--accent);
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 0 auto 20px auto;
-        background: var(--white);
-        border-radius: 4px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      }
-      th,
-      td {
-        padding: 12px;
-        text-align: center;
-        border: 1px solid #ddd;
-      }
-      th {
-        background: var(--primary);
-        color: var(--white);
-      }
-      tr:nth-child(even) {
-        background: #f9f9f9;
-      }
-      tr:hover {
-        background: #f1f1f1;
-      }
-      tfoot td {
+      .overview-cards .card h5 {
         font-weight: 600;
-        background: #f0f0f0;
       }
-      .container {
-        max-width: 1000px;
-        margin: auto;
+      /* ---------- View Products Section ---------- */
+      #viewProducts {
+        display: none;
         background: var(--white);
-        padding: 20px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         border-radius: 8px;
+        padding: 25px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+      }
+      #viewProducts h2 {
+        color: var(--primary);
+        margin-bottom: 20px;
         text-align: center;
       }
-      /* Updated Stock Report Table Header */
-      #stockReport table {
-        margin-top: 20px;
+      #viewProducts ul {
+        list-style: none;
+        padding-left: 0;
       }
-      #stockReport th:first-child {
-        text-align: left;
+      #viewProducts li {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
       }
-      /* Modal Styles */
+      /* ---------- Modal Styles ---------- */
       .modal {
         display: none;
         position: fixed;
@@ -296,12 +244,11 @@
         transform: translate(-50%, -50%);
         background: var(--white);
         padding: 20px;
-        border: 1px solid #888;
+        border: 1px solid #ccc;
         border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         width: 90%;
         max-width: 400px;
-        text-align: left;
       }
       .modal h3 {
         margin-top: 0;
@@ -311,7 +258,7 @@
       .modal select {
         width: 100%;
         padding: 8px;
-        margin: 5px 0 10px 0;
+        margin: 5px 0 10px;
         border: 1px solid #ccc;
         border-radius: 4px;
         transition: border var(--transition);
@@ -323,34 +270,22 @@
       }
       .modal button {
         margin-top: 10px;
-        cursor: pointer;
         padding: 10px 14px;
         background: var(--primary);
         color: var(--white);
         border: none;
         border-radius: 4px;
+        cursor: pointer;
         transition: background var(--transition);
       }
       .modal button:hover {
         background: var(--accent);
       }
-      /* Print Styles */
       @media print {
-        body {
-          color: black;
-          background: white;
-        }
-        .no-print {
-          display: none;
-        }
-        table,
-        th,
-        td {
-          border: 1px solid black;
-        }
-        td:empty::after {
-          content: "0.00";
-        }
+        body { color: black; background: white; }
+        .no-print { display: none; }
+        table, th, td { border: 1px solid black; }
+        td:empty::after { content: "0.00"; }
       }
     </style>
   </head>
@@ -358,7 +293,7 @@
     <!-- ---------- Login Section ---------- -->
     <div id="loginPage">
       <div class="login-container">
-        <!-- Left side with slideshow -->
+        <!-- Slideshow (Left) -->
         <div class="login-left">
           <img
             id="slideshow"
@@ -366,7 +301,7 @@
             alt="Slideshow Image"
           />
         </div>
-        <!-- Right side with login form -->
+        <!-- Login Form (Right) -->
         <div class="login-right">
           <div class="login-box">
             <h1>AHYAN TRADERS</h1>
@@ -385,40 +320,92 @@
       <!-- Sidebar -->
       <div class="sidebar">
         <h2>AHYAN TRADERS</h2>
-        <button onclick="showSection('home')">Home</button>
+        <button onclick="showSection('overview')">Overview</button>
         <button onclick="showSection('saleSummary')">Sale Summary</button>
         <button onclick="showSection('stockReport')">Stock Report</button>
-        <button onclick="openAddItemModal()">Add New Item</button>
+        <!-- "Add New Item" button removed -->
         <button onclick="showSection('viewSavedItemsSection')">View Saved Items</button>
+        <button onclick="showSection('viewProducts')">View Products</button>
         <button onclick="window.location.href='billing.html'">Billing System</button>
       </div>
 
       <!-- Main Content -->
       <div class="main-content">
-        <!-- Home Section -->
-        <div id="home" class="section">
-          <div class="home-title">AHYAN TRADERS</div>
-          <div class="gallery">
-            <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/3.png" alt="Image 1" />
-            <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/2.png" alt="Image 2" />
-            <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/4.png" alt="Image 3" />
-            <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/5.png" alt="Image 4" />
-            <img src="https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/7.png" alt="Image 5" />
+        <!-- Overview Section (New Interactive Dashboard) -->
+        <div id="overview" class="section">
+          <div id="overviewHeader">
+            <h2>Dashboard Overview</h2>
+            <!-- Removed search bar -->
+            <div>
+              <button class="btn btn-primary" onclick="logout()">Logout</button>
+            </div>
+          </div>
+          <!-- Overview Cards -->
+          <div class="row overview-cards">
+            <div class="col-lg-4 col-md-6 mb-3">
+              <div class="card p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <div>
+                    <h5 class="card-title">Total Sales</h5>
+                    <h3>Rs. 35,000</h3>
+                  </div>
+                  <i class="bi bi-currency-dollar fs-1 text-success"></i>
+                </div>
+                <!-- Navigates to Sale Summary page -->
+                <button class="btn btn-sm btn-outline-primary" onclick="showSection('saleSummary')">View Sale Details</button>
+              </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-3">
+              <div class="card p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <div>
+                    <h5 class="card-title">Stocks</h5>
+                    <h3>120</h3>
+                  </div>
+                  <i class="bi bi-box-seam fs-1 text-primary"></i>
+                </div>
+                <!-- Navigates to Stock Report page -->
+                <button class="btn btn-sm btn-outline-primary" onclick="showSection('stockReport')">Manage Stocks</button>
+              </div>
+            </div>
+            <div class="col-lg-4 col-md-12 mb-3">
+              <div class="card p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <div>
+                    <h5 class="card-title">Products</h5>
+                    <h3>8</h3>
+                  </div>
+                  <i class="bi bi-card-list fs-1 text-warning"></i>
+                </div>
+                <!-- Navigates to the View Products page -->
+                <button class="btn btn-sm btn-outline-primary" onclick="showSection('viewProducts')">View Products</button>
+              </div>
+            </div>
+          </div>
+          <!-- Overview Chart -->
+          <div class="row mt-4">
+            <div class="col-12">
+              <div class="card p-4">
+                <h5 class="card-title mb-3">Sales Analytics</h5>
+                <canvas id="overviewChart" height="100"></canvas>
+                <button class="btn btn-sm btn-outline-secondary mt-3" id="updateChart">Update Chart</button>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Sale Summary Section -->
         <div id="saleSummary" class="section">
           <div class="header-large">Sale Summary</div>
-          <div class="filter-container">
+          <div class="filter-container mb-3">
             <label for="startDate">Initial Date:</label>
-            <input type="date" id="startDate" />
-            <label for="endDate">Current Date:</label>
-            <input type="date" id="endDate" />
-            <button onclick="filterSales()">Filter</button>
+            <input type="date" id="startDate" class="form-control d-inline-block" style="width: 180px;" />
+            <label for="endDate" class="ms-2">Current Date:</label>
+            <input type="date" id="endDate" class="form-control d-inline-block" style="width: 180px;" />
+            <button class="btn btn-primary ms-2" onclick="filterSales()">Filter</button>
           </div>
-          <table id="salesTable">
-            <thead>
+          <table class="table table-striped table-hover">
+            <thead class="table-primary">
               <tr>
                 <th>Date</th>
                 <th>Invoice No</th>
@@ -431,8 +418,8 @@
             </tbody>
             <tfoot>
               <tr>
-                <td colspan="3" style="text-align: right;">Net Total Sale (Rs.):</td>
-                <td id="netTotal">Rs. 0.00</td>
+                <td colspan="3" class="text-end fw-bold">Net Total Sale (Rs.):</td>
+                <td id="netTotal" class="fw-bold">Rs. 0.00</td>
               </tr>
             </tfoot>
           </table>
@@ -441,16 +428,15 @@
         <!-- Stock Report Section -->
         <div id="stockReport" class="section">
           <div class="header-large">Stock Report</div>
-          <div class="search-container">
-            <input type="text" id="stockSearchInput" placeholder="Search by Product Name, CTN Size..." />
+          <div class="search-container mb-3">
+            <input type="text" id="stockSearchInput" class="form-control" placeholder="Search by Product Name, CTN Size..." />
           </div>
-          <div style="text-align: center; margin-bottom: 10px;">
-            <button onclick="openAddStockModal()">Add New Stock</button>
-            <button onclick="openUpdateSaleModal()">Update Sale</button>
+          <div class="text-center mb-3">
+            <button class="btn btn-primary me-2" onclick="openAddStockModal()">Add New Stock</button>
+            <button class="btn btn-secondary" onclick="openUpdateSaleModal()">Update Sale</button>
           </div>
-          <!-- Updated Stock Report Table Header -->
-          <table id="stockTable">
-            <thead>
+          <table class="table table-bordered table-hover">
+            <thead class="table-primary">
               <tr>
                 <th>Product Name</th>
                 <th>CTN Size</th>
@@ -465,8 +451,8 @@
             </tbody>
             <tfoot>
               <tr>
-                <td colspan="5" style="text-align: right;">Net Total Stock Value (Rs.):</td>
-                <td id="netStockValue">Rs. 0.00</td>
+                <td colspan="5" class="text-end fw-bold">Net Total Stock Value (Rs.):</td>
+                <td id="netStockValue" class="fw-bold">Rs. 0.00</td>
               </tr>
             </tfoot>
           </table>
@@ -476,11 +462,11 @@
         <div id="viewSavedItemsSection" class="section">
           <div class="header-large">View Saved Items</div>
           <div class="container">
-            <div class="search-container">
-              <input type="text" id="viewSavedSearch" placeholder="Search items..." oninput="filterViewSavedItems()" />
+            <div class="search-container mb-3">
+              <input type="text" id="viewSavedSearch" class="form-control" placeholder="Search items..." oninput="filterViewSavedItems()" />
             </div>
-            <table id="savedItemsTable">
-              <thead>
+            <table class="table table-bordered table-hover">
+              <thead class="table-primary">
                 <tr>
                   <th>Product ID</th>
                   <th>Description</th>
@@ -496,26 +482,17 @@
             </table>
           </div>
         </div>
+        
+        <!-- View Products Section -->
+        <div id="viewProducts" class="section">
+          <h2 class="text-center mb-4" style="color: var(--primary);">View Products</h2>
+          <ul id="viewProductsList" class="list-group">
+            <!-- Product list items will be populated here -->
+          </ul>
+        </div>
       </div>
 
       <!-- ---------- Modals ---------- -->
-      <!-- Add New Item Modal -->
-      <div id="addItemModal" class="modal no-print">
-        <h3>Add New Item</h3>
-        <label for="newItemCodeModal">Product Code:</label>
-        <input type="text" id="newItemCodeModal" required />
-        <label for="newItemDescModal">Description:</label>
-        <input type="text" id="newItemDescModal" required />
-        <label for="newItemCtnSizeModal">CTN Size:</label>
-        <input type="text" id="newItemCtnSizeModal" required />
-        <label for="newItemBoxesModal">Boxes per CTN:</label>
-        <input type="number" id="newItemBoxesModal" required />
-        <label for="newItemCtnPriceModal">CTN Price:</label>
-        <input type="number" id="newItemCtnPriceModal" step="0.01" required />
-        <button onclick="saveNewItemFromModal()">Save Item</button>
-        <button onclick="closeModal('addItemModal')">Close</button>
-      </div>
-
       <!-- Edit Item Modal -->
       <div id="editItemModal" class="modal no-print">
         <h3>Edit Item</h3>
@@ -528,54 +505,57 @@
         <input type="number" id="editCtnPrice" />
         <label for="editBoxesPerCtn">Boxes per CTN:</label>
         <input type="number" id="editBoxesPerCtn" />
-        <button onclick="saveEditedItem()">Save Changes</button>
-        <button onclick="closeModal('editItemModal')">Close</button>
+        <button class="btn btn-primary" onclick="saveEditedItem()">Save Changes</button>
+        <button class="btn btn-secondary" onclick="closeModal('editItemModal')">Close</button>
       </div>
 
       <!-- Add New Stock Modal -->
       <div id="addStockModal" class="modal no-print">
         <h3>Add New Stock</h3>
         <label for="stockItemSelect">Select Item:</label>
-        <select id="stockItemSelect"></select>
+        <select id="stockItemSelect" class="form-select"></select>
         <label>Add Qty:</label>
-        <div>
+        <div class="mb-2">
           <label for="stockCtns">CTNs:</label>
-          <input type="number" id="stockCtns" placeholder="0" value="0" />
+          <input type="number" id="stockCtns" class="form-control" placeholder="0" value="0" />
         </div>
-        <div>
+        <div class="mb-2">
           <label for="stockBoxes">Boxes:</label>
-          <input type="number" id="stockBoxes" placeholder="0" value="0" />
+          <input type="number" id="stockBoxes" class="form-control" placeholder="0" value="0" />
         </div>
-        <button onclick="saveNewStock()">Save Stock</button>
-        <button onclick="closeModal('addStockModal')">Close</button>
+        <button class="btn btn-primary" onclick="saveNewStock()">Save Stock</button>
+        <button class="btn btn-secondary" onclick="closeModal('addStockModal')">Close</button>
       </div>
 
       <!-- Update Sale Modal -->
       <div id="updateSaleModal" class="modal no-print">
         <h3>Update Sale</h3>
         <label for="saleItemSelect">Select Item:</label>
-        <select id="saleItemSelect"></select>
+        <select id="saleItemSelect" class="form-select"></select>
         <label>Sale Qty:</label>
-        <div>
+        <div class="mb-2">
           <label for="saleCtns">CTNs:</label>
-          <input type="number" id="saleCtns" placeholder="0" value="0" />
+          <input type="number" id="saleCtns" class="form-control" placeholder="0" value="0" />
         </div>
-        <div>
+        <div class="mb-2">
           <label for="saleBoxes">Boxes:</label>
-          <input type="number" id="saleBoxes" placeholder="0" value="0" />
+          <input type="number" id="saleBoxes" class="form-control" placeholder="0" value="0" />
         </div>
-        <button onclick="saveSale()">Save Sale</button>
-        <button onclick="closeModal('updateSaleModal')">Close</button>
+        <button class="btn btn-primary" onclick="saveSale()">Save Sale</button>
+        <button class="btn btn-secondary" onclick="closeModal('updateSaleModal')">Close</button>
       </div>
     </div>
 
     <!-- ---------- Scripts ---------- -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      // Login Page Scripts
+      // If already logged in, show dashboard; otherwise, show login
       if (sessionStorage.getItem("loggedIn") === "true") {
         document.getElementById("loginPage").style.display = "none";
         document.getElementById("dashboard").style.display = "block";
       }
+      
+      // Slideshow for Login Page
       const images = [
         "https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/3.png",
         "https://raw.githubusercontent.com/SPICE859/pictures/refs/heads/main/2.png",
@@ -594,6 +574,8 @@
         }, 300);
       }
       setInterval(nextImage, 3000);
+      
+      // Login Form Submission
       document.getElementById("loginForm").addEventListener("submit", function (e) {
         e.preventDefault();
         const username = document.getElementById("username").value;
@@ -606,7 +588,8 @@
           alert("Invalid credentials. Please try again.");
         }
       });
-      // Dashboard Scripts
+      
+      // Firebase Initialization
       const firebaseConfig = {
         apiKey: "AIzaSyD_ojS20opjpxmwHxIHATC52ncABe_fkuk",
         authDomain: "ahyan-traders.firebaseapp.com",
@@ -619,8 +602,9 @@
       firebase.initializeApp(firebaseConfig);
       firebase.analytics();
       const db = firebase.firestore();
-
-      // Fetch saved items from Firestore
+      
+      // Custom Firestore and Modal Functions
+      
       async function getSavedItems() {
         const itemsSnapshot = await db.collection("items").get();
         const itemsMap = {};
@@ -636,46 +620,13 @@
         });
         return itemsMap;
       }
-
-      // Modal and Utility Functions for Dashboard
-      function openAddItemModal() {
-        document.getElementById("addItemModal").style.display = "block";
-      }
+      
+      // "Add New Item" functionality has been removed.
+      
       function closeModal(id) {
         document.getElementById(id).style.display = "none";
       }
-      async function saveNewItemFromModal() {
-        const code = document.getElementById("newItemCodeModal").value.trim();
-        const desc = document.getElementById("newItemDescModal").value.trim();
-        const size = document.getElementById("newItemCtnSizeModal").value.trim();
-        const boxes = parseFloat(document.getElementById("newItemBoxesModal").value);
-        const price = parseFloat(document.getElementById("newItemCtnPriceModal").value);
-        if (code && desc && size && !isNaN(boxes) && !isNaN(price)) {
-          try {
-            await db.collection("items").add({
-              code,
-              description: desc,
-              ctnSize: size,
-              boxesPerCtn: boxes,
-              ctnPrice: price
-            });
-            alert("Item added successfully!");
-            document.getElementById("newItemCodeModal").value = "";
-            document.getElementById("newItemDescModal").value = "";
-            document.getElementById("newItemCtnSizeModal").value = "";
-            document.getElementById("newItemBoxesModal").value = "";
-            document.getElementById("newItemCtnPriceModal").value = "";
-            closeModal("addItemModal");
-            updateSavedItemsTable();
-            updateStockReportTable();
-          } catch (error) {
-            console.error("Error adding item:", error);
-            alert("Error adding item.");
-          }
-        } else {
-          alert("Please fill in all fields correctly.");
-        }
-      }
+      
       async function updateSavedItemsTable() {
         try {
           const itemsMap = await getSavedItems();
@@ -689,10 +640,10 @@
               <td>${item.description}</td>
               <td>${item.ctnSize}</td>
               <td>${item.boxesPerCtn}</td>
-              <td>${parseFloat(item.ctnPrice).toFixed(2)}</td>
+              <td>Rs. ${parseFloat(item.ctnPrice).toFixed(2)}</td>
               <td>
-                <button onclick="openEditModal('${id}')">Edit</button>
-                <button onclick="deleteItem('${id}')">Delete</button>
+                <button class="btn btn-sm btn-outline-primary" onclick="openEditModal('${id}')">Edit</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteItem('${id}')">Delete</button>
               </td>
             `;
             tbody.appendChild(row);
@@ -701,23 +652,21 @@
           console.error("Error fetching saved items:", error);
         }
       }
+      
       async function updateStockReportTable() {
         try {
-          // Get aggregated stock (each doc's id is the product name)
           const stockSnapshot = await db.collection("stock").get();
           const stockAggregation = {};
           stockSnapshot.forEach((doc) => {
             const productName = doc.id;
             stockAggregation[productName] = doc.data();
           });
-          // Get aggregated sales (each doc's id is the product name)
           const saleSnapshot = await db.collection("sales").get();
           const saleAggregation = {};
           saleSnapshot.forEach((doc) => {
             const productName = doc.id;
             saleAggregation[productName] = doc.data();
           });
-          // Get product details from items collection to fetch CTN size, boxes per CTN, and unit price
           const itemsMap = await getSavedItems();
           const tbody = document.getElementById("stockTableBody");
           tbody.innerHTML = "";
@@ -729,7 +678,6 @@
               const saleData = saleAggregation[productName] || { ctns: 0, boxes: 0, pcs: 0 };
               const netCTNs = stockData.ctns - saleData.ctns;
               const netBoxes = stockData.boxes - saleData.boxes;
-              // Find matching product details based on product name (item description)
               let itemDetails = null;
               for (const key in itemsMap) {
                 if (itemsMap[key].description === productName) {
@@ -762,6 +710,7 @@
           console.error("Error fetching stock, sales or saved items:", error);
         }
       }
+      
       async function deleteItem(itemId) {
         try {
           await db.collection("items").doc(itemId).delete();
@@ -773,6 +722,7 @@
           alert("Error deleting item.");
         }
       }
+      
       async function openEditModal(itemId) {
         try {
           const docRef = db.collection("items").doc(itemId);
@@ -790,6 +740,7 @@
           console.error("Error opening edit modal:", error);
         }
       }
+      
       async function saveEditedItem() {
         const itemId = document.getElementById("editItemId").value;
         const desc = document.getElementById("editDescription").value.trim();
@@ -816,6 +767,7 @@
           alert("Please fill in all fields correctly.");
         }
       }
+      
       async function updateSaleSummaryTable() {
         try {
           const querySnapshot = await db.collection("billing").get();
@@ -829,8 +781,8 @@
             let dateStr = "N/A";
             if (bill.billDate) {
               let date = new Date(bill.billDate);
-              let month = (date.getMonth() + 1).toString().padStart(2, '0');
-              let day = date.getDate().toString().padStart(2, '0');
+              let month = (date.getMonth() + 1).toString().padStart(2, "0");
+              let day = date.getDate().toString().padStart(2, "0");
               let year = date.getFullYear();
               dateStr = `${month}/${day}/${year}`;
             }
@@ -848,6 +800,7 @@
           console.error("Error fetching billing data:", error);
         }
       }
+      
       function filterSales() {
         var startDate = document.getElementById("startDate").value;
         var endDate = document.getElementById("endDate").value;
@@ -857,25 +810,18 @@
         for (var i = 0; i < rows.length; i++) {
           var dateText = rows[i].getElementsByTagName("td")[0].textContent;
           var showRow = true;
-          if (startDate && dateText < startDate) {
-            showRow = false;
-          }
-          if (endDate && dateText > endDate) {
-            showRow = false;
-          }
+          if (startDate && dateText < startDate) { showRow = false; }
+          if (endDate && dateText > endDate) { showRow = false; }
           if (showRow) {
             rows[i].style.display = "";
             var amountText = rows[i].getElementsByTagName("td")[3].textContent.trim();
             var netAmount = parseFloat(amountText.replace("Rs.", "").trim());
-            if (!isNaN(netAmount)) {
-              total += netAmount;
-            }
-          } else {
-            rows[i].style.display = "none";
-          }
+            if (!isNaN(netAmount)) { total += netAmount; }
+          } else { rows[i].style.display = "none"; }
         }
         document.getElementById("netTotal").textContent = "Rs. " + total.toFixed(2);
       }
+      
       function filterViewSavedItems() {
         let filter = (document.getElementById("viewSavedSearch").value || "").toUpperCase();
         let table = document.getElementById("savedItemsTable");
@@ -892,10 +838,12 @@
           trs[i].style.display = show ? "" : "none";
         }
       }
+      
       function openAddStockModal() {
         document.getElementById("addStockModal").style.display = "block";
         populateStockItemSelect();
       }
+      
       async function populateStockItemSelect() {
         try {
           const itemsMap = await getSavedItems();
@@ -909,21 +857,15 @@
           console.error("Error populating stock items:", error);
         }
       }
-      // Updated: Save new stock using the product name as document name
+      
       async function saveNewStock() {
         const itemId = document.getElementById("stockItemSelect").value;
         const ctns = parseInt(document.getElementById("stockCtns").value) || 0;
         const boxes = parseInt(document.getElementById("stockBoxes").value) || 0;
-        if (!itemId) {
-          alert("Please select an item.");
-          return;
-        }
+        if (!itemId) { alert("Please select an item."); return; }
         const itemsMap = await getSavedItems();
         const selectedItem = itemsMap[itemId];
-        if (!selectedItem) {
-          alert("Invalid item selected.");
-          return;
-        }
+        if (!selectedItem) { alert("Invalid item selected."); return; }
         const productName = selectedItem.description;
         const stockRef = db.collection("stock").doc(productName);
         try {
@@ -934,11 +876,7 @@
               boxes: firebase.firestore.FieldValue.increment(boxes)
             });
           } else {
-            await stockRef.set({
-              ctns: ctns,
-              boxes: boxes,
-              pcs: 0
-            });
+            await stockRef.set({ ctns, boxes, pcs: 0 });
           }
           alert("Stock added successfully!");
           document.getElementById("stockCtns").value = "0";
@@ -950,21 +888,15 @@
           alert("Error adding stock.");
         }
       }
-      // Updated: Save sale using the product name as document name
+      
       async function saveSale() {
         const itemId = document.getElementById("saleItemSelect").value;
         const ctns = parseInt(document.getElementById("saleCtns").value) || 0;
         const boxes = parseInt(document.getElementById("saleBoxes").value) || 0;
-        if (!itemId) {
-          alert("Please select an item.");
-          return;
-        }
+        if (!itemId) { alert("Please select an item."); return; }
         const itemsMap = await getSavedItems();
         const selectedItem = itemsMap[itemId];
-        if (!selectedItem) {
-          alert("Invalid item selected.");
-          return;
-        }
+        if (!selectedItem) { alert("Invalid item selected."); return; }
         const productName = selectedItem.description;
         const saleRef = db.collection("sales").doc(productName);
         try {
@@ -976,9 +908,7 @@
             });
           } else {
             await saleRef.set({
-              ctns: ctns,
-              boxes: boxes,
-              pcs: 0,
+              ctns, boxes, pcs: 0,
               date: new Date().toISOString()
             });
           }
@@ -992,10 +922,12 @@
           alert("Error updating sale.");
         }
       }
+      
       function openUpdateSaleModal() {
         document.getElementById("updateSaleModal").style.display = "block";
         populateSaleItemSelect();
       }
+      
       async function populateSaleItemSelect() {
         try {
           const itemsMap = await getSavedItems();
@@ -1009,26 +941,113 @@
           console.error("Error populating sale items:", error);
         }
       }
+      
       function showSection(sectionId) {
         const sections = document.getElementsByClassName("section");
         for (let i = 0; i < sections.length; i++) {
           sections[i].style.display = "none";
         }
         document.getElementById(sectionId).style.display = "block";
-        if (sectionId === "saleSummary") {
-          updateSaleSummaryTable();
+        if (sectionId === "saleSummary") { updateSaleSummaryTable(); }
+        if (sectionId === "stockReport") { updateStockReportTable(); }
+        if (sectionId === "viewSavedItemsSection") { updateSavedItemsTable(); }
+        if (sectionId === "overview") {
+          if (!window.overviewChart) { initOverviewChart(); }
         }
-        if (sectionId === "stockReport") {
-          updateStockReportTable();
-        }
-        if (sectionId === "viewSavedItemsSection") {
-          updateSavedItemsTable();
+        if (sectionId === "viewProducts") {
+          updateViewProducts();
         }
       }
+      
+      // New function: updateViewProducts populates the View Products section
+      async function updateViewProducts() {
+        try {
+          const itemsMap = await getSavedItems();
+          const ul = document.getElementById("viewProductsList");
+          ul.innerHTML = "";
+          for (const id in itemsMap) {
+            const item = itemsMap[id];
+            const li = document.createElement("li");
+            li.className = "list-group-item";
+            li.textContent = item.code + " - " + item.description;
+            ul.appendChild(li);
+          }
+          if (ul.innerHTML === "") {
+            ul.innerHTML = "<li class='list-group-item'>No products available</li>";
+          }
+        } catch (error) {
+          console.error("Error fetching products:", error);
+        }
+      }
+      
+      // Initialize the Overview Chart using Chart.js with dynamic data from billing collection
+      async function updateOverviewChart() {
+        try {
+          const querySnapshot = await db.collection("billing").get();
+          const monthlySales = {};
+          // Aggregate net sales by month from billing data
+          querySnapshot.forEach((doc) => {
+            const bill = doc.data();
+            if (bill.billDate && bill.netAmount) {
+              let date = new Date(bill.billDate);
+              // Get month in short format (e.g., Jan, Feb)
+              let month = date.toLocaleString("default", { month: "short" });
+              if (!monthlySales[month]) {
+                monthlySales[month] = 0;
+              }
+              monthlySales[month] += parseFloat(bill.netAmount);
+            }
+          });
+          // Sort months in calendar order
+          const allMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+          const labels = allMonths.filter((m) => monthlySales[m] !== undefined);
+          const data = labels.map((m) => monthlySales[m]);
+          if (window.overviewChart) {
+            window.overviewChart.data.labels = labels;
+            window.overviewChart.data.datasets[0].data = data;
+            window.overviewChart.update();
+          }
+        } catch (error) {
+          console.error("Error updating overview chart:", error);
+        }
+      }
+      
+      // Initialize the chart initially with dynamic data
+      function initOverviewChart() {
+        const ctx = document.getElementById("overviewChart").getContext("2d");
+        window.overviewChart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: [],
+            datasets: [{
+              label: "Sales in Rs.",
+              data: [],
+              borderColor: "rgba(75,192,192,1)",
+              backgroundColor: "rgba(75,192,192,0.2)",
+              tension: 0.3,
+              fill: true
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } }
+          }
+        });
+        updateOverviewChart();
+      }
+      
+      document.getElementById("updateChart")?.addEventListener("click", () => {
+        updateOverviewChart();
+      });
+      
+      // Custom logout function
+      function logout() {
+        sessionStorage.removeItem("loggedIn");
+        location.reload();
+      }
+      
       function attachGlobals() {
-        window.openAddItemModal = openAddItemModal;
         window.closeModal = closeModal;
-        window.saveNewItemFromModal = saveNewItemFromModal;
         window.updateSavedItemsTable = updateSavedItemsTable;
         window.updateStockReportTable = updateStockReportTable;
         window.deleteItem = deleteItem;
@@ -1042,11 +1061,17 @@
         window.openUpdateSaleModal = openUpdateSaleModal;
         window.saveSale = saveSale;
         window.updateSaleSummaryTable = updateSaleSummaryTable;
+        window.logout = logout;
         console.log("Global functions attached");
       }
+      
       attachGlobals();
-      showSection("home");
+      // Start by showing the Overview section
+      showSection("overview");
       document.getElementById("stockSearchInput").addEventListener("input", updateStockReportTable);
+      document.addEventListener("DOMContentLoaded", () => {
+        initOverviewChart();
+      });
     </script>
   </body>
 </html>
